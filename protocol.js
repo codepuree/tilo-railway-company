@@ -1,0 +1,43 @@
+const messageLog = document.querySelector('#messageLog')
+
+let webSocket = new WebSocket(`ws://${location.host}/websocket`)
+
+webSocket.onopen = open => {
+    console.log('Open:', open)
+}
+
+function calculateChecksum(messageBody) {
+    let length = messageBody.length;
+    let sum = Array.from(messageBody)
+        .reduce((aggregation, character) => {
+            aggregation += character.charCodeAt(0)
+            return aggregation
+        }, 0)
+    let checksum = sum % length + 10
+
+    console.log(`calculateChecksum:\n\tlength: ${length}\n\t   sum: ${sum}\n\t      = ${checksum}`)
+
+    return checksum
+}
+
+webSocket.onmessage = message => {
+    console.log('Message:', message)
+    const messageElement = document.createElement('p')
+    messageElement.innerText = `> ${message.data}`;
+    messageLog.appendChild(messageElement)
+
+    if (message.data == 'l123: on') {
+        document.querySelector('#l123').setAttribute('fill', 'green')
+    } else if (message.data + '' == 'l123: off') {
+        document.querySelector('#l123').setAttribute('fill', 'red')
+    }
+
+}
+
+webSocket.onerror = error => {
+    console.log('Error:', error)
+}
+
+webSocket.onclose = close => {
+    console.log('Close:', close)
+}

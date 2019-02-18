@@ -1,0 +1,136 @@
+@font-face {
+    font-family: 'corp_round';
+    src: url('./resources/corp_round_v1.ttf');
+}
+
+:root {
+    font-size: 16px;
+
+    --clr-primary: #589586;
+    --clr-green: #73a840;
+    --clr-yellow: #e0c633;
+    --clr-red: #c65020;
+    --clr-gray: #babab8;
+    --clr-gray-light: #f2f2f2;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'corp_round', 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: var(--clr-primary);
+}
+
+html {
+    padding: 0;
+    margin: 0;
+    background-color: var(--clr-gray-light);
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    display: grid;
+    height: 100vh;
+    width: 100vw;
+    grid-template-areas: 
+        "logo plan control"
+        "menu plan control"
+    ;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: auto 1fr auto;
+    grid-gap: 1vmax;
+    overflow: hidden;
+}
+
+#logo {
+    grid-area: logo;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+    max-width: 20vw;
+    justify-self: flex-start;
+    align-self: flex-start;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    padding: 5px;
+    /* background-color: lightgray; */
+}
+
+#menu {
+    grid-area: menu;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+    /* background-color: orange; */
+}
+
+#plan {
+    grid-area: plan;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    padding: 20px;
+}
+
+#plan object {
+    width: 100%;
+}
+
+#control {
+    grid-area: control;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+#control input[type=range] {
+    transform: rotate(90deg);
+    width: 100%;
+    height: 50vh;
+}
+
+#control input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 1px solid #000000;
+    height: 36px;
+    width: 16px;
+    border-radius: 3px;
+    background: #ffffff;
+    cursor: pointer;
+    background-image: url('./resources/slider_schlitten_quer.svg');
+}
+
+@media (max-width: 768px) {
+    #logo {
+        background-color: lime;
+    }
+
+    body {
+        grid-template-areas: 
+            "logo menu"
+            "plan plan"
+            "control control"
+        ;
+        grid-template-rows: auto 1fr 10vh;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.status {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: var(--clr-gray);
+}
+
+.status[state=on] {
+    background-color: var(--clr-green);
+}
+
+.status[state=off] {
+    background-color: var(--clr-red);
+}
+
+input {
+    /* border: none; */
+    border: 1px solid var(--clr-primary);
+}
+
+input[type=number] {
+    width: 6ch;
+}

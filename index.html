@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tilo Railway companys</title>
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./toggle.css">
+    <link rel="stylesheet" href="./menu.css">
+    <script src="./toggle.js"></script>
+    <script src="./direction-button.js"></script>
+    <script src="./event-system.js"></script>
+</head>
+
+<body>
+    <div id="logo">
+        <img src="./resources/TRgroup.svg" width="100%" alt="Tilo Railway Company" onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
+    </div>
+
+    <aside id="menu" class="">
+        <section>
+            <img class="menuHandle" src="./resources/menu.svg" width="30" height="30" alt="Hamburger_icon"
+                style="filter: grayscale(100);" onclick="document.querySelector('#menu').classList.toggle('hidden')">
+        </section>
+        <section>
+            <h2>
+                <span class="title">Automatik</span>
+                <toggle-switch />
+            </h2>
+            <label for="">Start</label>
+            <div class="status" state="on"></div>
+            <label for="">Stopp</label>
+            <div class="status"></div>
+            <label for="">Initialisierung</label>
+            <toggle-switch />
+            <label for="">min. Runden</label>
+            <input type="number" name="" id="">
+            <label for="">max. Runden</label>
+            <input type="number" name="" id="">
+            <label for="">Round Robin</label>
+            <toggle-switch />
+        </section>
+        <section>
+            <h2>
+                <span class="title">Licht</span>
+            </h2>
+            <label for="">Bahnhof</label>
+            <toggle-switch />
+            <label for="">Wartung</label>
+            <toggle-switch />
+        </section>
+    </aside>
+
+    <main id="plan">
+        <object type="image/svg+xml" data="./resources/Streckenplan_komplett.svg">
+            Streckenplan_komplett
+            <!-- fallback image in CSS -->
+        </object>
+    </main>
+
+    <aside id="control">
+        <h2>Control</h2>
+        <input type="range" orient="vertical">
+        
+        <h3>Oben</h3>
+        <direction-button id="btnDirUpLeft" direction="links"></direction-button>
+        <direction-button id="btnDirUpRight" direction="rechts"></direction-button>
+        
+        <h3>Unten</h3>
+        <direction-button id="btnDirDownLeft" direction="links"></direction-button>
+        <direction-button id="btnDirDownRight" direction="rechts"></direction-button>
+    </aside>
+
+    <!-- Scripts -->
+    <script src="./protocol.js"></script>
+    <script src="./index.js"></script>
+</body>
+
+</html>
