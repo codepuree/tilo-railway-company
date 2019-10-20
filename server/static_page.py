@@ -1,1 +1,0 @@
-""" This modules handles the requests to the static page content. """
