@@ -50,8 +50,6 @@ func (s *Server) setupRoutes() {
 	s.Router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
 	s.Router.PathPrefix("/resources/").Handler(http.StripPrefix("/resources/", http.FileServer(http.Dir("./resources"))))
 
-	s.Router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s wants to connect to the websocket.", r.RemoteAddr)
-	})
+	s.Router.HandleFunc("/websocket", HandleWebsocket)
 	s.Router.HandleFunc("/", HandleIndex)
 }
