@@ -5,24 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Tilo Railway companys</title>
-    <link rel="shortcut icon" href="/imgs/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/css/index.css">
-    <link rel="stylesheet" href="/css/toggle.css">
-    <link rel="stylesheet" href="/css/menu.css">
-    <script src="/js/toggle.js"></script>
-    <script src="/js/direction-button.js"></script>
-    <script src="/js/event-system.js"></script>
+    <title>Tilo Railway company</title>
+    <link rel="shortcut icon" href="/static/imgs/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/css/toggle.css">
+    <link rel="stylesheet" href="/static/css/menu.css">
+    <script src="/static/js/toggle.js"></script>
+    <script src="/static/js/direction-button.js"></script>
+    <script src="/static/js/event-system.js"></script>
 </head>
 
 <body>
     <div id="logo">
-        <img src="./resources/TRgroup.svg" width="100%" alt="Tilo Railway Company" onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
+        <img src="/resources/TRgroup.svg" width="100%" alt="Tilo Railway Company" onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
     </div>
 
     <aside id="menu" class="">
         <section>
-            <img class="menuHandle" src="./resources/menu.svg" width="30" height="30" alt="Hamburger_icon"
+            <img class="menuHandle" src="/resources/menu.svg" width="30" height="30" alt="Hamburger_icon"
                 style="filter: grayscale(100);" onclick="document.querySelector('#menu').classList.toggle('hidden')">
         </section>
         <section>
@@ -55,13 +55,13 @@
     </aside>
 
     <main id="plan">
-        <object type="image/svg+xml" data="./resources/Streckenplan_komplett.svg">
+        <!-- <object type="image/svg+xml" data="/resources/Streckenplan_komplett.svg">
             Streckenplan_komplett
-        </object>
-        <object type="image/svg+xml" data="./resources/adjusted/Streckenplan_oben.svg">
+        </object> -->
+        <object type="image/svg+xml" data="/resources/adjusted/Streckenplan_oben.svg">
             Streckenplan_oben
         </object>
-        <object type="image/svg+xml" data="./resources/adjusted/Streckenplan_unten.svg">
+        <object type="image/svg+xml" data="/resources/adjusted/Streckenplan_unten.svg">
             Streckenplan_unten
         </object>
     </main>
@@ -80,8 +80,8 @@
     </aside>
 
     <!-- Scripts -->
-    <script src="/js/protocol.js"></script>
-    <script src="/js/index.js"></script>
+    <script src="/static/js/protocol.js"></script>
+    <script src="/static/js/index.js"></script>
 </body>
 
 </html>
