@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'corp_round';
-    src: url('./resources/corp_round_v1.ttf');
+    src: url('/resources/corp_round_v1.ttf');
 }
 
 :root {
@@ -92,7 +92,7 @@ body {
     border-radius: 3px;
     background: #ffffff;
     cursor: pointer;
-    background-image: url('./resources/slider_schlitten_quer.svg');
+    background-image: url('/resources/slider_schlitten_quer.svg');
 }
 
 @media (max-width: 768px) {

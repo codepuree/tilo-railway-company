@@ -7,7 +7,7 @@ class DirectionButton extends HTMLElement {
                 width: 2rem;
                 height: 2rem;
                 display: inline-block;
-                background-image: var(--img-url, url('./resources/richtung_links_inaktiv.svg'));
+                background-image: var(--img-url, url('/resources/richtung_links_inaktiv.svg'));
                 background-size: contain;
                 cursor: pointer;
             }
@@ -53,7 +53,7 @@ class DirectionButton extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        this.style.setProperty('--img-url', `url(./resources/richtung_${this.direction}_${this.state}.svg)`)
+        this.style.setProperty('--img-url', `url(/resources/richtung_${this.direction}_${this.state}.svg)`)
     }
 }
 customElements.define('direction-button', DirectionButton)
