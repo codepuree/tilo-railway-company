@@ -84,10 +84,13 @@ document.addEventListener('DOMContentLoaded', event => {
     
                     if (elem.getAttribute('fill') === green) {
                         elem.setAttribute('fill', yellow)
+                        webSocket.send(`${elem.id}: warn`)
                     } else if (elem.getAttribute('fill') === yellow) {
                         elem.setAttribute('fill', red)
+                        webSocket.send(`${elem.id}: stop`)
                     } else {
                         elem.setAttribute('fill', green)
+                        webSocket.send(`${elem.id}: go`)
                     }
                 })
             })

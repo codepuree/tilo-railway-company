@@ -26,12 +26,44 @@ webSocket.onmessage = message => {
     messageElement.innerText = `> ${message.data}`;
     messageLog.appendChild(messageElement)
 
-    if (message.data == 'l123: on') {
-        document.querySelector('#l123').setAttribute('fill', 'green')
-    } else if (message.data + '' == 'l123: off') {
-        document.querySelector('#l123').setAttribute('fill', 'red')
-    }
+    // if (message.data == 'l123: on') {
+    //     document.querySelector('#l123').setAttribute('fill', 'green')
+    // } else if (message.data + '' == 'l123: off') {
+    //     document.querySelector('#l123').setAttribute('fill', 'red')
+    // }
 
+    const planObject = document.querySelector('#plan object')
+    const planObjectSVG = planObject.getSVGDocument()
+    let [id, state] = message.data.split(':')
+    let obj = planObjectSVG.getElementById(id)
+
+    if (obj != null && obj != undefined) {
+        const style = getComputedStyle(document.body);
+        const green = style.getPropertyValue('--clr-green')
+        const yellow = style.getPropertyValue('--clr-yellow')
+        const red = style.getPropertyValue('--clr-red')
+
+        let col = red;
+        switch (state.trim()) {
+            case 'go':
+                col = green
+                break;
+
+            case 'warn':
+                col = yellow
+                break
+            
+            case 'stop':
+                col = red
+                break
+        
+            default:
+                col = red
+                break;
+        }
+
+        obj.setAttribute('fill', col)
+    }
 }
 
 webSocket.onerror = error => {
