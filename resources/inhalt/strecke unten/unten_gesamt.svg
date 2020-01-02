@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Generator: Adobe Illustrator 16.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 841.9 595.3" style="enable-background:new 0 0 841.9 595.3;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill:#010202;}
-</style>
+	 width="1174.233px" height="414.267px" viewBox="262.779 217.99 1174.233 414.267"
+	 enable-background="new 262.779 217.99 1174.233 414.267" xml:space="preserve">
 <g id="XMLID_5_">
-	<polygon id="XMLID_39_" class="st0" points="138.1,441.8 135.7,441.8 92.8,402.1 101.2,394.3 140.6,430.8 699.9,430.8 739.1,394.3 
-		747.5,402.1 704.8,441.8 	"/>
+	<polygon id="XMLID_39_" fill="#010202" points="446.342,631.114 442.913,631.114 381.63,574.402 393.63,563.26 449.913,615.4 
+		1248.877,615.4 1304.874,563.26 1316.874,574.402 1255.877,631.114 	"/>
 </g>
 <g id="XMLID_3_">
-	<rect id="XMLID_38_" x="12.6" y="316.5" class="st0" width="812.8" height="11"/>
+	<rect id="XMLID_38_" x="267.064" y="452.122" fill="#010202" width="1161.09" height="15.714"/>
 </g>
 <g id="XMLID_55_">
-	<path id="XMLID_63_" class="st0" d="M811.3,327.4l8.4-7.8v-83.1l-79.1-73h-640l-79.2,73v83.2l8.2,7.6l-16.7,0l-3.3-3V232l86.2-79.4
-		h649.7l86.1,79.4v92.2l-3.5,3.2L811.3,327.4z"/>
+	<path id="XMLID_63_" fill="#010202" d="M1408.012,467.693l12-11.143V337.842l-112.994-104.281H392.773L279.635,337.842v118.852
+		l11.714,10.857h-23.856l-4.714-4.286V331.414L385.916,217.99h928.1l122.996,113.424v131.708l-5,4.571H1408.012z"/>
 </g>
-<polygon id="XMLID_64_" class="st0" points="12.6,327.4 29.3,327.4 70.7,365.8 53.9,365.8 "/>
-<polygon id="XMLID_81_" class="st0" points="54,365.8 70.7,365.8 112,404.2 95.3,404.2 "/>
-<polygon id="XMLID_82_" class="st0" points="95.3,404.2 112,404.2 153.4,442.6 136.6,442.6 "/>
-<polygon id="XMLID_80_" class="st0" points="828,327.4 811.3,327.4 769.9,365.8 786.7,365.8 "/>
-<polygon id="XMLID_85_" class="st0" points="786.7,365.8 770,365.8 728.6,404.2 745.4,404.2 "/>
-<polygon id="XMLID_87_" class="st0" points="745.3,404.2 728.6,404.2 687.3,442.6 704,442.6 "/>
-<polygon id="XMLID_100_" class="st0" points="21.2,316.4 21.2,319.8 29.4,327.4 811.3,327.4 819.6,319.7 819.6,316.4 "/>
-<polygon id="XMLID_104_" class="st0" points="58.8,354.8 70.7,365.8 770,365.8 781.9,354.8 "/>
-<polygon id="XMLID_105_" class="st0" points="99.6,392.7 112,404.2 728.6,404.2 741.1,392.7 "/>
-<polygon id="XMLID_106_" class="st0" points="141.5,431.6 153.4,442.6 687.3,442.6 699.1,431.6 "/>
+<polygon id="XMLID_64_" fill="#010202" points="267.064,467.693 290.92,467.693 350.061,522.548 326.062,522.548 "/>
+<polygon id="XMLID_81_" fill="#010202" points="326.205,522.548 350.061,522.548 409.058,577.402 385.202,577.402 "/>
+<polygon id="XMLID_82_" fill="#010202" points="385.202,577.402 409.058,577.402 468.198,632.257 444.199,632.257 "/>
+<polygon id="XMLID_80_" fill="#010202" points="1431.87,467.693 1408.012,467.693 1348.872,522.548 1372.872,522.548 "/>
+<polygon id="XMLID_85_" fill="#010202" points="1372.872,522.548 1349.016,522.548 1289.875,577.402 1313.874,577.402 "/>
+<polygon id="XMLID_87_" fill="#010202" points="1313.731,577.402 1289.875,577.402 1230.877,632.257 1254.733,632.257 "/>
+<polygon id="XMLID_100_" fill="#010202" points="279.35,451.979 279.35,456.837 291.063,467.693 1408.012,467.693 1419.87,456.693 
+	1419.87,451.979 "/>
+<polygon id="XMLID_104_" fill="#010202" points="333.062,506.834 350.061,522.548 1349.016,522.548 1366.014,506.834 "/>
+<polygon id="XMLID_105_" fill="#010202" points="391.344,560.975 409.058,577.402 1289.875,577.402 1307.731,560.975 "/>
+<polygon id="XMLID_106_" fill="#010202" points="451.199,616.544 468.198,632.257 1230.877,632.257 1247.735,616.544 "/>
 </svg>

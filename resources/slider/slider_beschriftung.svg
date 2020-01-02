@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Generator: Adobe Illustrator 16.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 841.9 595.3" style="enable-background:new 0 0 841.9 595.3;" xml:space="preserve">
-<style type="text/css">
-	.st0{font-family:'Novecentosanswide-Medium';}
-	.st1{font-size:51.3326px;}
-	.st2{font-size:42px;}
-</style>
-<text id="XMLID_4_" transform="matrix(1 0 0 1 339.4473 475.0147)" class="st0 st1">0</text>
-<text id="XMLID_10_" transform="matrix(1 0 0 1 293.9161 35.0147)" class="st0 st1">100</text>
+	 width="219.766px" height="859.979px" viewBox="668.926 -12.311 219.766 859.979"
+	 enable-background="new 668.926 -12.311 219.766 859.979" xml:space="preserve">
+<text id="XMLID_4_" transform="matrix(1 0 0 1 733.9678 678.5615)" font-family="'Novecentosanswide-Medium'" font-size="73.329">0</text>
+<text id="XMLID_10_" transform="matrix(1 0 0 1 668.9258 50.0186)" font-family="'Novecentosanswide-Medium'" font-size="73.329">100</text>
 <g id="XMLID_15_">
-	<polygon id="XMLID_16_" points="377.5,458.3 411.9,458.3 411.9,463.4 377.5,463.4 	"/>
+	<polygon id="XMLID_16_" points="788.326,654.685 837.467,654.685 837.467,661.97 788.326,661.97 	"/>
 </g>
 <g id="XMLID_1_">
-	<polygon id="XMLID_2_" points="377.5,18.1 411.9,18.2 411.9,23.3 377.5,23.2 	"/>
+	<polygon id="XMLID_2_" points="788.326,25.856 837.467,25.999 837.467,33.284 788.326,33.142 	"/>
 </g>
 <g id="XMLID_17_">
-	
-		<rect id="XMLID_18_" x="377.5" y="569.4" transform="matrix(-1 -5.088891e-004 5.088891e-004 -1 824.9662 1144.0771)" width="70.3" height="5.1"/>
+	<rect id="XMLID_18_" x="788.266" y="813.345" width="100.424" height="7.285"/>
 </g>
-<text id="XMLID_19_" transform="matrix(1 0 0 1 296.5699 584.2801)" class="st0 st2">off</text>
+<text id="XMLID_19_" transform="matrix(1 0 0 1 672.7168 834.6484)" font-family="'Novecentosanswide-Medium'" font-size="59.9973">off</text>
 </svg>

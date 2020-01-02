@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Generator: Adobe Illustrator 16.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 841.9 595.3" style="enable-background:new 0 0 841.9 595.3;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill:#010202;}
-</style>
+	 width="1174.232px" height="329.985px" viewBox="262.35 259.274 1174.232 329.985"
+	 enable-background="new 262.35 259.274 1174.232 329.985" xml:space="preserve">
 <g id="XMLID_65_">
-	<path id="XMLID_66_" class="st0" d="M695.4,192.5l13.1-11H746l85.3,79.3v72.3l-86.2,79.4H95.4L9.3,333.2v-72.2l42.5-39.6l16.7,0
-		l-47.4,44.1v63.1l79.1,73h640l79.2-73v-63.2l-78.4-72.9L695.4,192.5z"/>
+	<path id="XMLID_66_" fill="#010202" d="M1242.448,274.988l18.715-15.714h53.568l121.852,113.281v103.281l-123.137,113.423H385.345
+		L262.35,475.979V372.84l60.711-56.568h23.856l-67.711,62.997v90.139l112.995,104.281h914.245l113.139-104.281v-90.281
+		l-111.996-104.138H1242.448z"/>
 </g>
 <g id="XMLID_74_">
-	<polygon id="XMLID_75_" class="st0" points="56.7,232.4 68.5,221.4 660.8,221.4 695.4,192.5 713.3,192.5 665.4,232.3 	"/>
+	<polygon id="XMLID_75_" fill="#010202" points="330.062,331.985 346.918,316.271 1193.022,316.271 1242.448,274.988 
+		1268.018,274.988 1199.594,331.842 	"/>
 </g>
 <g id="XMLID_71_">
-	<path id="XMLID_77_" class="st0" d="M695.4,192.5H99.6l-31,28.9l-16.7,0l42.9-39.9h613.8L695.4,192.5z"/>
+	<path id="XMLID_77_" fill="#010202" d="M1242.448,274.988H391.344l-44.284,41.284h-23.856l61.283-56.998h876.818L1242.448,274.988z
+		"/>
 </g>
 </svg>
