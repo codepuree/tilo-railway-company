@@ -5,84 +5,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Tilo Railway company</title>
-    <link rel="shortcut icon" href="/static/imgs/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/static/css/index.css">
-    <link rel="stylesheet" href="/static/css/toggle.css">
-    <link rel="stylesheet" href="/static/css/menu.css">
-    <script src="/static/js/toggle.js"></script>
-    <script src="/static/js/direction-button.js"></script>
-    <script src="/static/js/event-system.js"></script>
+    <title>Tilo Railway Company</title>
+    <style>
+        :root {
+            --clr-primary: #2eb0f3;
+            --clr-background: white;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            /* overflow: hidden; */
+            color: var(--clr-primary);
+        }
+
+        body {
+            display: grid;
+            grid-template:
+                "left main right"1fr / auto 1fr minmax(5vw, auto);
+        }
+
+        aside {
+            background-color: orange;
+        }
+
+        nav {
+            width: 5vh;
+        }
+
+        body>main {
+            background-color: green;
+        }
+
+        article {
+            background-color: blue;
+        }
+
+        aside.left {
+            grid-area: left;
+            display: flex;
+            flex-direction: row;
+            --button-width: 8vh;
+            width: var(--button-width);
+            position: relative;
+        }
+
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 200;
+            background-color: var(--clr-background);
+            box-shadow: 2px 0 2px rgba(0, 0, 0, 0.2);
+        }
+
+        ul>li {
+            padding: 0;
+            margin: 0;
+            width: var(--button-width);
+            height: var(--button-width);
+            max-width: var(--button-width);
+            max-height: var(--button-width);
+            display: grid;
+            align-content: center;
+            justify-content: center;
+            /* border: 1px solid blue; */
+        }
+
+        #more {
+            background-color: var(--clr-background);
+            width: 25vw;
+            position: absolute;
+            top: 0;
+            left: var(--button-width);
+            bottom: 0;
+            z-index: 100;
+            transition: all 400ms ease-in-out 0s;
+        }
+
+        #more.hidden {
+            transform: translateX(-100%);
+        }
+
+        aside.right {
+            grid-area: right;
+            width: 25vw;
+            background-color: var(--clr-background);
+        }
+    </style>
 </head>
 
 <body>
-    <div id="logo">
-        <img src="/resources/TRgroup.svg" width="100%" alt="Tilo Railway Company" onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
-    </div>
-
-    <aside id="menu" class="">
-        <section>
-            <img class="menuHandle" src="/resources/menu.svg" width="30" height="30" alt="Hamburger_icon"
-                style="filter: grayscale(100);" onclick="document.querySelector('#menu').classList.toggle('hidden')">
-        </section>
-        <section>
-            <h2>
-                <span class="title">Automatik</span>
-                <toggle-switch />
-            </h2>
-            <label for="">Start</label>
-            <div class="status" state="on"></div>
-            <label for="">Stopp</label>
-            <div class="status"></div>
-            <label for="">Initialisierung</label>
-            <toggle-switch />
-            <label for="">min. Runden</label>
-            <input type="number" name="" id="">
-            <label for="">max. Runden</label>
-            <input type="number" name="" id="">
-            <label for="">Round Robin</label>
-            <toggle-switch />
-        </section>
-        <section>
-            <h2>
-                <span class="title">Licht</span>
-            </h2>
-            <label for="">Bahnhof</label>
-            <toggle-switch />
-            <label for="">Wartung</label>
-            <toggle-switch />
-        </section>
+    <aside class="left">
+        <ul>
+            <li>
+                <img class="menuHandle" src="/resources/menu.svg" width="30" height="30" alt="Hamburger_icon"
+                    style="filter: grayscale(100), saturate(8);"
+                    onclick="document.querySelector('#more').classList.toggle('hidden')">
+            </li>
+            <li>Toggle</li>
+        </ul>
+        <div id="more" class="hidden"></div>
     </aside>
-
-    <main id="plan">
-        <div id="messageLog"></div>
-        <object type="image/svg+xml" data="/resources/Streckenplan_komplett.svg">
-            Streckenplan_komplett
-        </object>
-        <!-- <object type="image/svg+xml" data="/resources/adjusted/Streckenplan_oben.svg">
-            Streckenplan_oben
-        </object>
-        <object type="image/svg+xml" data="/resources/adjusted/Streckenplan_unten.svg">
-            Streckenplan_unten
-        </object> -->
+    <main style="grid-area: main">
+        <article></article>
+        <article></article>
     </main>
-
-    <aside id="control">
-        <h2>Control</h2>
-        <input type="range" orient="vertical">
-        
-        <h3>Oben</h3>
-        <direction-button id="btnDirUpLeft" direction="links"></direction-button>
-        <direction-button id="btnDirUpRight" direction="rechts"></direction-button>
-        
-        <h3>Unten</h3>
-        <direction-button id="btnDirDownLeft" direction="links"></direction-button>
-        <direction-button id="btnDirDownRight" direction="rechts"></direction-button>
+    <aside class="right" style="display: flex; height: 100%; width: 25vw;">
+        <header style="padding: 5px;">
+            <img src="/resources/TRgroup.svg" width="25vw" alt="Tilo Railway Company"
+                onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
+        </header>
+        <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
+            <input type="range" name="" id="" style="transform: rotate(-90deg);">
+        </main>
     </aside>
-
-    <!-- Scripts -->
-    <script src="/static/js/protocol.js"></script>
-    <script src="/static/js/index.js"></script>
 </body>
 
 </html>
