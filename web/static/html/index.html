@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
     <meta charset="UTF-8">
@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <!-- <aside class="left">
+    <aside class="left">
         <ul>
             <li class="menu">
                 <img class="menuHandle" src="/resources/inhalt/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
@@ -25,14 +25,14 @@
                 <li>blub</li>
             </ul>
         </div>
-    </aside> -->
-    <aside class="left menu">
+    </aside>
+    <!-- <aside class="left menu">
         <img class="menuHandle" src="/resources/inhalt/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
             style="filter: grayscale(100), saturate(8); grid-column: span 2;"
             onclick="document.querySelector('.menu').classList.toggle('more')">
         <label for="automatik">Automatik</label>
         <input type="checkbox" name="" id="automatic">
-    </aside>
+    </aside> -->
     <main>
         <!-- Upper level -->
         <article class="map">
@@ -56,8 +56,21 @@
         <!-- <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
             <input type="range" name="" id="" style="transform: rotate(-90deg);">
         </main> -->
-        <main>
-            <object data="/resources/slider/slider.svg" type="image/svg+xml" style="flex: 1; height: 85vh;"></object>
+        <!-- <main style="position: relative;">
+            <img src="/resources/inhalt/schrift_merkmale/vmax.png" alt="" style="width: 50%; justify-self: end; margin-right: 8%;">
+            <object data="/resources/slider/slider.svg" type="image/svg+xml" style="height: 80%;"></object>
+            <img src="/resources/inhalt/notaus.png" alt="" style="width: 30%; justify-self: end; margin-top: -21%; margin-right: -5px;">
+            <img src="/resources/inhalt/block_aktiv.png" alt="" style="width: 30%;">
+            <img src="/resources/inhalt/block_grau.png" alt="" style="width: 30%;">
+        </main> -->
+        <main style="flex: 1; padding: 5px; width: 100%; height: 100%;">
+            <div class="controls">
+                <img id="vmax" src="/resources/inhalt/schrift_merkmale/vmax.png" alt="">
+                <object id="slider" data="/resources/slider/slider.svg" type="image/svg+xml"></object>
+                <img id="notaus" src="/resources/inhalt/notaus.png" alt="">
+                <img id="blk_1" src="/resources/inhalt/block_aktiv.png" alt="">
+                <img id="blk_2" src="/resources/inhalt/block_grau.png" alt="">
+            </div>
         </main>
     </aside>
 </body>

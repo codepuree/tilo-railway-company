@@ -131,10 +131,6 @@ aside.right {
     justify-content: center;
 }
 
-.right > * {
-    /* outline: 1px solid hotpink; */
-}
-
 .map > object {
     padding: 1vw;
     width: 100%;
@@ -145,4 +141,52 @@ aside.right {
     display: grid;
     grid-auto-rows: var(--button-width) 25vw;
     grid-auto-flow: column;
+}
+
+.controls {
+    flex: 1;
+    /* margin: 5px; */
+    width: 100%;
+    height: 100%;
+    align-self: start;
+    display: grid;
+    justify-content: start;
+    align-content: center;
+    position: relative;
+}
+
+#vmax {
+    position: absolute;
+    width: 50%;
+    top: 0;
+    right: 5%;
+}
+
+#slider {
+    position: absolute;
+    width: 60%;
+    top: 10%;
+    left: 0;
+    transform: scaleY(1.2) translateY(10%);
+}
+
+#notaus {
+    position: absolute;
+    width: 30%;
+    bottom: 12.5%;
+    right: 0;
+}
+
+#blk_1 {
+    position: absolute;
+    width: 30%;
+    bottom: 35%;
+    right: 0;
+}
+
+#blk_2 {
+    position: absolute;
+    width: 30%;
+    bottom: 45%;
+    right: 0;
 }
