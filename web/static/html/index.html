@@ -10,18 +10,28 @@
 </head>
 
 <body>
-    <aside class="left">
+    <!-- <aside class="left">
         <ul>
             <li class="menu">
-                <!-- <label for="inMenu"></label>
-                <input id="inMenu" type="checkbox"> -->
                 <img class="menuHandle" src="/resources/inhalt/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
                     style="filter: grayscale(100), saturate(8);"
                     onclick="document.querySelector('#more').classList.toggle('hidden')">
             </li>
             <li>Toggle</li>
         </ul>
-        <div id="more" class="hidden"></div>
+        <div id="more" class="hidden">
+            <ul>
+                <li>bla</li>
+                <li>blub</li>
+            </ul>
+        </div>
+    </aside> -->
+    <aside class="left menu">
+        <img class="menuHandle" src="/resources/inhalt/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
+            style="filter: grayscale(100), saturate(8); grid-column: span 2;"
+            onclick="document.querySelector('.menu').classList.toggle('more')">
+        <label for="automatik">Automatik</label>
+        <input type="checkbox" name="" id="automatic">
     </aside>
     <main>
         <!-- Upper level -->
@@ -43,8 +53,11 @@
             <img src="/resources/inhalt/schrift_merkmale/Logo.png" width="100%" alt="Tilo Railway Company"
                 onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
         </header>
-        <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
+        <!-- <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
             <input type="range" name="" id="" style="transform: rotate(-90deg);">
+        </main> -->
+        <main>
+            <object data="/resources/slider/slider.svg" type="image/svg+xml" style="flex: 1; height: 85vh;"></object>
         </main>
     </aside>
 </body>

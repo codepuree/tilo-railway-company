@@ -5,7 +5,7 @@
 
 :root {
     --clr-primary: #2eb0f3;
-    --clr-background: white;
+    --clr-background: #ececec;
 }
 
 *,
@@ -22,6 +22,7 @@ body {
     height: 100vh;
     /* overflow: hidden; */
     color: var(--clr-primary);
+    background-color: var(--clr-background);
 }
 
 body {
@@ -35,7 +36,7 @@ aside {
 }
 
 nav {
-    width: 5vh;
+    width: 5vw;
 }
 
 body>main {
@@ -50,7 +51,7 @@ body>main {
 article.map {
     /* background-color: blue; */
     flex: 1;
-    outline: 1px solid var(--clr-primary);
+    /* outline: 1px solid var(--clr-primary); */
     position: relative;
 }
 
@@ -67,7 +68,7 @@ aside.left {
     grid-area: left;
     display: flex;
     flex-direction: row;
-    --button-width: 8vh;
+    --button-width: 5vw;
     width: var(--button-width);
     position: relative;
 }
@@ -82,7 +83,6 @@ ul {
     bottom: 0;
     z-index: 200;
     background-color: var(--clr-background);
-    box-shadow: 2px 0 2px rgba(0, 0, 0, 0.2);
 }
 
 ul>li {
@@ -107,6 +107,7 @@ ul>li {
     bottom: 0;
     z-index: 100;
     transition: all 400ms ease-in-out 0s;
+    box-shadow: 2px 0 2px rgba(0, 0, 0, 0.2);
 }
 
 #more.hidden {
@@ -119,32 +120,29 @@ ul>li {
 
 aside.right {
     grid-area: right;
-    width: 25vw;
+    width: 16vw;
     background-color: var(--clr-background);
     display: flex;
+    height: 100%;
     flex-direction: column;
     box-shadow: -2px 0 2px rgba(0, 0, 0, 0.2);
+
+    align-content: center;
+    justify-content: center;
 }
 
-/* .menu:hover {
-    cursor: pointer;
+.right > * {
+    /* outline: 1px solid hotpink; */
 }
 
-.menu>label {
-    background-image: url(/resources/inhalt/menu.svg);
-    background-position: center center;
-    background-size: cover;
-    width: 5vh;
-    height: 5vh;
-    display: block;
-    cursor: pointer;
+.map > object {
+    padding: 1vw;
+    width: 100%;
 }
 
-.menu>input {
-    /* opacity: 0; */
-    /* display: none; */
+/* Menu */
+.menu {
+    display: grid;
+    grid-auto-rows: var(--button-width) 25vw;
+    grid-auto-flow: column;
 }
-
-.menu>input[checked] {
-    background-color: hotpink;
-} */
