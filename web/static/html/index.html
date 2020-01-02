@@ -6,113 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Tilo Railway Company</title>
-    <style>
-        :root {
-            --clr-primary: #2eb0f3;
-            --clr-background: white;
-        }
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            /* overflow: hidden; */
-            color: var(--clr-primary);
-        }
-
-        body {
-            display: grid;
-            grid-template:
-                "left main right"1fr / auto 1fr minmax(5vw, auto);
-        }
-
-        aside {
-            background-color: orange;
-        }
-
-        nav {
-            width: 5vh;
-        }
-
-        body>main {
-            background-color: green;
-        }
-
-        article {
-            background-color: blue;
-        }
-
-        aside.left {
-            grid-area: left;
-            display: flex;
-            flex-direction: row;
-            --button-width: 8vh;
-            width: var(--button-width);
-            position: relative;
-        }
-
-        ul {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 200;
-            background-color: var(--clr-background);
-            box-shadow: 2px 0 2px rgba(0, 0, 0, 0.2);
-        }
-
-        ul>li {
-            padding: 0;
-            margin: 0;
-            width: var(--button-width);
-            height: var(--button-width);
-            max-width: var(--button-width);
-            max-height: var(--button-width);
-            display: grid;
-            align-content: center;
-            justify-content: center;
-            /* border: 1px solid blue; */
-        }
-
-        #more {
-            background-color: var(--clr-background);
-            width: 25vw;
-            position: absolute;
-            top: 0;
-            left: var(--button-width);
-            bottom: 0;
-            z-index: 100;
-            transition: all 400ms ease-in-out 0s;
-        }
-
-        #more.hidden {
-            transform: translateX(-100%);
-        }
-
-        aside.right {
-            grid-area: right;
-            width: 25vw;
-            background-color: var(--clr-background);
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 
 <body>
     <aside class="left">
         <ul>
-            <li>
-                <img class="menuHandle" src="/resources/inhalt/menu.svg" width="30" height="30" alt="Hamburger_icon"
+            <li class="menu">
+                <!-- <label for="inMenu"></label>
+                <input id="inMenu" type="checkbox"> -->
+                <img class="menuHandle" src="/resources/inhalt/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
                     style="filter: grayscale(100), saturate(8);"
                     onclick="document.querySelector('#more').classList.toggle('hidden')">
             </li>
@@ -120,13 +23,24 @@
         </ul>
         <div id="more" class="hidden"></div>
     </aside>
-    <main style="grid-area: main">
-        <article></article>
-        <article></article>
+    <main>
+        <!-- Upper level -->
+        <article class="map">
+            <object type="image/svg+xml" data="/resources/inhalt/strecke oben/oben_gesamt.svg">
+                Streckenplan_oben
+            </object>
+        </article>
+
+        <!-- Lower level -->
+        <article class="map">
+            <object type="image/svg+xml" data="/resources/inhalt/strecke unten/unten_gesamt.svg">
+                Streckenplan_unten
+            </object>
+        </article>
     </main>
-    <aside class="right" style="display: flex; height: 100%; width: 25vw;">
+    <aside class="right">
         <header style="padding: 5px;">
-            <img src="/resources/inhalt/schrift_merkmale/Logo.png" width="25vw" alt="Tilo Railway Company"
+            <img src="/resources/inhalt/schrift_merkmale/Logo.png" width="100%" alt="Tilo Railway Company"
                 onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
         </header>
         <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
