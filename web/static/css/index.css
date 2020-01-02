@@ -164,6 +164,7 @@ aside.right {
 #slider {
     position: absolute;
     height: 86%;
+    /* width: 64%; */
     top: 10%;
     left: 0;
 }
@@ -187,4 +188,12 @@ aside.right {
     width: 20%;
     bottom: 15%;
     right: 5%;
+}
+
+#thumb {
+    position: absolute;
+    width: 30%;
+    left: 34.5%;
+    top: 50%;
+    cursor: pointer;
 }
