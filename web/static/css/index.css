@@ -145,7 +145,6 @@ aside.right {
 
 .controls {
     flex: 1;
-    /* margin: 5px; */
     width: 100%;
     height: 100%;
     align-self: start;
@@ -159,12 +158,12 @@ aside.right {
     position: absolute;
     width: 50%;
     top: 0;
-    right: 5%;
+    right: 10%;
 }
 
 #slider {
     position: absolute;
-    width: 60%;
+    height: 86%;
     top: 10%;
     left: 0;
 }
@@ -172,20 +171,20 @@ aside.right {
 #notaus {
     position: absolute;
     width: 30%;
-    bottom: 12.5%;
+    bottom: 0;
     right: 0;
 }
 
 #blk_1 {
     position: absolute;
-    width: 30%;
-    bottom: 35%;
-    right: 0;
+    width: 20%;
+    bottom: 23%;
+    right: 5%;
 }
 
 #blk_2 {
     position: absolute;
-    width: 30%;
-    bottom: 45%;
-    right: 0;
+    width: 20%;
+    bottom: 15%;
+    right: 5%;
 }
