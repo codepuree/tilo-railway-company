@@ -1,0 +1,30 @@
+{
+    "name": "golang/typescript",
+    "dockerFile": "Dockerfile",
+    "extensions": [
+        "ms-vscode.go",
+        "msjsdiag.debugger-for-chrome"
+    ],
+    "forwardPorts": [
+        8080
+    ],
+    "mounts": ["type=bind,source=E:/Users/LC/Documents/Projects/tilo-railway-company/web,target=/var/www/"],
+    "settings": {
+        "go.formatTool": "goimports",
+        "go.useLanguageServer": true,
+        "[go]": {
+            "editor.snippetSuggestions": "none",
+            "editor.formatOnSave": true,
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": true
+            },
+            "files.eol": "\n"
+        },
+        "editor.codeActionsOnSaveTimeout": 3000,
+        "gopls": {
+            "usePlaceholders": true,
+            "completeUnimported": true,
+            "deepCompletion": true
+        }
+    }
+}

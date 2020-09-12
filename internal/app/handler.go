@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -20,13 +21,26 @@ var upgrader = websocket.Upgrader{
 
 var conns []*websocket.Conn
 
-func HandleWebsocket(w http.ResponseWriter, r *http.Request) {
+type Websocket struct {
+	connections []*websocket.Conn
+	listeners   []chan string
+	mu          sync.RWMutex
+}
+
+func NewWebsocket() *Websocket {
+	return &Websocket{
+		connections: make([]*websocket.Conn, 0),
+		listeners:   make([]chan string, 0),
+	}
+}
+
+func (ws *Websocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(fmt.Errorf("websocket error: %w", err))
 		return
 	}
-	conns = append(conns, conn)
+	ws.connections = append(ws.connections, conn)
 
 	for {
 		messageType, msg, err := conn.ReadMessage()
@@ -35,15 +49,49 @@ func HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		sendToAll(messageType, msg)
+		ws.sendToOthers(messageType, msg, conn)
+		ws.publish(string(msg))
 	}
 }
 
-func sendToAll(messageType int, msg []byte) {
-	for _, conn := range conns {
-		if err := conn.WriteMessage(messageType, msg); err != nil {
+func (ws *Websocket) SendToAll(msgType int, msg []byte) {
+	for _, conn := range ws.connections {
+		if err := conn.WriteMessage(msgType, msg); err != nil {
 			log.Println(err)
 			return
 		}
+	}
+}
+
+func (ws *Websocket) sendToOthers(msgType int, msg []byte, sender *websocket.Conn) {
+	for _, conn := range ws.connections {
+		if conn == sender {
+			continue
+		}
+
+		if err := conn.WriteMessage(msgType, msg); err != nil {
+			log.Println(err)
+			continue
+		}
+	}
+}
+
+func (ws *Websocket) Listen(lc chan string) {
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
+
+	ws.listeners = append(ws.listeners, lc)
+}
+
+func (ws *Websocket) publish(msg string) {
+	for _, lc := range ws.listeners {
+		go func(msg string, lc chan string) {
+			select {
+			case lc <- msg:
+				break
+			default:
+				log.Println("unable to send message to websocket listener")
+			}
+		}(msg, lc)
 	}
 }

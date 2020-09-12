@@ -1,0 +1,24 @@
+{
+    "Szenario1": {
+        "name": "Szenario 1",
+        "description": "",
+        "shedule": [
+            "while count(l13z) < 2",
+            "1dsz",
+            "ja1z",
+            "jc1z",
+            "delay 500",
+            "0dfz",
+            "035z",
+            "if count(l13z) == 2",
+            "0dsz",
+            "jd1z",
+            "je1z",
+            "delay 500",
+            "1dfz",
+            "135z",
+            "end if",
+            "end while"
+        ]
+    }
+}
