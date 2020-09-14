@@ -13,7 +13,7 @@
     <aside class="left">
         <ul>
             <li class="menu">
-                <img class="menuHandle" src="/resources/inhalt/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
+                <img class="menuHandle" src="/static/svg/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
                     style="filter: grayscale(100), saturate(8);"
                     onclick="document.querySelector('#more').classList.toggle('hidden')">
             </li>
@@ -50,7 +50,7 @@
     </main>
     <aside class="right">
         <header style="padding: 5px;">
-            <img src="/resources/inhalt/schrift_merkmale/Logo.png" width="100%" alt="Tilo Railway Company"
+            <img src="/static/imgs/Logo.png" width="100%" alt="Tilo Railway Company"
                 onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
         </header>
         <!-- <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
@@ -84,7 +84,7 @@
             <button onclick="confirm('Möchtest du wirklich herunterfahren?') ? fetch('/sys/shutdown') : void(0)">🛑</button>
             <button onclick="confirm('Möchtest du wirklich neustarten?') ? fetch('/sys/reboot') : void(0)">🔄</button>
         </header>
-        <main>
+        <main style="overflow: hidden;">
             <div id="outMsg" style="grid-column: span 3; overflow: auto;"></div>
         </main>
         <footer>
@@ -149,12 +149,15 @@
         })
 
         function addScriptButton(name, func) {
+            let li = document.createElement('li')
             let btn = document.createElement('button')
             btn.innerText = name
             btn.onclick = func
-            document.querySelector('#more').appendChild(btn)
+            li.appendChild(btn)
+            document.querySelector('#more>ul').appendChild(li)
         }
     </script>
+    <script src="/static/js/scripts.js"></script>
 </body>
 
 </html>
