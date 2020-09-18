@@ -85,13 +85,14 @@ func (ws *Websocket) Listen(lc chan string) {
 
 func (ws *Websocket) publish(msg string) {
 	for _, lc := range ws.listeners {
-		go func(msg string, lc chan string) {
-			select {
-			case lc <- msg:
-				break
-			default:
-				log.Println("unable to send message to websocket listener")
-			}
-		}(msg, lc)
+		lc <- msg
+		// go func(msg string, lc chan string) {
+		// 	select {
+		// 	case lc <- msg:
+		// 		break
+		// 	default:
+		// 		log.Println("unable to send message to websocket listener")
+		// 	}
+		// }(msg, lc)
 	}
 }

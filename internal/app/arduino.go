@@ -62,9 +62,9 @@ func (a *Arduino) read() {
 		}
 
 		for _, l := range a.listeners {
-			go func(msg []byte, l chan []byte) {
-				l <- msg
-			}([]byte(msg), l)
+			// go func(msg []byte, l chan []byte) {
+			l <- []byte(msg)
+			// }([]byte(msg), l)
 		}
 	}
 }
