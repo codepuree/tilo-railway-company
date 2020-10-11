@@ -42,6 +42,8 @@ func (ws *Websocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	ws.connections = append(ws.connections, conn)
 
+	log.Printf("%s connected to the websocket", conn.RemoteAddr().String())
+
 	for {
 		messageType, msg, err := conn.ReadMessage()
 		if err != nil {
@@ -57,8 +59,17 @@ func (ws *Websocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (ws *Websocket) SendToAll(msgType int, msg []byte) {
 	for _, conn := range ws.connections {
 		if err := conn.WriteMessage(msgType, msg); err != nil {
-			log.Println(err)
-			return
+			log.Println(fmt.Errorf("unable to send message to %s: %w", conn.UnderlyingConn().RemoteAddr(), err))
+
+			// TODO: check errors and delete connection if neccessary
+
+			// Remove connection
+			err = ws.closeConn(conn)
+			if err != nil {
+				log.Println(fmt.Errorf("unable to remove connection: %w", err))
+			}
+
+			continue
 		}
 	}
 }
@@ -70,7 +81,16 @@ func (ws *Websocket) sendToOthers(msgType int, msg []byte, sender *websocket.Con
 		}
 
 		if err := conn.WriteMessage(msgType, msg); err != nil {
-			log.Println(err)
+			log.Println(fmt.Errorf("unable to write message to %s: %w", conn.RemoteAddr().String(), err))
+
+			// TODO: check errors and delete connection if neccessary
+
+			// Remove connection
+			err = ws.closeConn(conn)
+			if err != nil {
+				log.Println(fmt.Errorf("unable to remove connection: %w", err))
+			}
+
 			continue
 		}
 	}
@@ -95,4 +115,24 @@ func (ws *Websocket) publish(msg string) {
 		// 	}
 		// }(msg, lc)
 	}
+}
+
+func (ws *Websocket) closeConn(conn *websocket.Conn) error {
+	defer ws.mu.Unlock()
+	ws.mu.Lock()
+
+	err := conn.Close()
+	if err != nil {
+		return fmt.Errorf("unable to close websocket connection to %s: %w", conn.RemoteAddr().String(), err)
+	}
+
+	for i, c := range ws.connections {
+		if c == conn {
+			ws.connections = append(ws.connections[:i], ws.connections[i+1:]...)
+		}
+	}
+
+	// TODO: check if connection got removed
+
+	return nil
 }
