@@ -117,6 +117,7 @@
         const green = '#46ae3c'
         const gray = '#a8a8a8'
         const white = '#ffffff'
+        const transparent = 'rgba(255, 255, 255, 0.0)'
         const blue = '#0fb5e8'
         const black = 'black'
 
@@ -184,8 +185,7 @@
         }
 
         function renderMap(map, msg) {
-            map = document.querySelector("#lowerMap").contentDocument
-
+	    map = document.querySelector('#lowerMap').contentDocument
             if (Number.isInteger(parseInt(msg.charAt(0)))) {
                 // Sensor
                 let id = msg.substring(0, 2)
@@ -198,12 +198,12 @@
                     if (state == "l") { // Low
                         gl.style.fill = black
                     } else { // High
-                        gl.style.fill = gray
+                        gl.style.fill = transparent
                     }
                 }
 
                 switch (id) {
-                    case "12":
+                    case "12": //Track4_out
                         setTimeout(_ => {
                             visGl("do", 'h')
                             visGl("dm", 'h')
@@ -211,11 +211,166 @@
                         }, 3000)
                         break;
 
-                    case "16":
+                    case "16": //Track4_in
                         visGl("do", 'l')
                         visGl("dm", 'l')
                         visGl("dw", 'l')
                         break;
+
+                    case "11": //Track3_out
+                        setTimeout(_ => {
+                            visGl("co", 'h')
+                            visGl("cm", 'h')
+                            visGl("cw", 'h')
+                        }, 3000)
+                        break;
+
+                    case "15": //Track3_in
+                        visGl("co", 'l')
+                        visGl("cm", 'l')
+                        visGl("cw", 'l')
+                        break;
+                        
+                    case "10": //Track2_out
+                        setTimeout(_ => {
+                            visGl("bo", 'h')
+                            visGl("bm", 'h')
+                            visGl("bw", 'h')
+                        }, 3000)
+                        break;
+
+                    case "14": //Track2_in
+                        visGl("bo", 'l')
+                        visGl("bm", 'l')
+                        visGl("bw", 'l')
+                        break;
+                    
+                    case "09": //Track1_out
+                        setTimeout(_ => {
+                            visGl("ao", 'h')
+                            visGl("am", 'h')
+                            visGl("aw", 'h')
+                        }, 3000)
+                        break;
+
+                    case "13": //Track1_in
+                        visGl("ao", 'l')
+                        visGl("am", 'l')
+                        visGl("aw", 'l')
+                        break;
+
+                    //-------------------------------------------Init Track occupation State--------------------------------------------------
+                   /* case "04": //Track4_occupied
+                        visGl("do", 'l')
+                        visGl("dm", 'l')
+                        visGl("dw", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;
+
+                    case "08": //Track4_occupied
+                        visGl("do", 'l')
+                        visGl("dm", 'l')
+                        visGl("dw", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;
+                    
+                    case "03": //Track3_occupied
+                        visGl("co", 'l')
+                        visGl("cm", 'l')
+                        visGl("cw", 'l')
+                        visSw("a", 'l')
+                        visSw("f", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;
+
+                    case "07": //Track3_occupied
+                        visGl("co", 'l')
+                        visGl("cm", 'l')
+                        visGl("cw", 'l')
+                        visSw("a", 'l')
+                        visSw("f", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;
+                    
+                    case "02": //Track2_occupied
+                        visGl("bo", 'l')
+                        visGl("bm", 'l')
+                        visGl("bw", 'l')
+                        visSw("a", 'l')
+                        visSw("f", 'l')
+                        visSw("e", 'l')
+                        visSw("b", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;
+
+                    case "06": //Track2_occupied
+                        visGl("bo", 'l')
+                        visGl("bm", 'l')
+                        visGl("bw", 'l')
+                        visSw("a", 'l')
+                        visSw("f", 'l')
+                        visSw("e", 'l')
+                        visSw("b", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;
+                    
+                    case "01": //Track1_occupied
+                        visGl("ao", 'l')
+                        visGl("am", 'l')
+                        visGl("aw", 'l')
+                        visSw("a", 'l')
+                        visSw("f", 'l')
+                        visSw("e", 'l')
+                        visSw("b", 'l')
+                        visSw("d", 'l')
+                        visSw("c", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;
+
+                    case "05": //Track1_occupied
+                        visGl("ao", 'l')
+                        visGl("am", 'l')
+                        visGl("aw", 'l')
+                        visSw("a", 'l')
+                        visSw("f", 'l')
+                        visSw("e", 'l')
+                        visSw("b", 'l')
+                        visSw("d", 'l')
+                        visSw("c", 'l')
+                        if (state == "l") { // Low
+                            sns.style.fill = yellow}
+                        else { // High
+                            sns.style.fill = white
+                        }
+                        break;*/
 
                     default:
                         if (state == "l") { // Low

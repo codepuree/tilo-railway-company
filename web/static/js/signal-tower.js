@@ -79,7 +79,7 @@ class SignalTower {
             let state = msg.charAt(2)
 
             this.sensors[id] = state
-            console.log("sensor state change")
+            console.log("seonsor state change")
             if (this.#sensorListeners[id] != undefined) {
                 this.#sensorListeners[id].forEach(clb => clb(state))
             }
