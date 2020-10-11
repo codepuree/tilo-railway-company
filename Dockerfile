@@ -1,4 +1,4 @@
-FROM golang:1.14.1 AS go-builder
+FROM golang:1.15.2 AS go-builder
 WORKDIR /go/src/github.com/codepuree/tilo-railway-company
 COPY . /go/src/github.com/codepuree/tilo-railway-company
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -a -tags netgo -ldflags '-w' -o /go/bin/trc ./cmd/
@@ -13,6 +13,6 @@ FROM scratch
 WORKDIR /opt/trc
 COPY --from=go-builder /go/bin/trc /opt/trc/trc
 # COPY --from=web-builder /usr/src/trc/web/static /opt/trc/web/static
-COPY ./web/static /opt/trc/web/static
+COPY ./web/static /var/www/static
 ENTRYPOINT [ "/opt/trc/trc" ]
 EXPOSE 8080

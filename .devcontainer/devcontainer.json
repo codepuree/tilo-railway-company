@@ -1,30 +1,38 @@
 {
-    "name": "golang/typescript",
-    "dockerFile": "Dockerfile",
-    "extensions": [
-        "ms-vscode.go",
-        "msjsdiag.debugger-for-chrome"
-    ],
-    "forwardPorts": [
-        8080
-    ],
-    "mounts": ["type=bind,source=E:/Users/LC/Documents/Projects/tilo-railway-company/web,target=/var/www/"],
-    "settings": {
-        "go.formatTool": "goimports",
-        "go.useLanguageServer": true,
-        "[go]": {
-            "editor.snippetSuggestions": "none",
-            "editor.formatOnSave": true,
-            "editor.codeActionsOnSave": {
-                "source.organizeImports": true
-            },
-            "files.eol": "\n"
-        },
-        "editor.codeActionsOnSaveTimeout": 3000,
-        "gopls": {
-            "usePlaceholders": true,
-            "completeUnimported": true,
-            "deepCompletion": true
-        }
-    }
+	"name": "Go",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			// Update the VARIANT arg to pick a version of Go: 1, 1.15, 1.14
+			"VARIANT": "1.15",
+			// Options
+			"INSTALL_NODE": "true",
+			"NODE_VERSION": "lts/*"
+		}
+	},
+	"runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+
+	// Set *default* container specific settings.json values on container create.
+	"settings": { 
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"go.useGoProxyToCheckForToolUpdates": false,
+		"go.useLanguageServer": true,
+		"go.gopath": "/go",
+		"go.goroot": "/usr/local/go",
+		"go.toolsGopath": "/go/bin"
+	},
+	
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"golang.Go"
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [8080],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "go version",
+
+	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode"
 }

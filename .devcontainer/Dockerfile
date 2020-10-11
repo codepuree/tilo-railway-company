@@ -1,46 +1,20 @@
-FROM debian:buster
-RUN apt-get update -y && apt-get upgrade -y && apt-get autoremove -y
-RUN apt-get install -y wget
-RUN apt-get install -y git
-# RUN apt-get install -y curl
+# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.145.0/containers/go/.devcontainer/base.Dockerfile
 
-# Install golang
-RUN wget https://dl.google.com/go/go1.14.1.linux-amd64.tar.gz
-RUN tar -xvf go1.14.1.linux-amd64.tar.gz
-RUN mv go /usr/local
-ENV GOROOT=/usr/local/go
-ENV GOPATH=/home/go
-RUN mkdir $GOPATH && mkdir $GOPATH/bin && mkdir $GOPATH/pkg && mkdir $GOPATH/src
-ENV PATH="$GOPATH/bin:$GOROOT/bin:${PATH}"
+# [Choice] Go version: 1, 1.15, 1.14
+ARG VARIANT="1"
+FROM mcr.microsoft.com/vscode/devcontainers/go:0-${VARIANT}
 
-# Install node.js
-RUN apt-get install -y curl
-RUN apt-get install -y build-essential
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-RUN apt-get -f install -y nodejs
-RUN apt-get -f install -y aptitude
-RUN aptitude install -y npm
+# [Option] Install Node.js
+ARG INSTALL_NODE="true"
+ARG NODE_VERSION="lts/*"
+RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "source /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
-# Install Typescript and other utilities
-RUN npm install -g typescript
-RUN npm install -g esbuild-linux-64
+# [Optional] Uncomment this section to install additional OS packages.
+# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+#     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-# Install golang tools
-RUN go get github.com/mdempsky/gocode
-RUN go get github.com/uudashr/gopkgs/v2/cmd/gopkgs
-RUN go get github.com/ramya-rao-a/go-outline
-RUN go get github.com/acroca/go-symbols
-RUN go get golang.org/x/tools/cmd/guru
-RUN go get golang.org/x/tools/cmd/gorename
-RUN go get github.com/cweill/gotests/...
-RUN go get github.com/fatih/gomodifytags
-RUN go get github.com/josharian/impl
-RUN go get github.com/davidrjenni/reftools/cmd/fillstruct
-RUN go get github.com/haya14busa/goplay/cmd/goplay
-RUN go get github.com/godoctor/godoctor
-RUN go get github.com/go-delve/delve/cmd/dlv
-RUN go get github.com/stamblerre/gocode
-RUN go get github.com/rogpeppe/godef
-RUN go get golang.org/x/tools/cmd/goimports
-RUN go get golang.org/x/lint/golint
-RUN go get golang.org/x/tools/gopls
+# [Optional] Uncomment the next line to use go get to install anything else you need
+# RUN go get -x <your-dependency-or-tool>
+
+# [Optional] Uncomment this line to install global node packages.
+# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
