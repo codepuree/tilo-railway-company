@@ -14,8 +14,12 @@ var Symbols map[string]map[string]reflect.Value
 func init() {
 	Symbols = make(map[string]map[string]reflect.Value)
 	Symbols["github.com/codepuree/tilo-railway-company/pkg/traincontrol"] = map[string]reflect.Value{
+		// function, constant and variable definitions
+		"NewTrainControl": reflect.ValueOf(traincontrol.NewTrainControl),
+
 		// type definitions
 		"Block":        reflect.ValueOf((*traincontrol.Block)(nil)),
+		"Sensor":       reflect.ValueOf((*traincontrol.Sensor)(nil)),
 		"Signal":       reflect.ValueOf((*traincontrol.Signal)(nil)),
 		"Switch":       reflect.ValueOf((*traincontrol.Switch)(nil)),
 		"TrainControl": reflect.ValueOf((*traincontrol.TrainControl)(nil)),

@@ -1,6 +1,11 @@
 package custom
 
 import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"io/ioutil"
 	"testing"
 
 	"github.com/codepuree/tilo-railway-company/pkg/traincontrol"
@@ -58,33 +63,51 @@ type TrainController interface {
 func TestTrack1(t *testing.T) {
 	const srcPath = "E:/Users/LC/Documents/Projects/tilo-railway-company/internal/custom/track1.go"
 
-	// srcb, err := ioutil.ReadFile(srcPath)
-	// if err != nil {
-	// 	t.Error(err)
-	// }
+	srcb, err := ioutil.ReadFile(srcPath)
+	if err != nil {
+		t.Error(err)
+	}
 
-	// src := string(srcb)
+	src := string(srcb)
 
-	// fset := token.NewFileSet()
-	// f, err := parser.ParseFile(fset, srcPath, src, parser.ImportsOnly)
-	// if err != nil {
-	// 	t.Error(err)
-	// }
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "track1.go", src, parser.ImportsOnly)
+	if err != nil {
+		t.Error(err)
+	}
 
-	// // Get package name
-	// t.Error(f.Doc.List)
+	// Get package name
+	// packageName := f.Name.Name
 
-	// // Print the imports from the file's AST.
-	// for _, s := range f.Imports {
-	// 	t.Error(s.Path.Value)
-	// }
+	// Get exported functions
+	fmt.Println("Functions:")
+	for _, f := range f.Decls {
+		fn, ok := f.(*ast.FuncDecl)
+		if !ok {
+			continue
+		}
+		fmt.Println(fn.Name.Name)
+	}
 
-	i := interp.New(interp.Options{})
+	// Get some comments
+	t.Error("Some comments:")
+	for _, c := range f.Comments {
+		t.Error(c.Text())
+	}
+
+	// Print the imports from the file's AST.
+	for _, s := range f.Imports {
+		t.Error(s.Path.Value)
+	}
+
+	i := interp.New(interp.Options{
+		
+	})
 	i.Use(stdlib.Symbols)
 	i.Use(trclib.Symbols)
 
 	// _, err := i.Eval(src)
-	_, err := i.EvalPath(srcPath)
+	_, err = i.EvalPath(srcPath)
 	if err != nil {
 		t.Error(err)
 	}
