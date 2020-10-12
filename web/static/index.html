@@ -146,29 +146,39 @@
             document.querySelector('#outMsg').lastChild.scrollIntoView()
         }
 
-        let webSocket = new WebSocket(`ws://${location.host}/websocket`)
+        const webSocket = startWebsocket()
 
-        webSocket.onopen = open => {
-            console.log('Open:', open)
-        }
+        function startWebsocket() {
+            let webSocket = new WebSocket(`ws://${location.host}/websocket`)
 
-        webSocket.onmessage = message => {
-            console.log('Message:', message)
-            printMessage(message.data)
-            signalTower.receiveMessage(message.data)
+            webSocket.onopen = open => {
+                console.log('Open:', open)
+                printMessage("Successfully connected to Raspberry PI")
+            }
+    
+            webSocket.onmessage = message => {
+                console.log('Message:', message)
+                printMessage(message.data)
+                signalTower.receiveMessage(message.data)
+    
+                // Map test
+                renderMap(lowerMap, message.data)
+            }
+    
+            webSocket.onerror = error => {
+                console.log('Error:', error)
+                printMessage(error, 'error')
+            }
+    
+            webSocket.onclose = close => {
+                console.log('Close:', close)
+                printMessage("Receonnecting in 5sec...", 'info')
+                setTimeout(_ => {
+                    webSocket = startWebsocket()
+                }, 5000)
+            }
 
-            // Map test
-            renderMap(lowerMap, message.data)
-        }
-
-        webSocket.onerror = error => {
-            console.log('Error:', error)
-            printMessage(error, 'error')
-        }
-
-        webSocket.onclose = close => {
-            console.log('Close:', close)
-            printMessage(close, 'info')
+            return webSocket
         }
 
         document.querySelector('#btnSend').addEventListener('click', event => {
