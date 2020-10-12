@@ -62,6 +62,7 @@ func (sns *Sensor) Await(state bool) {
 
 	for s := range lst {
 		if s == state {
+			log.Printf("State changed to %v", s)
 			return
 		}
 	}
@@ -135,6 +136,16 @@ func (tc *TrainControl) String() string {
 
 func (tc *TrainControl) SetSwitch(id string, state string) {
 	fmt.Printf("Switch '%s' changes to '%s'\n", id, state)
+	tc.send <- "y" + id + state
+}
+
+func (tc *TrainControl) SetBlockDirection(id string, state string) {
+	tc.send <- id + "d" + state + "z"
+}
+
+func (tc *TrainControl) SetBlockSpeed(id string, speed int) {
+
+	tc.send <- fmt.Sprintf("%s%02dz", id, speed)
 }
 
 func (tc *TrainControl) interpret(msg string) error {
@@ -161,7 +172,13 @@ func (tc *TrainControl) interpret(msg string) error {
 			return fmt.Errorf("unknown state '%d': %w", msg[2], err)
 		}
 
-		tc.Sensors[id] = &Sensor{State: state}
+		// tc.Sensors[id] = &Sensor{State: state}
+
+		snr, ok := tc.Sensors[id]
+		if !ok {
+			return fmt.Errorf("sensor %v not initialized", id)
+		}
+		snr.setState(state)
 
 	case msg[0] == 'y': // Switch
 		return fmt.Errorf("Switch interpretation not implemented yet")

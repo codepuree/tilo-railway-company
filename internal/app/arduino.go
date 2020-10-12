@@ -77,7 +77,7 @@ func (a *Arduino) Listen(c chan []byte) {
 }
 
 func (a *Arduino) Write(msg string) error {
-	log.Println("Arduino <- ", msg)
+	log.Printf("Arduino<- '%s'", msg)
 
 	_, err := fmt.Fprint(a.conn, msg)
 	if err != nil {
