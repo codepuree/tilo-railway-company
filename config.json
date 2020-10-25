@@ -1,0 +1,31 @@
+{
+    "sensors": {
+        "1": { "id": 1, "state": false },
+        "2": { "id": 2, "state": false },
+        "3": { "id": 3, "state": false },
+        "4": { "id": 4, "state": false },
+        "5": { "id": 5, "state": false },
+        "6": { "id": 6, "state": false },
+        "7": { "id": 7, "state": false },
+        "8": { "id": 8, "state": false },
+        "9": { "id": 9, "state": false },
+        "10": { "id": 10, "state": false },
+        "11": { "id": 11, "state": false },
+        "12": { "id": 12, "state": false },
+        "13": { "id": 13, "state": false },
+        "14": { "id": 14, "state": false },
+        "15": { "id": 15, "state": false },
+        "16": { "id": 16, "state": false },
+        "17": { "id": 17, "state": false },
+        "18": { "id": 18, "state": false },
+        "19": { "id": 19, "state": false }
+    },
+    "_blocks": {
+        "a": { "id": "a", "sensors": [13,  5,  1,  9] },
+        "b": { "id": "b", "sensors": [14,  6,  2, 10] },
+        "c": { "id": "c", "sensors": [15,  7,  3, 11] },
+        "d": { "id": "d", "sensors": [16,  8,  4, 12] },
+        "e": { "id": "e", "sensors": [ 9, 10, 11, 12, 17, 10, 13, 14, 15, 16] },
+        "f": { "id": "f", "sensors": [17, 18, 19] }
+    }
+}

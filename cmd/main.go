@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/codepuree/tilo-railway-company/internal/app"
 	"github.com/codepuree/tilo-railway-company/pkg/scriptcontrol"
@@ -71,9 +74,24 @@ func main() {
 		}
 	}()
 
-	trc := traincontrol.NewTrainControl(rec, send, traincontrol.TrainControlConfig{
-		Sensors: map[int]*traincontrol.Sensor{3: {ID: 3, State: true}, 7: {ID: 7, State: true}},
-	})
+	tcFile, err := os.Open("./config.json")
+	if err != nil {
+		log.Fatal(fmt.Errorf("unable to open config.json file: %w", err))
+	}
+	defer tcFile.Close()
+	byteValue, err := ioutil.ReadAll(tcFile)
+	if err != nil {
+		log.Fatal(fmt.Errorf("unable to read config.json file: %w", err))
+	}
+	var tcConfig traincontrol.TrainControlConfig
+	err = json.Unmarshal(byteValue, &tcConfig)
+	if err != nil {
+		log.Fatal(fmt.Errorf("unable to unmarshal config.json: %w", err))
+	}
+
+	log.Printf("Loaded configuration: %+v", tcConfig)
+
+	trc := traincontrol.NewTrainControl(rec, send, tcConfig)
 	interp := interp.New(interp.Options{})
 	interp.Use(stdlib.Symbols)
 	interp.Use(trclib.Symbols)
