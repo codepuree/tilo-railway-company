@@ -11,7 +11,7 @@ import (
 	"github.com/traefik/yaegi/interp"
 )
 
-type trackfunc func(tc *traincontrol.TrainControl)
+type trackfunc func(tc traincontrol.TrainControl)
 
 type ScriptControl struct {
 	funcs map[string]Func
@@ -20,7 +20,7 @@ type ScriptControl struct {
 type Func struct {
 	Name        string
 	Description string
-	Func        trackfunc
+	Func        interface{}
 }
 
 func LoadFromDir(interp *interp.Interpreter, dir string) (map[string]Func, error) {
@@ -66,8 +66,28 @@ func LoadFromFile(interp *interp.Interpreter, path string) (map[string]Func, err
 			return nil, err
 		}
 
-		trFunc, ok := v.Interface().(func(tc *traincontrol.TrainControl))
+		trFunc, ok := v.Interface().(func(*traincontrol.TrainControl))
 		if !ok {
+			trFunc, ok := v.Interface().(func(*traincontrol.TrainControl, int))
+			if !ok {
+				trFunc, ok := v.Interface().(func(*traincontrol.TrainControl, string))
+				if !ok {
+					continue
+				}
+
+				out[funcName] = Func{
+					Name:        funcName,
+					Description: fn.Doc.Text(),
+					Func:        trFunc,
+				}
+				continue
+			}
+
+			out[funcName] = Func{
+				Name:        funcName,
+				Description: fn.Doc.Text(),
+				Func:        trFunc,
+			}
 			continue
 		}
 

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/codepuree/tilo-railway-company/internal/app"
 	"github.com/codepuree/tilo-railway-company/pkg/scriptcontrol"
@@ -107,14 +108,59 @@ func main() {
 
 		for msg := range l {
 			if len(msg) > 3 && msg[0:2] == "s:" {
-				name := msg[2:]
-				log.Println("Starting Script function: ", name)
-				Func, ok := sctrl[name]
-				if !ok {
+				startParameter := strings.IndexRune(msg, '(')
+				endParameter := strings.IndexRune(msg, ')')
+				switch {
+				case startParameter == -1:
+					name := msg[2:]
+					Func, ok := sctrl[name]
+					if !ok {
+						continue
+					}
+
+					f, ok := Func.Func.(func(*traincontrol.TrainControl))
+					if !ok {
+						log.Println("unable to cast to func")
+						continue
+					}
+
+					go f(trc)
+				case startParameter > -1 && endParameter > -1:
+					name := msg[2:startParameter]
+					Func, ok := sctrl[name]
+					if !ok {
+						log.Println("unkown function ", name)
+						continue
+					}
+					parameterRaw := msg[(startParameter + 1):endParameter]
+					var parameter interface{}
+					json.Unmarshal([]byte(parameterRaw), &parameter)
+
+					switch p := parameter.(type) {
+					case int:
+						f, ok := Func.Func.(func(*traincontrol.TrainControl, int))
+						if !ok {
+							log.Println("unable to cast to func(tc, int)")
+							continue
+						}
+
+						go f(trc, p)
+					case string:
+						f, ok := Func.Func.(func(*traincontrol.TrainControl, string))
+						if !ok {
+							log.Println("unable to cast to func(tc, int)")
+							continue
+						}
+
+						go f(trc, p)
+					default:
+						log.Println("unsupported parameter type")
+						continue
+					}
+				default:
+					log.Println("Unable to parse message ", msg)
 					continue
 				}
-
-				go Func.Func(trc)
 			}
 		}
 
