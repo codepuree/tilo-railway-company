@@ -1,16 +1,21 @@
 package traincontrol
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"sync"
+	"time"
 	"unicode"
 )
 
 type TrainControl struct {
 	rec  <-chan string // receiving channel
 	send chan<- string // sending channel
+	sync.Mutex
+	listeners []func(string)
 
 	// Sensors  map[int]*Sensor
 	// Switches map[rune]*Switch
@@ -23,7 +28,22 @@ type TrainControlConfig struct {
 	Sensors  map[int]*Sensor    `json:"sensors,omitempty"`
 	Switches map[rune]*Switch   `json:"switches,omitempty"`
 	Signals  map[string]*Signal `json:"signals,omitempty"`
-	Blocks   map[string]*Block  `json:"blocks,omitempty"`
+	Blocks   map[rune]*Block    `json:"blocks,omitempty"`
+	Trains   map[string]*Train  `json:"trains,omitempty"`
+}
+
+type Train struct {
+	Name       string `json:"name,omitempty"`
+	CrawlSpeed int    `json:"crawl_speed,omitempty"`
+	MaxSpeed   int    `json:"max_speed,omitempty"`
+	Accelerate struct {
+		Step int           `json:"step,omitempty"`
+		Time time.Duration `json:"time,omitempty"`
+	} `json:"accelerate,omitempty"`
+	Brake struct {
+		Step int           `json:"step,omitempty"`
+		Time time.Duration `json:"time,omitempty"`
+	} `json:"brake,omitempty"`
 }
 
 type Sensor struct {
@@ -96,9 +116,16 @@ func (sns *Sensor) setState(state bool) {
 }
 
 type Switch struct {
-	ID    rune `json:"id,omitempty"`
-	State bool `json:"state,omitempty"`
+	ID    rune        `json:"id,omitempty"`
+	State SwitchState `json:"state,omitempty"`
 }
+
+type SwitchState rune
+
+const (
+	Straight SwitchState = '0'
+	Bent                 = '1'
+)
 
 type Signal struct {
 	// ID
@@ -106,9 +133,19 @@ type Signal struct {
 }
 
 type Block struct {
-	ID    rune `json:"id,omitempty"`
-	State bool `json:"state,omitempty"`
+	ID        rune
+	Direction BlockDirection
+	Speed     int
 }
+
+type BlockDirection rune
+
+const (
+	Forward          BlockDirection = 'f'
+	Backward                        = 'b'
+	Stopped                         = 's'
+	EmergencyStopped                = 'x'
+)
 
 func NewTrainControl(rec <-chan string, send chan<- string, config TrainControlConfig) *TrainControl {
 	tc := &TrainControl{
@@ -118,13 +155,46 @@ func NewTrainControl(rec <-chan string, send chan<- string, config TrainControlC
 		TrainControlConfig: config,
 	}
 
+	if tc.Blocks == nil {
+		tc.Blocks = make(map[rune]*Block)
+	}
+	if tc.Sensors == nil {
+		tc.Sensors = make(map[int]*Sensor)
+	}
+	if tc.Switches == nil {
+		tc.Switches = make(map[rune]*Switch)
+	}
+	if tc.Signals == nil {
+		tc.Signals = make(map[string]*Signal)
+	}
+
 	go func() {
 		for msg := range tc.rec {
 			err := tc.interpret(msg)
 			if err != nil {
 				log.Println(fmt.Errorf("unable to interpret message '%s': %w", msg, err))
+				continue
+			}
+
+			for _, lst := range tc.listeners {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Println("Recovered from:", r)
+					}
+				}()
+				go lst(msg)
 			}
 		}
+	}()
+
+	go func() {
+		tc.getSensorStates()
+		time.Sleep(5 * time.Second)
+		tc.getBlockDirections()
+		time.Sleep(5 * time.Second)
+		tc.getBlockSpeeds()
+		time.Sleep(5 * time.Second)
+		tc.getSignalStates()
 	}()
 
 	return tc
@@ -136,7 +206,7 @@ func (tc *TrainControl) String() string {
 
 func (tc *TrainControl) SetSwitch(id string, state string) {
 	fmt.Printf("Switch '%s' changes to '%s'\n", id, state)
-	tc.send <- "y" + id + state
+	tc.send <- "y" + id + state + "z"
 }
 
 func (tc *TrainControl) SetBlockDirection(id string, state string) {
@@ -144,7 +214,6 @@ func (tc *TrainControl) SetBlockDirection(id string, state string) {
 }
 
 func (tc *TrainControl) SetBlockSpeed(id string, speed int) {
-
 	tc.send <- fmt.Sprintf("%s%02dz", id, speed)
 }
 
@@ -181,13 +250,59 @@ func (tc *TrainControl) interpret(msg string) error {
 		snr.setState(state)
 
 	case msg[0] == 'y': // Switch
-		return fmt.Errorf("Switch interpretation not implemented yet")
+		// example: ya1z
+		id := rune(msg[1])
+		if _, ok := tc.Switches[id]; !ok {
+			tc.Switches[id] = &Switch{ID: id}
+		}
+
+		switch {
+		case rune(msg[2]) == '0':
+			tc.Switches[id].State = Straight
+		case rune(msg[2]) == '1':
+			tc.Switches[id].State = Bent
+		default:
+			return fmt.Errorf("unkonw switch state '%s'", string(msg[2]))
+		}
+
+		return nil
 
 	case msg[0] == 'x': // Signal
 		return fmt.Errorf("Signal interpretation not implemented yet")
 
 	case unicode.IsLetter(rune(msg[0])) && msg[0] != 'y' && msg[0] != 'x': // Block
-		return fmt.Errorf("Block interpretation not implemented yet")
+		id := rune(msg[0])
+		if _, ok := tc.Blocks[id]; !ok {
+			tc.Blocks[id] = &Block{ID: id}
+		}
+
+		switch {
+		case rune(msg[1]) == 'd':
+			switch {
+			case rune(msg[2]) == 'f':
+				tc.Blocks[id].Direction = Forward
+			case rune(msg[2]) == 'b':
+				tc.Blocks[id].Direction = Backward
+			case rune(msg[2]) == 's':
+				tc.Blocks[id].Direction = Stopped
+			case rune(msg[2]) == 'x':
+				tc.Blocks[id].Direction = EmergencyStopped
+			default:
+				return fmt.Errorf("unknown block direction '%s'", string(msg[2]))
+			}
+
+		case unicode.IsNumber(rune(msg[1])) && unicode.IsNumber(rune(msg[2])):
+			speed, err := strconv.Atoi(string(msg[1:2]))
+			if err != nil {
+				return fmt.Errorf("unable to interprete the speed '%s'", string(msg[1:2]))
+			}
+
+			tc.Blocks[id].Speed = speed
+
+		default:
+			return fmt.Errorf("unable to interpret block message")
+		}
+		return nil
 
 	default:
 		return fmt.Errorf("unable to interpret message '%s'", msg)
@@ -196,6 +311,66 @@ func (tc *TrainControl) interpret(msg string) error {
 	return nil
 }
 
-func (tc *TrainControl) Close() {
+func (tc *TrainControl) sendMessage(msg string) {
+	tc.send <- msg
+}
 
+func (tc *TrainControl) sendMessageAwait(ctx context.Context, msg string) {
+	ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+
+	func(ctx context.Context) {
+		// tc.sendMessage(msg)
+		// tc.waitMessage(msg)
+		time.Sleep(1 * time.Second)
+	}(ctx)
+}
+
+func (tc *TrainControl) waitMessage(msg string) {
+	c := make(chan bool)
+	f := func(newMsg string) {
+		if msg == newMsg {
+			c <- true
+		}
+	}
+
+	tc.Lock()
+	tc.listeners = append(tc.listeners, f)
+	tc.Unlock()
+
+	<-c
+}
+
+func (tc *TrainControl) GetActiveTrain() *Train {
+	return nil
+}
+
+func (tc *TrainControl) Close() {
+	v := int(math.Abs(float64(12)))
+	time.Sleep(time.Duration(v) * time.Millisecond)
+}
+
+// getSensorStates sends `wsez` to retrive all the states of all the sensors
+func (tc *TrainControl) getSensorStates() {
+	tc.send <- "wsez"
+}
+
+// getSensorStates sends `wswz` to retrive all the states of all the switches
+func (tc *TrainControl) getSwitchStates() {
+	tc.send <- "wswz"
+}
+
+// getSensorStates sends `wblz` to retrive all the directions of all the blocks
+func (tc *TrainControl) getBlockDirections() {
+	tc.send <- "wblz"
+}
+
+// getSensorStates sends `wspz` to retrive all the speeds of all the blocks
+func (tc *TrainControl) getBlockSpeeds() {
+	tc.send <- "wspz"
+}
+
+// getSensorStates sends `wsiz` to retrive all the states of all the signals
+func (tc *TrainControl) getSignalStates() {
+	tc.send <- "wsiz"
 }
