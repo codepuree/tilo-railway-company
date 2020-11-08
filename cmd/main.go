@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -110,7 +112,24 @@ func main() {
 	}()
 
 	trc := traincontrol.NewTrainControl(rec, send, msgc, tcConfig)
-	interp := interp.New(interp.Options{})
+	reader, writer := io.Pipe()
+	defer reader.Close()
+	rbuf := bufio.NewReader(reader)
+	go func() {
+		lb, _, err := rbuf.ReadLine()
+		if err != nil {
+			log.Fatal(fmt.Errorf("unable to read form stdout reader: %w", err))
+		}
+
+		server.Websocket.SendToAll(app.Message{
+			From: "scriptcontrol",
+			To:   "all",
+			Data: string(lb),
+		})
+	}()
+	interp := interp.New(interp.Options{
+		Stdout: writer,
+	})
 	interp.Use(stdlib.Symbols)
 	interp.Use(trclib.Symbols)
 	scriptPath := "/var/www/custom/track1.go"
