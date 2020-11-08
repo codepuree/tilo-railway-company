@@ -1,10 +1,25 @@
 package traincontrol
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
 )
+
+func echoServer(dur time.Duration) (rec chan string, send chan string) {
+	rec = make(chan string)
+	send = make(chan string)
+
+	go func() {
+		for msg := range send {
+			time.Sleep(dur)
+			rec <- msg
+		}
+	}()
+
+	return rec, send
+}
 
 func TestTrainControl_interpret(t *testing.T) {
 	tc := &TrainControl{
@@ -12,7 +27,7 @@ func TestTrainControl_interpret(t *testing.T) {
 			Sensors:  make(map[int]*Sensor),
 			Switches: make(map[rune]*Switch),
 			Signals:  make(map[string]*Signal),
-			Blocks:   make(map[string]*Block),
+			Blocks:   make(map[rune]*Block),
 		},
 	}
 
@@ -23,11 +38,11 @@ func TestTrainControl_interpret(t *testing.T) {
 	}{
 		{"Incomplete message", "01l", true},
 		{"empty message", "", true},
-		{"Sensor", "01lz", false},
-		{"Switch", "ya0z", false},
+		{"Sensor", "01lz", true},
+		{"Switch", "ya0z", true},
 		{"Signal", "xa1z", false},
-		{"Block direction", "adfz", false},
-		{"Block speed", "a50z", false},
+		{"Block direction", "adfz", true},
+		{"Block speed", "a50z", true},
 	}
 
 	for _, tt := range tests {
@@ -113,4 +128,19 @@ func TestSensor_CountTo(t *testing.T) {
 	// 	})
 	// }
 
+}
+
+func TestTrainControl_sendMessageAwait(t *testing.T) {
+	rec, send := echoServer(100 * time.Millisecond)
+	tc := NewTrainControl(rec, send, TrainControlConfig{
+		Sensors:  map[int]*Sensor{19: {ID: 19, State: false}},
+		Switches: make(map[rune]*Switch),
+		Signals:  make(map[string]*Signal),
+		Blocks:   make(map[rune]*Block),
+	})
+
+	ctx := context.Background()
+	t.Log("Sending 19hz")
+	tc.sendMessageAwait(ctx, "19hz")
+	t.Log("Receiving 19hz")
 }

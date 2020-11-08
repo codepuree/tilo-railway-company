@@ -12,8 +12,9 @@ import (
 )
 
 type TrainControl struct {
-	rec  <-chan string // receiving channel
-	send chan<- string // sending channel
+	rec     <-chan string  // receiving channel
+	send    chan<- string  // sending channel
+	message chan<- Message // return other message
 	sync.Mutex
 	listeners []func(string)
 
@@ -30,6 +31,10 @@ type TrainControlConfig struct {
 	Signals  map[string]*Signal `json:"signals,omitempty"`
 	Blocks   map[rune]*Block    `json:"blocks,omitempty"`
 	Trains   map[string]*Train  `json:"trains,omitempty"`
+}
+
+type Message struct {
+	Data interface{} `json:"data,omitempty"`
 }
 
 type Train struct {
@@ -136,6 +141,8 @@ type Block struct {
 	ID        rune
 	Direction BlockDirection
 	Speed     int
+	sensors   []*Sensor
+	length    []*float64
 }
 
 type BlockDirection rune
@@ -147,10 +154,15 @@ const (
 	EmergencyStopped                = 'x'
 )
 
-func NewTrainControl(rec <-chan string, send chan<- string, config TrainControlConfig) *TrainControl {
+type Track struct {
+	Blocks []*Block
+}
+
+func NewTrainControl(rec <-chan string, send chan<- string, message chan<- Message, config TrainControlConfig) *TrainControl {
 	tc := &TrainControl{
-		rec:  rec,
-		send: send,
+		rec:     rec,
+		send:    send,
+		message: message,
 
 		TrainControlConfig: config,
 	}
@@ -292,7 +304,7 @@ func (tc *TrainControl) interpret(msg string) error {
 			}
 
 		case unicode.IsNumber(rune(msg[1])) && unicode.IsNumber(rune(msg[2])):
-			speed, err := strconv.Atoi(string(msg[1:2]))
+			speed, err := strconv.Atoi(string(msg[1:3]))
 			if err != nil {
 				return fmt.Errorf("unable to interprete the speed '%s'", string(msg[1:2]))
 			}
@@ -341,6 +353,18 @@ func (tc *TrainControl) waitMessage(msg string) {
 	<-c
 }
 
+func (tc *TrainControl) GetActiveBlocks() []*Block {
+	abs := make([]*Block, 0)
+
+	for _, b := range tc.Blocks {
+		if b.Speed > 0 && b.Direction != Stopped && b.Direction != EmergencyStopped {
+			abs = append(abs, b)
+		}
+	}
+
+	return abs
+}
+
 func (tc *TrainControl) GetActiveTrain() *Train {
 	return nil
 }
@@ -355,22 +379,22 @@ func (tc *TrainControl) getSensorStates() {
 	tc.send <- "wsez"
 }
 
-// getSensorStates sends `wswz` to retrive all the states of all the switches
+// getSwitchStates sends `wswz` to retrive all the states of all the switches
 func (tc *TrainControl) getSwitchStates() {
 	tc.send <- "wswz"
 }
 
-// getSensorStates sends `wblz` to retrive all the directions of all the blocks
+// getBlockDirections sends `wblz` to retrive all the directions of all the blocks
 func (tc *TrainControl) getBlockDirections() {
 	tc.send <- "wblz"
 }
 
-// getSensorStates sends `wspz` to retrive all the speeds of all the blocks
+// getBlockSpeeds sends `wspz` to retrive all the speeds of all the blocks
 func (tc *TrainControl) getBlockSpeeds() {
 	tc.send <- "wspz"
 }
 
-// getSensorStates sends `wsiz` to retrive all the states of all the signals
+// getSignalStates sends `wsiz` to retrive all the states of all the signals
 func (tc *TrainControl) getSignalStates() {
 	tc.send <- "wsiz"
 }
