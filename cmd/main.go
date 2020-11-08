@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/codepuree/tilo-railway-company/internal/app"
@@ -16,6 +17,8 @@ import (
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
+
+var buildDate = "unknown"
 
 func main() {
 	var port string
@@ -27,6 +30,8 @@ func main() {
 	flag.StringVar(&address, "address", ":8080", "Address of the server")
 
 	flag.Parse()
+
+	log.Println("Build date:", buildDate)
 
 	server := app.NewServer(address)
 	a := app.NewArduino(port, baudRate)
@@ -44,7 +49,10 @@ func main() {
 		defer close(amsgc)
 
 		for msg := range amsgc {
-			a.Write(string(msg))
+			err := a.Write(string(msg))
+			if err != nil {
+				log.Println(fmt.Errorf("unable to send message to arduino: %w", err))
+			}
 		}
 	}()
 
@@ -52,7 +60,7 @@ func main() {
 	go func() {
 		for m := range ac {
 			log.Printf("Arduino-> '%s'", string(m))
-			server.Websocket.SendToAll(1, m)
+			server.Websocket.SendToAll(app.Message{From: "arduino", To: "all", Data: string(m)})
 		}
 	}()
 	a.Listen(ac)
@@ -91,15 +99,30 @@ func main() {
 	}
 
 	log.Printf("Loaded configuration: %+v", tcConfig)
+	msgc := make(chan traincontrol.Message)
+	go func() {
+		for msg := range msgc {
+			err := server.Websocket.SendToAll(app.Message{From: "traincontrol", To: "all", Data: msg})
+			if err != nil {
+				log.Println(fmt.Errorf("unable to send message from traincontrol to all: %w", err))
+			}
+		}
+	}()
 
-	trc := traincontrol.NewTrainControl(rec, send, tcConfig)
+	trc := traincontrol.NewTrainControl(rec, send, msgc, tcConfig)
 	interp := interp.New(interp.Options{})
 	interp.Use(stdlib.Symbols)
 	interp.Use(trclib.Symbols)
-	sctrl, err := scriptcontrol.LoadFromFile(interp, "/var/www/custom/track1.go")
+	scriptPath := "/var/www/custom/track1.go"
+	sctrl, err := scriptcontrol.LoadFromFile(interp, scriptPath)
 	if err != nil {
 		log.Fatal(fmt.Errorf("unable to load track1: %w", err))
 	}
+	funcs := make([]string, 0, len(sctrl))
+	for k := range sctrl {
+		funcs = append(funcs, k)
+	}
+	log.Printf("Loaded %v functions from '%s':\n\t%+v", len(sctrl), scriptPath, funcs)
 	a.Listen(arec)
 
 	go func() {
@@ -110,11 +133,13 @@ func main() {
 			if len(msg) > 3 && msg[0:2] == "s:" {
 				startParameter := strings.IndexRune(msg, '(')
 				endParameter := strings.IndexRune(msg, ')')
+
 				switch {
 				case startParameter == -1:
 					name := msg[2:]
 					Func, ok := sctrl[name]
 					if !ok {
+						log.Println("unkown function ", name)
 						continue
 					}
 
@@ -124,6 +149,7 @@ func main() {
 						continue
 					}
 
+					log.Printf("Starting function '%s'...", name)
 					go f(trc)
 				case startParameter > -1 && endParameter > -1:
 					name := msg[2:startParameter]
@@ -134,7 +160,10 @@ func main() {
 					}
 					parameterRaw := msg[(startParameter + 1):endParameter]
 					var parameter interface{}
-					json.Unmarshal([]byte(parameterRaw), &parameter)
+					err := json.Unmarshal([]byte(parameterRaw), &parameter)
+					if err != nil {
+						log.Println("unable to parse parameters: ", parameterRaw)
+					}
 
 					switch p := parameter.(type) {
 					case int:
@@ -144,7 +173,17 @@ func main() {
 							continue
 						}
 
+						log.Printf("Starting function '%s(%v)'...", name, p)
 						go f(trc, p)
+					case float64:
+						f, ok := Func.Func.(func(*traincontrol.TrainControl, int))
+						if !ok {
+							log.Println("unable to cast to func(tc, int)")
+							continue
+						}
+
+						log.Printf("Starting function '%s(%v)'...", name, p)
+						go f(trc, int(p))
 					case string:
 						f, ok := Func.Func.(func(*traincontrol.TrainControl, string))
 						if !ok {
@@ -152,9 +191,10 @@ func main() {
 							continue
 						}
 
+						log.Printf("Starting function '%s(%v)'...", name, p)
 						go f(trc, p)
 					default:
-						log.Println("unsupported parameter type")
+						log.Println("unsupported parameter type: ", reflect.ValueOf(p))
 						continue
 					}
 				default:

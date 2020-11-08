@@ -65,7 +65,10 @@ func (s *Server) setupRoutes() {
 		defer close(msgc)
 
 		for msg := range msgc {
-			s.Websocket.SendToAll(1, msg)
+			err := s.Websocket.SendToAll(Message{From: "eventsystem", To: "all", Data: string(msg)})
+			if err != nil {
+				log.Println(fmt.Errorf("unable to send message from event system to all: %w", err))
+			}
 		}
 	}()
 	s.EventSystem.Listen(msgc)

@@ -33,9 +33,7 @@ type TrainControlConfig struct {
 	Trains   map[string]*Train  `json:"trains,omitempty"`
 }
 
-type Message struct {
-	Data interface{} `json:"data,omitempty"`
-}
+type Message interface{}
 
 type Train struct {
 	Name       string `json:"name,omitempty"`
@@ -373,6 +371,11 @@ func (tc *TrainControl) GetActiveTrain() *Train {
 func (tc *TrainControl) Close() {
 	v := int(math.Abs(float64(12)))
 	time.Sleep(time.Duration(v) * time.Millisecond)
+}
+
+// PublishMessage publishes a desired message
+func (tc *TrainControl) PublishMessage(msg Message) {
+	tc.message <- msg
 }
 
 // getSensorStates sends `wsez` to retrive all the states of all the sensors

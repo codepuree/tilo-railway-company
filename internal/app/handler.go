@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,6 +26,13 @@ type Websocket struct {
 	connections []*websocket.Conn
 	listeners   []chan string
 	mu          sync.RWMutex
+	jsonEnc     json.Encoder
+}
+
+type Message struct {
+	From string      `json:"from,omitempty"`
+	To   string      `json:"to,omitempty"`
+	Data interface{} `json:"data,omitempty"`
 }
 
 func NewWebsocket() *Websocket {
@@ -56,7 +64,18 @@ func (ws *Websocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ws *Websocket) SendToAll(msgType int, msg []byte) {
+func (ws *Websocket) SendToAll(msg Message) error {
+	bMsg, err := json.Marshal(&msg)
+	if err != nil {
+		return fmt.Errorf("unable to marshal message: %w", err)
+	}
+
+	ws.SendToAllRaw(websocket.TextMessage, bMsg)
+
+	return nil
+}
+
+func (ws *Websocket) SendToAllRaw(msgType int, msg []byte) {
 	for _, conn := range ws.connections {
 		if err := conn.WriteMessage(msgType, msg); err != nil {
 			log.Println(fmt.Errorf("unable to send message to %s: %w", conn.UnderlyingConn().RemoteAddr(), err))

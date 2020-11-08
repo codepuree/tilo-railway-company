@@ -132,7 +132,7 @@ func TestSensor_CountTo(t *testing.T) {
 
 func TestTrainControl_sendMessageAwait(t *testing.T) {
 	rec, send := echoServer(100 * time.Millisecond)
-	tc := NewTrainControl(rec, send, TrainControlConfig{
+	tc := NewTrainControl(rec, send, nil, TrainControlConfig{
 		Sensors:  map[int]*Sensor{19: {ID: 19, State: false}},
 		Switches: make(map[rune]*Switch),
 		Signals:  make(map[string]*Signal),
