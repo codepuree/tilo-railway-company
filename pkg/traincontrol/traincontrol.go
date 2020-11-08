@@ -81,6 +81,7 @@ func (sns *Sensor) close(lst <-chan bool) {
 	}
 }
 
+// Await waits for the sonsor to change to the desired state
 func (sns *Sensor) Await(state bool) {
 	lst := sns.getChan()
 	defer sns.close(lst)
