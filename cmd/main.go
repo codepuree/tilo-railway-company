@@ -132,16 +132,13 @@ func main() {
 	})
 	interp.Use(stdlib.Symbols)
 	interp.Use(trclib.Symbols)
-	scriptPath := "/var/www/custom/track1.go"
-	sctrl, err := scriptcontrol.LoadFromFile(interp, scriptPath)
+
+	scriptFolder := "/var/www/custom/"
+	sctrl, err := scriptcontrol.LoadFromDir(interp, scriptFolder)
 	if err != nil {
-		log.Fatal(fmt.Errorf("unable to load track1: %w", err))
+		log.Fatal(fmt.Errorf("unable to load and interpret functions in directory '%s': %w", scriptFolder, err))
 	}
-	funcs := make([]string, 0, len(sctrl))
-	for k := range sctrl {
-		funcs = append(funcs, k)
-	}
-	log.Printf("Loaded %v functions from '%s':\n\t%+v", len(sctrl), scriptPath, funcs)
+
 	a.Listen(arec)
 
 	go func() {

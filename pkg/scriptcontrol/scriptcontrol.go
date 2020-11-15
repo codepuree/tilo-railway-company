@@ -5,6 +5,9 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
+	"log"
+	"path/filepath"
 	"unicode"
 
 	"github.com/codepuree/tilo-railway-company/pkg/traincontrol"
@@ -23,8 +26,33 @@ type Func struct {
 	Func        interface{}
 }
 
+// LoadFromDir parses and interprets all train control functions from the directory
 func LoadFromDir(interp *interp.Interpreter, dir string) (map[string]Func, error) {
-	return nil, nil
+	allFuncs := make(map[string]Func)
+
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Fatal(fmt.Errorf("unable to read files in directory: %w", err))
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			log.Printf("only the root folder '%s' gets loaded and interpreted, '%s' does not.", dir, filepath.Join(dir, file.Name()))
+			continue
+		}
+
+		funcs, err := LoadFromFile(interp, filepath.Join(dir, file.Name()))
+		if err != nil {
+			return nil, err
+		}
+
+		allFuncs, err = join(allFuncs, funcs)
+		if err != nil {
+			return nil, fmt.Errorf("unable to append functions from '%s' to all functions in folder: %w", file.Name(), err)
+		}
+	}
+
+	return allFuncs, nil
 }
 
 // LoadFromFile loads all train control functions from the file and interprets them
@@ -99,4 +127,16 @@ func LoadFromFile(interp *interp.Interpreter, path string) (map[string]Func, err
 	}
 
 	return out, nil
+}
+
+func join(a, b map[string]Func) (map[string]Func, error) {
+	for name, func_ := range b {
+		if _, ok := a[name]; ok {
+			return nil, fmt.Errorf("the function '%s' was already declared", name)
+		}
+
+		a[name] = func_
+	}
+
+	return a, nil
 }
