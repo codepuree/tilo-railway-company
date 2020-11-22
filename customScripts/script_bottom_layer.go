@@ -2,18 +2,27 @@ package custom
 
 import (
 	"log"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/codepuree/tilo-railway-company/pkg/traincontrol"
 )
 
-// EmptyBlock valid for soecific scenario. Definition of all available blocks in that scenario down at secion  B L O C K S
+// EmptyBlock valid for soecific scenario. Definition of all available blocks in that scenario down at section  B L O C K S
 var EmptyBlock = [4]string{"", "", "f", "g"}
+
+// EmptySensors valid for soecific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
+var EmptySensors = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+// EmptyDistances valid for soecific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
+var EmptyDistances = []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 
 // global variables here
 var actualBlocks [4]string = EmptyBlock
 var targetBlocks [4]string = EmptyBlock
+var sensorList []int = EmptySensors
+var distanceList []float64 = EmptyDistances
 var actualDirection string = "s"
 var targetDirection string = "s"
 var actualSpeed int = 0
@@ -71,8 +80,9 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	if targetBlocks != actualBlocks {
 		actualBlocks = targetBlocks
 		setSwitches(tc, actualBlocks)
-		setBlocksDirection(tc, actualBlocks, targetDirection)
+		setBlocksDirection(tc, actualBlocks, actualDirection)
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
+		setSensorList(tc, actualBlocks, actualDirection)
 		resetInactiveBlocks(tc, actualBlocks)
 	}
 }
@@ -218,6 +228,45 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 }
 
 //=====================================================================================================================================================================
+//======================================================================= S E N S O R S ===============================================================================
+//=====================================================================================================================================================================
+
+// func getSensors(tc *traincontrol.TrainControl, block string, direction string) []int {
+
+// 	var sensors []int = tc.Blocks[string(getBlock(block))].Sensors[:len(tc.Blocks[string(getBlock(block))].Sensors)-1]
+
+// 	if direction == "b" {
+// 		sensorsReverse := []interface{}{tc.Blocks[string(getBlock(block))].Sensors[1:]}
+// 		sensors = reverse(sensorsReverse)
+// 	}
+
+// 	return sensors
+// }
+
+// setSensorList creates depending on actual blocks the sensor list with defined order referring distances
+func setSensorList(tc *traincontrol.TrainControl, blocks [4]string, direction string) {
+
+	// start sensorList for first letter of defined block. add all sensors but skip last sensor to sensorList
+	sensorList = tc.Blocks[string(getBlock(blocks[0]))].Sensors[:len(tc.Blocks[string(getBlock(blocks[0]))].Sensors)-1]
+	sensorList = append(sensorList, tc.Blocks[string(getBlock(blocks[3]))].Sensors[:len(tc.Blocks[string(getBlock(blocks[3]))].Sensors)-1]...) // append defined block to list
+	sensorList = append(sensorList, tc.Blocks[string(getBlock(blocks[1]))].Sensors[:len(tc.Blocks[string(getBlock(blocks[1]))].Sensors)-1]...) // append defined block to list
+
+	// start distanceList fir first letter of defined block
+	distanceList = tc.Blocks[string(getBlock(blocks[0]))].Distances
+	distanceList = append(distanceList, tc.Blocks[string(getBlock(blocks[3]))].Distances...) // append defined block to list
+	distanceList = append(distanceList, tc.Blocks[string(getBlock(blocks[1]))].Distances...) // append defined block to list
+
+	if direction == "b" {
+
+	}
+
+}
+
+func getNextSensor(tc *traincontrol.TrainControl) {
+
+}
+
+//=====================================================================================================================================================================
 //======================================================================= A R D U I N O ===============================================================================
 //=====================================================================================================================================================================
 
@@ -300,4 +349,23 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 	tc.SetBlockSpeed("d", 0)
 	tc.SetBlockSpeed("f", 0)
 	tc.SetBlockSpeed("g", 0)
+}
+
+//=====================================================================================================================================================================
+//========================================================================== M I S C ==================================================================================
+//=====================================================================================================================================================================
+
+func reverse(s []interface{}) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+}
+
+func reverseAny(s interface{}) {
+	n := reflect.ValueOf(s).Len()
+	swap := reflect.Swapper(s)
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		swap(i, j)
+	}
+
 }
