@@ -29,7 +29,7 @@ type TrainControlConfig struct {
 	Sensors  map[int]*Sensor    `json:"sensors,omitempty"`
 	Switches map[rune]*Switch   `json:"switches,omitempty"`
 	Signals  map[string]*Signal `json:"signals,omitempty"`
-	Blocks   map[rune]*Block    `json:"blocks,omitempty"`
+	Blocks   map[string]*Block  `json:"blocks,omitempty"`
 	Trains   map[string]*Train  `json:"trains,omitempty"`
 }
 
@@ -137,11 +137,12 @@ type Signal struct {
 }
 
 type Block struct {
-	ID        rune
-	Direction BlockDirection
-	Speed     int
-	sensors   []*Sensor
-	length    []*float64
+	ID        string         `json:"id,omitempty"`
+	Direction BlockDirection `json:"direction,omitempty"`
+	Speed     int            `json:"speed,omitempty"`
+	Sensors   []int          `json:"sensors,omitempty"` // TODO: custom unmarshal from ids to sensors
+	// sensors   []*Sensor
+	Distances []float64 `json:"distances,omitempty"`
 }
 
 type BlockDirection rune
@@ -167,7 +168,7 @@ func NewTrainControl(rec <-chan string, send chan<- string, message chan<- Messa
 	}
 
 	if tc.Blocks == nil {
-		tc.Blocks = make(map[rune]*Block)
+		tc.Blocks = make(map[string]*Block)
 	}
 	if tc.Sensors == nil {
 		tc.Sensors = make(map[int]*Sensor)
@@ -282,7 +283,7 @@ func (tc *TrainControl) interpret(msg string) error {
 		return fmt.Errorf("Signal interpretation not implemented yet")
 
 	case unicode.IsLetter(rune(msg[0])) && msg[0] != 'y' && msg[0] != 'x': // Block
-		id := rune(msg[0])
+		id := string(msg[0])
 		if _, ok := tc.Blocks[id]; !ok {
 			tc.Blocks[id] = &Block{ID: id}
 		}
@@ -352,6 +353,7 @@ func (tc *TrainControl) waitMessage(msg string) {
 	<-c
 }
 
+// GetActiveBlocks returns all the blocks were the power is turned on.
 func (tc *TrainControl) GetActiveBlocks() []*Block {
 	abs := make([]*Block, 0)
 
@@ -362,6 +364,10 @@ func (tc *TrainControl) GetActiveBlocks() []*Block {
 	}
 
 	return abs
+}
+
+func (tc *TrainControl) GetOccupiedBlock() *Block {
+	return nil
 }
 
 func (tc *TrainControl) GetActiveTrain() *Train {
