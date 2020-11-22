@@ -20,12 +20,38 @@
         "18": { "id": 18, "state": false },
         "19": { "id": 19, "state": false }
     },
+
+    "trains": {
+
+        "D16": { "name": "D16", 
+		       "crawl_speed": 37, 
+		       "max_speed": 75, 
+		       "brake": {"step":3,"time":500}, 
+		       "accelerate": {"step":1,"time":250}
+		     },
+	    "N700": { "name": "N700", 
+		       "crawl_speed": 37, 
+		       "max_speed": 75, 
+		       "brake": {"step":3,"time":500}, 
+		       "accelerate": {"step":1,"time":250}
+		     }
+    },
+
     "_blocks": {
-        "a": { "id": "a", "sensors": [13,  5,  1,  9] },
-        "b": { "id": "b", "sensors": [14,  6,  2, 10] },
-        "c": { "id": "c", "sensors": [15,  7,  3, 11] },
-        "d": { "id": "d", "sensors": [16,  8,  4, 12] },
-        "e": { "id": "e", "sensors": [ 9, 10, 11, 12, 17, 10, 13, 14, 15, 16] },
-        "f": { "id": "f", "sensors": [17, 18, 19] }
+        "a": {  "id": "a", 
+                "sensors": [19, 13,  5,  1,  9, 17],
+                "distances": [0.536, 0.269, 0.671, 0.175, 0.525] },
+        "b": {  "id": "b", 
+                "sensors": [19, 14,  6,  2,  10, 17],
+                "distances": [0.553, 0.175, 0.677, 0.180, 0.454] },
+        "c": {  "id": "c", 
+                "sensors": [19, 15,  7,  3,  11, 17],
+                "distances": [0.504, 0.163, 0.676, 0.174, 0.437] },
+        "d": {  "id": "d", 
+                "sensors": [19, 16,  8,  4,  12, 17],
+                "distances": [0.482, 0.160, 0.669, 0.184, 0.380] },
+        "g": {  "id": "g", 
+                "sensors": [17, 18, 19],
+                "distances": [0.544, 0.535] }
     }
 }
