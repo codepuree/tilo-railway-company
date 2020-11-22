@@ -67,7 +67,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	}
 
 	if targetSpeed != actualSpeed {
-		adjustSpeed(tc, train, actualBlocks, actualSpeed, targetSpeed)
+		adjustSpeed(tc, train, actualBlocks, targetSpeed)
 	}
 
 	if targetBlocks != actualBlocks {
@@ -79,12 +79,12 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	}
 }
 
-func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actualBlocks [4]string, actSpeed int, targetSpeed int) {
+func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actualBlocks [4]string, targetSpeed int) {
 	now := time.Now()
 	tickDuration := train.Accelerate.Time * time.Millisecond
 	if now.Sub(lastAccelerateTick) > tickDuration {
 		lastAccelerateTick = now
-		speedDiff := actSpeed - targetSpeed
+		speedDiff := actualSpeed - targetSpeed
 		inc := 0
 		if speedDiff > 0 {
 			// deccelerate
@@ -96,8 +96,7 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 			//inc = 1 //most simple case
 			inc = train.Accelerate.Step
 		}
-		iterationStep := actSpeed + inc
-		actualSpeed = iterationStep
+		actualSpeed += inc
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
 	}
 }
