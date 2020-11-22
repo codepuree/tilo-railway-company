@@ -14,8 +14,6 @@ var EmptyBlock = [4]string{"", "", "f", "g"}
 // global variables here
 var actualBlocks [4]string = EmptyBlock
 var targetBlocks [4]string = EmptyBlock
-
-//var direction string = "s"
 var actualDirection string = "s"
 var targetDirection string = "s"
 var actualSpeed int = 0
