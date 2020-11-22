@@ -13,7 +13,7 @@ var EmptyBlock = [4]string{"", "", "f", "g"}
 
 // global variables here
 var actualBlocks [4]string = EmptyBlock
-var targetBlocks [4]string = EmptyBlocks
+var targetBlocks [4]string = EmptyBlock
 
 //var direction string = "s"
 var actualDirection string = "s"
@@ -215,7 +215,7 @@ func getInactiveBlocks(blocks [4]string) string {
 // resetInactiveBlocks set all inactive blocks to speed = 0 and direction 's'
 func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 	var inactiveBlocks = getInactiveBlocks(blocks)
-	for i, block := range inactiveBlocks {
+	for _, block := range inactiveBlocks {
 		partialResetBlock2Arduino(tc, byte(block))
 	}
 }
