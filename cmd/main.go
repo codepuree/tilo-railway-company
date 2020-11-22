@@ -26,10 +26,12 @@ func main() {
 	var port string
 	var baudRate int
 	var address string
+	var configPath string
 
 	flag.StringVar(&port, "serialPort", "COM3", "Serial port name, where the arduino is connected")
 	flag.IntVar(&baudRate, "serialBaud", 9600, "Serial baud rate")
 	flag.StringVar(&address, "address", ":8080", "Address of the server")
+	flag.StringVar(&configPath, "config", "./config.json", "path to the config")
 
 	flag.Parse()
 
@@ -85,7 +87,7 @@ func main() {
 		}
 	}()
 
-	tcFile, err := os.Open("./config.json")
+	tcFile, err := os.Open(configPath)
 	if err != nil {
 		log.Fatal(fmt.Errorf("unable to open config.json file: %w", err))
 	}
@@ -138,6 +140,12 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Errorf("unable to load and interpret functions in directory '%s': %w", scriptFolder, err))
 	}
+	if ctr, ok := sctrl["ControlRunner"]; ok {
+		f, ok := ctr.Func.(func(*traincontrol.TrainControl))
+		if ok {
+			go f(trc)
+		}
+	}
 
 	a.Listen(arec)
 
@@ -155,7 +163,7 @@ func main() {
 					name := msg[2:]
 					Func, ok := sctrl[name]
 					if !ok {
-						log.Println("unkown function ", name)
+						log.Println("unknown function ", name)
 						continue
 					}
 
