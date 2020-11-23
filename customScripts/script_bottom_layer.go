@@ -74,7 +74,6 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		actualDirection = targetDirection
 		setBlocksDirection(tc, actualBlocks, targetDirection)
 		setSensorList(tc, targetBlocks, targetDirection)
-		PrintAll(tc)
 	}
 
 	if targetSpeed != actualSpeed {
@@ -87,7 +86,6 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		setBlocksDirection(tc, targetBlocks, actualDirection)
 		setBlocksSpeed(tc, targetBlocks, actualSpeed)
 		setSensorList(tc, targetBlocks, actualDirection)
-		PrintAll(tc)
 		resetInactiveBlocks(tc, targetBlocks)
 	}
 }
@@ -101,12 +99,10 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		inc := 0
 		if speedDiff > 0 {
 			// deccelerate
-			//inc = -1 //most simple case
 			inc = -train.Brake.Step
 		}
 		if speedDiff < 0 {
 			//accelerate
-			//inc = 1 //most simple case
 			inc = train.Accelerate.Step
 		}
 		actualSpeed += inc
