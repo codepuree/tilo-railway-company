@@ -263,27 +263,27 @@ func setSensorList(tc *traincontrol.TrainControl, blocks [4]string, direction st
 
 	// start sensorList for first letter of defined block. add all sensors but skip last sensor to sensorList
 	// start distanceList for first letter of defined block. add all distances in correct order
-	if direction == "b" { // Backward Direction
+	if direction == "b" { // Backward Direction (0,3,1 -> east, middle, west))
 		sensorPart := getSensors(tc, blocks[1], direction)
-		sensorPart = append(sensorPart, getSensors(tc, blocks[3], direction)...) // append defined block to list (0,3,1 -> start,middle,end)
+		sensorPart = append(sensorPart, getSensors(tc, blocks[3], direction)...) // append defined block to list (after reverse 0,3,1 -> east, middle, west)
 		sensorPart = append(sensorPart, getSensors(tc, blocks[0], direction)...)
 		sensorList = sensorPart
 		reverseAny(sensorList)
 
 		distancePart := getDistances(tc, blocks[1], direction)
-		distancePart = append(distancePart, getDistances(tc, blocks[3], direction)...) // append defined block to list (0,3,1 -> start,middle,end)
+		distancePart = append(distancePart, getDistances(tc, blocks[3], direction)...)
 		distancePart = append(distancePart, getDistances(tc, blocks[0], direction)...)
 		distanceList = distancePart
 		reverseAny(distanceList)
-	} else { // Forward Direction
-		sensorPart := getSensors(tc, blocks[0], direction)
-		sensorPart = append(sensorPart, getSensors(tc, blocks[3], direction)...)
-		sensorPart = append(sensorPart, getSensors(tc, blocks[1], direction)...)
+	} else { // Forward Direction (1,3,0 -> west, middle, east)
+		sensorPart := getSensors(tc, blocks[1], direction)
+		sensorPart = append(sensorPart, getSensors(tc, blocks[3], direction)...) // append defined block to list (1,3,0 -> west, middle, east)
+		sensorPart = append(sensorPart, getSensors(tc, blocks[0], direction)...)
 		sensorList = sensorPart
 
-		distancePart := getDistances(tc, blocks[0], direction)
+		distancePart := getDistances(tc, blocks[1], direction)
 		distancePart = append(distancePart, getDistances(tc, blocks[3], direction)...)
-		distancePart = append(distancePart, getDistances(tc, blocks[1], direction)...)
+		distancePart = append(distancePart, getDistances(tc, blocks[0], direction)...)
 		distanceList = distancePart
 	}
 }
