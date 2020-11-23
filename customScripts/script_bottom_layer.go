@@ -9,13 +9,13 @@ import (
 	"github.com/codepuree/tilo-railway-company/pkg/traincontrol"
 )
 
-// EmptyBlock valid for soecific scenario. Definition of all available blocks in that scenario down at section  B L O C K S
+// EmptyBlock valid for specific scenario. Definition of all available blocks in that scenario down at section  B L O C K S
 var EmptyBlock = [4]string{"", "", "f", "g"}
 
-// EmptySensors valid for soecific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
+// EmptySensors valid for specific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
 var EmptySensors = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
-// EmptyDistances valid for soecific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
+// EmptyDistances valid for specific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
 var EmptyDistances = []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 
 // global variables here
@@ -35,6 +35,8 @@ func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------PRINT ALL------------------- ", actualBlocks)
 	log.Println("----------------actualBlocks: ", actualBlocks)
 	log.Println("----------------targetBlocks: ", targetBlocks)
+	log.Println("----------------sensorList: ", sensorList)
+	log.Println("----------------distanceList: ", distanceList)
 	log.Println("----------------actualDirection: ", actualDirection)
 	log.Println("----------------targetDirection: ", targetDirection)
 	log.Println("----------------actualSpeed: ", actualSpeed)
@@ -71,6 +73,8 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	if targetDirection != actualDirection {
 		actualDirection = targetDirection
 		setBlocksDirection(tc, actualBlocks, targetDirection)
+		setSensorList(tc, targetBlocks, targetDirection)
+		PrintAll(tc)
 	}
 
 	if targetSpeed != actualSpeed {
@@ -79,11 +83,12 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 	if targetBlocks != actualBlocks {
 		actualBlocks = targetBlocks
-		setSwitches(tc, actualBlocks)
-		setBlocksDirection(tc, actualBlocks, actualDirection)
-		setBlocksSpeed(tc, actualBlocks, actualSpeed)
-		setSensorList(tc, actualBlocks, actualDirection)
-		resetInactiveBlocks(tc, actualBlocks)
+		setSwitches(tc, targetBlocks)
+		setBlocksDirection(tc, targetBlocks, actualDirection)
+		setBlocksSpeed(tc, targetBlocks, actualSpeed)
+		setSensorList(tc, targetBlocks, actualDirection)
+		PrintAll(tc)
+		resetInactiveBlocks(tc, targetBlocks)
 	}
 }
 
@@ -165,6 +170,11 @@ func isDriveable() bool {
 			return false
 		}
 	}
+	for _, block := range targetBlocks {
+		if block == "+" || block == "-" {
+			return false
+		}
+	}
 	return true
 }
 
@@ -231,38 +241,60 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 //======================================================================= S E N S O R S ===============================================================================
 //=====================================================================================================================================================================
 
-// func getSensors(tc *traincontrol.TrainControl, block string, direction string) []int {
+// getSensors receive list of Sensors, revere order if needed and cut it to length
+func getSensors(tc *traincontrol.TrainControl, block string, direction string) []int {
+	sensors := tc.Blocks[string(getBlock(block))].Sensors
+	if direction == "b" {
+		sensors = sensors[1:]
+	} else {
+		sensors = sensors[:len(sensors)-1]
+	}
+	return sensors
+}
 
-// 	var sensors []int = tc.Blocks[string(getBlock(block))].Sensors[:len(tc.Blocks[string(getBlock(block))].Sensors)-1]
-
-// 	if direction == "b" {
-// 		sensorsReverse := []interface{}{tc.Blocks[string(getBlock(block))].Sensors[1:]}
-// 		sensors = reverse(sensorsReverse)
-// 	}
-
-// 	return sensors
-// }
+// getDistances receive list of Sensors, revere order if needed and cut it to length
+func getDistances(tc *traincontrol.TrainControl, block string, direction string) []float64 {
+	distances := tc.Blocks[string(getBlock(block))].Distances
+	return distances
+}
 
 // setSensorList creates depending on actual blocks the sensor list with defined order referring distances
 func setSensorList(tc *traincontrol.TrainControl, blocks [4]string, direction string) {
 
 	// start sensorList for first letter of defined block. add all sensors but skip last sensor to sensorList
-	sensorList = tc.Blocks[string(getBlock(blocks[0]))].Sensors[:len(tc.Blocks[string(getBlock(blocks[0]))].Sensors)-1]
-	sensorList = append(sensorList, tc.Blocks[string(getBlock(blocks[3]))].Sensors[:len(tc.Blocks[string(getBlock(blocks[3]))].Sensors)-1]...) // append defined block to list
-	sensorList = append(sensorList, tc.Blocks[string(getBlock(blocks[1]))].Sensors[:len(tc.Blocks[string(getBlock(blocks[1]))].Sensors)-1]...) // append defined block to list
+	// start distanceList for first letter of defined block. add all distances in correct order
+	if direction == "b" { // Backward Direction
+		sensorPart := getSensors(tc, blocks[1], direction)
+		sensorPart = append(sensorPart, getSensors(tc, blocks[3], direction)...) // append defined block to list (0,3,1 -> start,middle,end)
+		sensorPart = append(sensorPart, getSensors(tc, blocks[0], direction)...)
+		sensorList = sensorPart
+		reverseAny(sensorList)
 
-	// start distanceList fir first letter of defined block
-	distanceList = tc.Blocks[string(getBlock(blocks[0]))].Distances
-	distanceList = append(distanceList, tc.Blocks[string(getBlock(blocks[3]))].Distances...) // append defined block to list
-	distanceList = append(distanceList, tc.Blocks[string(getBlock(blocks[1]))].Distances...) // append defined block to list
+		distancePart := getDistances(tc, blocks[1], direction)
+		distancePart = append(distancePart, getDistances(tc, blocks[3], direction)...) // append defined block to list (0,3,1 -> start,middle,end)
+		distancePart = append(distancePart, getDistances(tc, blocks[0], direction)...)
+		distanceList = distancePart
+		reverseAny(distanceList)
+	} else { // Forward Direction
+		sensorPart := getSensors(tc, blocks[0], direction)
+		sensorPart = append(sensorPart, getSensors(tc, blocks[3], direction)...)
+		sensorPart = append(sensorPart, getSensors(tc, blocks[1], direction)...)
+		sensorList = sensorPart
 
-	if direction == "b" {
-
+		distancePart := getDistances(tc, blocks[0], direction)
+		distancePart = append(distancePart, getDistances(tc, blocks[3], direction)...)
+		distancePart = append(distancePart, getDistances(tc, blocks[1], direction)...)
+		distanceList = distancePart
 	}
+}
+
+// getNextSensor provides information (ID and distance) of following sensor
+func getNextSensor(tc *traincontrol.TrainControl) {
 
 }
 
-func getNextSensor(tc *traincontrol.TrainControl) {
+// getPreviousSensor provides information (ID and distance) of last sensor
+func getPreviousSensor(tc *traincontrol.TrainControl) {
 
 }
 
@@ -354,6 +386,12 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 //=====================================================================================================================================================================
 //========================================================================== M I S C ==================================================================================
 //=====================================================================================================================================================================
+
+func reverseInt(s []int) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+}
 
 func reverse(s []interface{}) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
