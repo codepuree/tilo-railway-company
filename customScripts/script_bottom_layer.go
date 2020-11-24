@@ -9,6 +9,10 @@ import (
 	"github.com/codepuree/tilo-railway-company/pkg/traincontrol"
 )
 
+//=====================================================================================================================================================================
+//======================================================================== I N I T ====================================================================================
+//=====================================================================================================================================================================
+
 // EmptyBlock valid for specific scenario. Definition of all available blocks in that scenario down at section  B L O C K S
 var EmptyBlock = [4]string{"", "", "f", "g"}
 
@@ -47,21 +51,9 @@ var minRounds = 1
 var randomDirection = 0
 var randomRounds = 0
 
-// PrintAll is just a function to print status of all values
-func PrintAll(tc *traincontrol.TrainControl) {
-	log.Println("----------------PRINT ALL------------------- ", actualBlocks)
-	log.Println("----------------actualBlocks: ", actualBlocks)
-	log.Println("----------------targetBlocks: ", targetBlocks)
-	log.Println("----------------sensorList: ", sensorList)
-	log.Println("----------------distanceList: ", distanceList)
-	log.Println("----------------actualDirection: ", actualDirection)
-	log.Println("----------------targetDirection: ", targetDirection)
-	log.Println("----------------actualSpeed: ", actualSpeed)
-	log.Println("----------------targetSpeed: ", targetSpeed)
-	log.Println("----------------previousSpeed: ", previousSpeed)
-	log.Println("----------------lastAccelerateTick: ", lastAccelerateTick)
-
-}
+//=====================================================================================================================================================================
+//================================================================== C O N T R O L / M A I N ==========================================================================
+//=====================================================================================================================================================================
 
 // ControlRunner performs an arduino loop with controlCycleDuration
 func ControlRunner(tc *traincontrol.TrainControl) {
@@ -140,6 +132,22 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	}
 
 }
+
+// PrintAll is just a function to print status of all values
+func PrintAll(tc *traincontrol.TrainControl) {
+	log.Println("----------------PRINT ALL------------------- ", actualBlocks)
+	log.Println("----------------actualBlocks: ", actualBlocks)
+	log.Println("----------------targetBlocks: ", targetBlocks)
+	log.Println("----------------sensorList: ", sensorList)
+	log.Println("----------------distanceList: ", distanceList)
+	log.Println("----------------actualDirection: ", actualDirection)
+	log.Println("----------------targetDirection: ", targetDirection)
+	log.Println("----------------actualSpeed: ", actualSpeed)
+	log.Println("----------------targetSpeed: ", targetSpeed)
+	log.Println("----------------previousSpeed: ", previousSpeed)
+	log.Println("----------------lastAccelerateTick: ", lastAccelerateTick)
+}
+
 func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actualBlocks [4]string, targetSpeed int) {
 	now := time.Now()
 	tickDuration := train.Accelerate.Time * time.Millisecond
@@ -297,15 +305,16 @@ func getVelocity(tc *traincontrol.TrainControl, id int) {
 	end := time.Now()
 	start := getLastTime(tc, id)
 
-	duration := end.Sub(start)
-	floatDuration := duration.Seconds()
-	speed := (distance / floatDuration) * 3.6 * 160
+	duration := (end.Sub(start)).Seconds()
+	speed := (distance / duration) * 3.6 * 160 // calculate valocity in n scale (1:160) in km/h
 
-	tc.PublishMessage(struct {
-		Velocity int `json:velocity"`
-	}{
-		Velocity: int(speed),
-	})
+	log.Println("----------------Velocity between Sensor ", id, " and sensor before: ", speed, " km//h")
+
+	// tc.PublishMessage(struct {
+	// 	Velocity int `json:velocity"`
+	// }{
+	// 	Velocity: int(speed),
+	// })
 }
 
 //=====================================================================================================================================================================
@@ -483,12 +492,6 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 //=====================================================================================================================================================================
 //========================================================================== M I S C ==================================================================================
 //=====================================================================================================================================================================
-
-func reverseInt(s []int) {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
-	}
-}
 
 func reverse(s []interface{}) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
