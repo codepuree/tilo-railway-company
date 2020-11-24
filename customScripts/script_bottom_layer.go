@@ -289,9 +289,28 @@ func getNextSensor(tc *traincontrol.TrainControl) {
 
 }
 
-// getPreviousSensor provides information (ID and distance) of last sensor
-func getPreviousSensor(tc *traincontrol.TrainControl) {
+// getPreviousDistance provides distnace to last sensor
+func getPreviousDistance(tc *traincontrol.TrainControl, int id) float64{
+	for i := 0; i <= len(distanceList); i++ {
+		if sensorList[i] == id {
+			if i == 0 {
+				return distanceList[len(distanceList)]
+			} else {
+				return distanceList[i-1]
+			}
+		}
+	}
+	return 0
+}
 
+// getNextDistance provides distnace to last sensor
+func getNextDistance(tc *traincontrol.TrainControl, int id) float64{
+	for i := 0; i <= len(distanceList); i++ {
+		if sensorList[i] == id {
+			return distanceList[i]
+		}
+	}
+	return 0
 }
 
 //=====================================================================================================================================================================
