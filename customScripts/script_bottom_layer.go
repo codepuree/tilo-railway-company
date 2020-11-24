@@ -34,10 +34,12 @@ var targetSpeed int = 0
 var previousSpeed int = 0
 var lastAccelerateTick time.Time = time.Unix(0, 0)
 
-//flags
+//flags for automatiion and program selection / behavior
 var doCircle = 0
-var auto = 1
+var doRoundRobin = 0
+var auto = 0
 var autoBrake = 0
+var autoBrakeReleased = 0
 var maxRounds = 10
 var minRounds = 1
 var randomDirection = 0
@@ -105,8 +107,9 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	//Automation
 	// autoBrake gets activated via sensor. Decrease speed down to crawlspeed. Stops completely when defined sensor is released.
 	if autoBrake == 1 {
-		if tc.Sensors[sensorList[7]].State == false{
+		if tc.Sensors[sensorList[7]].State == false && autoBrakeReleased = 0{
 			targetSpeed = train.crawl_speed
+			autoBrakeReleased = 1
 			log.Println("----------------Braking. Speed set: ", s)
 
 			tc.PublishMessage(struct {
@@ -129,6 +132,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			}
 			setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
 			autoBrake = 0 //reset autobrake
+			autoBrakeReleased = 0
 		}
 	}
 }
