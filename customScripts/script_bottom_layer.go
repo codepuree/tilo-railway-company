@@ -44,8 +44,8 @@ var lastAccelerateTick time.Time = time.Unix(0, 0)
 var doCircle = 0
 var doRoundRobin = 0
 var auto = 0
-var autoBrake = 0
-var autoBrakeReleased = 0
+var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
+var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
 var maxRounds = 10
 var minRounds = 1
 var randomDirection = 0
@@ -83,6 +83,8 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		actualDirection = targetDirection
 		setBlocksDirection(tc, actualBlocks, targetDirection)
 		setSensorList(tc, targetBlocks, targetDirection)
+		log.Println("----------------sensorList: ", sensorList)
+		log.Println("----------------distanceList: ", distanceList)
 	}
 
 	if targetSpeed != actualSpeed {
@@ -113,10 +115,10 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			}) //synchronize all websites with set state
 		}
 
-		if tc.Sensors[sensorList[4]].State == false {
+		if tc.Sensors[sensorList[3]].State == false && autoBrakeReleased == 1 {
 			targetSpeed = 0
 			actualSpeed = targetSpeed // set both values same level to not release brake ramp
-			log.Println("----------------Braking. Speed set: ", targetSpeed)
+			log.Println("----------------Stop now. Speed set: ", targetSpeed)
 
 			tc.PublishMessage(struct {
 				Speed int `json:"speed"`
@@ -162,6 +164,11 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		if speedDiff < 0 {
 			//accelerate
 			inc = train.Accelerate.Step
+			if autoBrake == 1 && autoBrakeReleased == 1 && speedDiff < 10 { // break condition in case of acceleration while autobrake is running
+				autoBrake = 0
+				autoBrakeReleased = 0
+				log.Println("----------------AutoBrake Reset. SpeedDiff: ", speedDiff)
+			}
 		}
 		actualSpeed += inc
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
