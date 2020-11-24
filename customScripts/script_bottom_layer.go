@@ -18,9 +18,11 @@ var EmptySensors = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 // EmptyDistances valid for specific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
 var EmptyDistances = []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 
-// SensorTimes valid for specific scenario. Definition of all available blocks in that scenario down at section  A U T O M A T I C
+// now init value for SensorTimes. Used for section  A U T O M A T I C
 var now = time.Now()
-var SensorTimes = []time{now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now}
+
+// SensorTimes valid for specific scenario. Definition of all available blocks in that scenario down at section  A U T O M A T I C
+var SensorTimes = []time.Time{now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now}
 
 // global variables here
 var actualBlocks [4]string = EmptyBlock
@@ -107,36 +109,37 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	//Automation
 	// autoBrake gets activated via sensor. Decrease speed down to crawlspeed. Stops completely when defined sensor is released.
 	if autoBrake == 1 {
-		if tc.Sensors[sensorList[7]].State == false && autoBrakeReleased = 0{
-			targetSpeed = train.crawl_speed
+		if tc.Sensors[sensorList[7]].State == false && autoBrakeReleased == 0 {
+			targetSpeed = train.CrawlSpeed
 			autoBrakeReleased = 1
-			log.Println("----------------Braking. Speed set: ", s)
+			log.Println("----------------Braking. Speed set: ", targetSpeed)
 
 			tc.PublishMessage(struct {
 				Speed int `json:"speed"`
 			}{
 				Speed: targetSpeed,
 			}) //synchronize all websites with set state
-			}
+		}
 
-		if tc.Sensors[sensorList[4]].State == false{
+		if tc.Sensors[sensorList[4]].State == false {
 			targetSpeed = 0
-			actualSpeed = targetSpeed  // set both values same level to not release brake ramp
-			log.Println("----------------Braking. Speed set: ", s)
+			actualSpeed = targetSpeed // set both values same level to not release brake ramp
+			log.Println("----------------Braking. Speed set: ", targetSpeed)
 
 			tc.PublishMessage(struct {
 				Speed int `json:"speed"`
 			}{
 				Speed: targetSpeed,
 			}) //synchronize all websites with set state
-			}
+
 			setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
-			autoBrake = 0 //reset autobrake
+			autoBrake = 0                                 //reset autobrake
 			autoBrakeReleased = 0
 		}
-	}
-}
 
+	}
+
+}
 func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actualBlocks [4]string, targetSpeed int) {
 	now := time.Now()
 	tickDuration := train.Accelerate.Time * time.Millisecond
@@ -158,7 +161,7 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 }
 
 // SetBrake set flag to brake
-func SetBrake(tc *traincontrol.TrainControl, s int){
+func SetBrake(tc *traincontrol.TrainControl, s int) {
 	autoBrake = s
 }
 
@@ -290,18 +293,18 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 //=====================================================================================================================================================================
 
 func getVelocity(tc *traincontrol.TrainControl, id int) {
-	distance := getPreviousDistance(tc,id)
+	distance := getPreviousDistance(tc, id)
 	end := time.Now()
-	start := getLastTime(tc,id)
+	start := getLastTime(tc, id)
 
 	duration := end.Sub(start)
-	float_duration := duration.Seconds()
-	speed := (distance / float_duration) * 3.6 * 160
+	floatDuration := duration.Seconds()
+	speed := (distance / floatDuration) * 3.6 * 160
 
 	tc.PublishMessage(struct {
 		Velocity int `json:velocity"`
 	}{
-		Velocity: speed,
+		Velocity: int(speed),
 	})
 }
 
@@ -361,22 +364,21 @@ func getNextSensor(tc *traincontrol.TrainControl) {
 
 }
 
-// getPreviousDistance provides distnace to last sensor
-func getPreviousDistance(tc *traincontrol.TrainControl, id int) float64{
+// getPreviousDistance provides distance to last sensor
+func getPreviousDistance(tc *traincontrol.TrainControl, id int) float64 {
 	for i := 0; i < len(distanceList); i++ {
 		if sensorList[i] == id {
 			if i == 0 {
 				return distanceList[len(distanceList)]
-			} else {
-				return distanceList[i-1]
 			}
+			return distanceList[i-1]
 		}
 	}
 	return 0
 }
 
-// getNextDistance provides distnace to last sensor
-func getNextDistance(tc *traincontrol.TrainControl, id int) float64{
+// getNextDistance provides distance to last sensor
+func getNextDistance(tc *traincontrol.TrainControl, id int) float64 {
 	for i := 0; i < len(distanceList); i++ {
 		if sensorList[i] == id {
 			return distanceList[i]
@@ -386,12 +388,11 @@ func getNextDistance(tc *traincontrol.TrainControl, id int) float64{
 }
 
 // getLastTime provides time of last sensor activation
-func getLastTime(tc *traincontrol.TrainControl, id int) time{
-	if i == 0 {
+func getLastTime(tc *traincontrol.TrainControl, id int) time.Time {
+	if id == 0 {
 		return SensorTimes[len(distanceList)]
-	} else {
-		return SensorTimes[i-1]
-	}		
+	}
+	return SensorTimes[id-1]
 }
 
 //=====================================================================================================================================================================
