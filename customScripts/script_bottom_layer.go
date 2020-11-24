@@ -131,6 +131,13 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			autoBrakeReleased = 0
 		}
 
+		// break condition in case of acceleration while autobrake is running. twice brake.step because it can easily overshoot while braking
+		if actualSpeed-targetSpeed < -2*train.Brake.Step {
+			autoBrake = 0
+			autoBrakeReleased = 0
+			log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
+		}
+
 	}
 
 }
@@ -164,11 +171,6 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		if speedDiff < 0 {
 			//accelerate
 			inc = train.Accelerate.Step
-			if autoBrake == 1 && autoBrakeReleased == 1 && speedDiff < 10 { // break condition in case of acceleration while autobrake is running
-				autoBrake = 0
-				autoBrakeReleased = 0
-				log.Println("----------------AutoBrake Reset. SpeedDiff: ", speedDiff)
-			}
 		}
 		actualSpeed += inc
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
