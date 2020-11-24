@@ -18,6 +18,10 @@ var EmptySensors = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 // EmptyDistances valid for specific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
 var EmptyDistances = []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 
+// SensorTimes valid for specific scenario. Definition of all available blocks in that scenario down at section  A U T O M A T I C
+var now = time.Now()
+var SensorTimes = []time{now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now}
+
 // global variables here
 var actualBlocks [4]string = EmptyBlock
 var targetBlocks [4]string = EmptyBlock
@@ -234,6 +238,26 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 }
 
 //=====================================================================================================================================================================
+//===================================================================== A U T O M A T I C =============================================================================
+//=====================================================================================================================================================================
+
+func getVelocity(tc *traincontrol.TrainControl, id int) {
+	distance := getPreviousDistance(tc,id)
+	end := time.Now()
+	start := getLastTime(tc,id)
+
+	duration := end.Sub(start)
+	float_duration := duration.Seconds()
+	speed := (distance / float_duration) * 3.6 * 160
+
+	tc.PublishMessage(struct {
+		Velocity int `json:velocity"`
+	}{
+		Velocity: speed,
+	})
+}
+
+//=====================================================================================================================================================================
 //======================================================================= S E N S O R S ===============================================================================
 //=====================================================================================================================================================================
 
@@ -290,7 +314,7 @@ func getNextSensor(tc *traincontrol.TrainControl) {
 }
 
 // getPreviousDistance provides distnace to last sensor
-func getPreviousDistance(tc *traincontrol.TrainControl, int id) float64{
+func getPreviousDistance(tc *traincontrol.TrainControl, id int) float64{
 	for i := 0; i < len(distanceList); i++ {
 		if sensorList[i] == id {
 			if i == 0 {
@@ -304,13 +328,22 @@ func getPreviousDistance(tc *traincontrol.TrainControl, int id) float64{
 }
 
 // getNextDistance provides distnace to last sensor
-func getNextDistance(tc *traincontrol.TrainControl, int id) float64{
+func getNextDistance(tc *traincontrol.TrainControl, id int) float64{
 	for i := 0; i < len(distanceList); i++ {
 		if sensorList[i] == id {
 			return distanceList[i]
 		}
 	}
 	return 0
+}
+
+// getLastTime provides time of last sensor activation
+func getLastTime(tc *traincontrol.TrainControl, id int) time{
+	if i == 0 {
+		return SensorTimes[len(distanceList)]
+	} else {
+		return SensorTimes[i-1]
+	}		
 }
 
 //=====================================================================================================================================================================
