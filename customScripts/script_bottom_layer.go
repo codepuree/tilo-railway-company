@@ -34,6 +34,15 @@ var targetSpeed int = 0
 var previousSpeed int = 0
 var lastAccelerateTick time.Time = time.Unix(0, 0)
 
+//flags
+var doCircle = 0
+var auto = 1
+var autoBrake = 0
+var maxRounds = 10
+var minRounds = 1
+var randomDirection = 0
+var randomRounds = 0
+
 // PrintAll is just a function to print status of all values
 func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------PRINT ALL------------------- ", actualBlocks)
@@ -92,6 +101,36 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		setSensorList(tc, targetBlocks, actualDirection)
 		resetInactiveBlocks(tc, targetBlocks)
 	}
+
+	//Automation
+	// autoBrake gets activated via sensor. Decrease speed down to crawlspeed. Stops completely when defined sensor is released.
+	if autoBrake == 1 {
+		if tc.Sensors[sensorList[7]].State == false{
+			targetSpeed = train.crawl_speed
+			log.Println("----------------Braking. Speed set: ", s)
+
+			tc.PublishMessage(struct {
+				Speed int `json:"speed"`
+			}{
+				Speed: targetSpeed,
+			}) //synchronize all websites with set state
+			}
+
+		if tc.Sensors[sensorList[4]].State == false{
+			targetSpeed = 0
+			actualSpeed = targetSpeed  // set both values same level to not release brake ramp
+			log.Println("----------------Braking. Speed set: ", s)
+
+			tc.PublishMessage(struct {
+				Speed int `json:"speed"`
+			}{
+				Speed: targetSpeed,
+			}) //synchronize all websites with set state
+			}
+			setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
+			autoBrake = 0 //reset autobrake
+		}
+	}
 }
 
 func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actualBlocks [4]string, targetSpeed int) {
@@ -112,6 +151,11 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		actualSpeed += inc
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
 	}
+}
+
+// SetBrake set flag to brake
+func SetBrake(tc *traincontrol.TrainControl, s int){
+	autoBrake = s
 }
 
 // SetDirection sets the direction
