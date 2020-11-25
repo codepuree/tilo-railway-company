@@ -47,7 +47,7 @@ var auto = 0			  // will start automatic mode in control section
 var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
 var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
 var maxRounds = 10
-var minRounds = 1
+var rounds = 10
 var randomDirection = 0
 var randomRounds = 0
 
@@ -182,6 +182,31 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 	autoBrake = s
 }
 
+// setRandomRounds sets a random amount of rounds (minimum is 1 // maximum is maxRounds)
+func setRandomRounds(tc *traincontrol.TrainControl, max int){
+	r := 0
+	for r == 0 {
+		r := random(max)
+	}
+	rounds = r
+}	
+
+// setRandomDirection sets a random Direction
+func setRandomDirection(tc *traincontrol.TrainControl){
+	r := random(1)
+	if r == 1 {
+		targetDirection = "f"
+	} else {
+		targetDirection = "b"
+	}
+	tc.PublishMessage(struct {
+		Direction string `json:"direction"`
+	}{
+		Direction: targetDirection,
+	})
+	log.Println("----------------Direction set radomly: ", targetDirection)
+}
+
 // SetDirection sets the direction
 func SetDirection(tc *traincontrol.TrainControl, d string) {
 	targetDirection = d
@@ -294,10 +319,7 @@ func MenuAutomatikRandomRoundsBool(tc *traincontrol.TrainControl, b bool) {
 
 func MenuAutomatikMaxRoundsInt(tc *traincontrol.TrainControl, i int) {
 	maxRounds = i
-}
-
-func MenuAutomatikMinRoundsInt(tc *traincontrol.TrainControl, i int) {
-	minRounds = i
+	rounds = i
 }
 
 func MenuAutomatikRoundRobinBool(tc *traincontrol.TrainControl, b bool) {
@@ -307,8 +329,6 @@ func MenuAutomatikRoundRobinBool(tc *traincontrol.TrainControl, b bool) {
 		doRoundRobin = 0
 	}
 }
-
-
 
 //=====================================================================================================================================================================
 //======================================================================== B L O C K S ================================================================================
@@ -565,6 +585,10 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 //=====================================================================================================================================================================
 //========================================================================== M I S C ==================================================================================
 //=====================================================================================================================================================================
+
+func random(max int) int {
+	return rand.Intn(max)
+}
 
 func reverse(s []interface{}) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
