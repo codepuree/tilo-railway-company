@@ -183,12 +183,10 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 }
 
 // setRandomRounds sets a random amount of rounds (minimum is 1 // maximum is maxRounds)
-func setRandomRounds(tc *traincontrol.TrainControl, max int){
-	r := 0
-	for r == 0 {
-		r := random(max)
-	}
-	rounds = r
+func setRandomRounds(tc *traincontrol.TrainControl, min int, max int){
+	min = float64(min)
+	max = float64(max)	
+	rounds = int((rand.Float64() * max) + min)
 }	
 
 // setRandomDirection sets a random Direction
