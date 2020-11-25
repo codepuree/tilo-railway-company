@@ -41,9 +41,9 @@ var previousSpeed int = 0
 var lastAccelerateTick time.Time = time.Unix(0, 0)
 
 //flags for automatiion and program selection / behavior
-var doCircle = 0
+var doCircle = 0		  // used in SetTrack and override individual branch selection for in- and outbound
 var doRoundRobin = 0
-var auto = 0
+var auto = 0			  // will start automatic mode in control section
 var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
 var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
 var maxRounds = 10
@@ -212,9 +212,19 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 	var block = string(getBlock(track))
 	switch switchLocation {
 	case "o":
-		targetBlocks[0] = block + switchLocation
+		if doCircle == 1 {	// for doCircle set east and westbound to same branch. no independent tracks allowed
+			targetBlocks[0] = block + "o"
+			targetBlocks[1] = block + "w"	
+		} else {
+			targetBlocks[0] = block + switchLocation
+		}
 	case "w":
-		targetBlocks[1] = block + switchLocation
+		if doCircle == 1 {
+			targetBlocks[0] = block + "o"
+			targetBlocks[1] = block + "w"	
+		} else {
+			targetBlocks[1] = block + switchLocation
+		}
 	default:
 		targetBlocks[0] = block + "o"
 		targetBlocks[1] = block + "w"
@@ -245,6 +255,60 @@ func isDriveable() bool {
 	}
 	return true
 }
+
+//=====================================================================================================================================================================
+//========================================================================== M E N U ==================================================================================
+//=====================================================================================================================================================================
+
+func MenuFahreKreiseBool(tc *traincontrol.TrainControl, b bool) {
+	if b {
+		doCircle = 1
+	} else {
+		doCircle = 0
+	}
+}
+
+func MenuAutomatikBool(tc *traincontrol.TrainControl, b bool) {
+	if b {
+		auto = 1
+	} else {
+		auto = 0
+	}
+}
+
+func MenuAutomatikRandomDirectionBool(tc *traincontrol.TrainControl, b bool) {
+	if b {
+		randomDirection = 1
+	} else {
+		randomDirection = 0
+	}
+}
+
+func MenuAutomatikRandomRoundsBool(tc *traincontrol.TrainControl, b bool) {
+	if b {
+		randomRounds = 1
+	} else {
+		randomRounds = 0
+	}
+}
+
+func MenuAutomatikMaxRoundsInt(tc *traincontrol.TrainControl, i int) {
+	maxRounds = i
+}
+
+func MenuAutomatikMinRoundsInt(tc *traincontrol.TrainControl, i int) {
+	minRounds = i
+}
+
+func MenuAutomatikRoundRobinBool(tc *traincontrol.TrainControl, b bool) {
+	if b {
+		doRoundRobin = 1
+	} else {
+		doRoundRobin = 0
+	}
+}
+
+
 
 //=====================================================================================================================================================================
 //======================================================================== B L O C K S ================================================================================
