@@ -2,7 +2,6 @@ package custom
 
 import (
 	"log"
-	"math/rand"
 	"reflect"
 	"strings"
 	"time"
@@ -47,16 +46,10 @@ var doRoundRobin = 0
 var auto = 0              // will start automatic mode in control section
 var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
 var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
-var minRounds = 1
 var maxRounds = 10
-var rounds = 10
-var roundsCounter = 0
-var roundsCounterFlag = 0
+var minRounds = 1
 var randomDirection = 0
-var randomDirectionFlag = 0
 var randomRounds = 0
-var randomRoundsFlag = 0
-var setSpeedFlag = 0
 
 //=====================================================================================================================================================================
 //================================================================== C O N T R O L / M A I N ==========================================================================
@@ -147,43 +140,6 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 	}
 
-	// indicator for automatic mode
-	// if auto == 1 {
-	// 	if randomDirection == 1 && randomDirectionFlag == 0 {
-	// 		setRandomDirection(tc)
-	// 		randomDirectionFlag = 1
-	// 	}
-	// 	if randomRounds == 1 && randomRoundsFlag == 0 {
-	// 		setRandomRounds(tc, minRounds, maxRounds)
-	// 		randomRoundsFlag = 1
-	// 	}
-	// 	if roundsCounterFlag == 0 {
-	// 		setRandomTrack(tc)
-	// 		roundsCounterFlag = 1
-	// 	}
-	// 	if tc.Sensors[sensorList[6]].State == false {
-	// 		roundsCounter++
-	// 		log.Println("----------------Actual Round: ", roundsCounter)
-	// 	}
-	// 	// Start new round after Reset
-	// 	if setSpeedFlag == 0 {
-	// 		SetSpeed(tc, train.MaxSpeed)
-	// 		setSpeedFlag = 1
-	// 	}
-	// 	// Brake Condition
-	// 	if roundsCounter > rounds {
-	// 		SetBrake(tc, 1)
-
-	// 		if actualSpeed == 0 {
-	// 			randomDirectionFlag = 0
-	// 			randomRoundsFlag = 0
-	// 			roundsCounterFlag = 0
-	// 			setSpeedFlag = 0
-	// 			roundsCounter = 0
-	// 		}
-	// 	}
-	// }
-
 }
 
 // PrintAll is just a function to print status of all values
@@ -226,29 +182,6 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 	autoBrake = s
 }
 
-// setRandomRounds sets a random amount of rounds (minimum is 1 // maximum is maxRounds)
-func setRandomRounds(tc *traincontrol.TrainControl, min int, max int) {
-	lowerBound := float64(min)
-	upperBound := float64(max)
-	rounds = int((rand.Float64() * upperBound) + lowerBound)
-}
-
-// setRandomDirection sets a random Direction
-func setRandomDirection(tc *traincontrol.TrainControl) {
-	r := rand.Float64()
-	if r >= 0.5 {
-		targetDirection = "f"
-	} else {
-		targetDirection = "b"
-	}
-	tc.PublishMessage(struct {
-		Direction string `json:"direction"`
-	}{
-		Direction: targetDirection,
-	})
-	log.Println("----------------Direction set radomly: ", targetDirection)
-}
-
 // SetDirection sets the direction
 func SetDirection(tc *traincontrol.TrainControl, d string) {
 	targetDirection = d
@@ -271,33 +204,6 @@ func SetSpeed(tc *traincontrol.TrainControl, s int) {
 	}{
 		Speed: s,
 	}) //synchronize all websites with set state
-}
-
-// setRandomTrack sets a random Track
-func setRandomTrack(tc *traincontrol.TrainControl) {
-	r := rand.Float64()
-
-	if r >= 0.25 {
-		targetBlocks[0] = "ao"
-		targetBlocks[1] = "aw"
-	} else if r >= 0.5 {
-		targetBlocks[0] = "bo"
-		targetBlocks[1] = "bw"
-	} else if r >= 0.75 {
-		targetBlocks[0] = "co"
-		targetBlocks[1] = "cw"
-	} else {
-		targetBlocks[0] = "do"
-		targetBlocks[1] = "dw"
-	}
-
-	log.Println("----------------setTrack randomly: Blocks set: ", targetBlocks)
-	tc.PublishMessage(struct {
-		Blocks [4]string `json:"blocks"`
-	}{
-		Blocks: targetBlocks,
-	})
-	//synchronize all websites with set state
 }
 
 // SetTrack sets the track
@@ -354,7 +260,6 @@ func isDriveable() bool {
 //========================================================================== M E N U ==================================================================================
 //=====================================================================================================================================================================
 
-// MenuFahreKreiseBool sets global variables and specify website menu by its name
 func MenuFahreKreiseBool(tc *traincontrol.TrainControl, b bool) {
 	if b {
 		doCircle = 1
@@ -363,18 +268,14 @@ func MenuFahreKreiseBool(tc *traincontrol.TrainControl, b bool) {
 	}
 }
 
-// MenuAutomatikBool sets global variables and specify website menu by its name
 func MenuAutomatikBool(tc *traincontrol.TrainControl, b bool) {
 	if b {
 		auto = 1
-		doCircle = 1 // Automatic mode only with circles (noCircles only for RoundRobin)
 	} else {
 		auto = 0
-		doCircle = 0
 	}
 }
 
-// MenuAutomatikRandomDirectionBool sets global variables and specify website menu by its name
 func MenuAutomatikRandomDirectionBool(tc *traincontrol.TrainControl, b bool) {
 	if b {
 		randomDirection = 1
@@ -383,7 +284,6 @@ func MenuAutomatikRandomDirectionBool(tc *traincontrol.TrainControl, b bool) {
 	}
 }
 
-// MenuAutomatikRandomRoundsBool sets global variables and specify website menu by its name
 func MenuAutomatikRandomRoundsBool(tc *traincontrol.TrainControl, b bool) {
 	if b {
 		randomRounds = 1
@@ -392,13 +292,14 @@ func MenuAutomatikRandomRoundsBool(tc *traincontrol.TrainControl, b bool) {
 	}
 }
 
-// MenuAutomatikMaxRoundsInt sets global variables and specify website menu by its name
 func MenuAutomatikMaxRoundsInt(tc *traincontrol.TrainControl, i int) {
 	maxRounds = i
-	rounds = i
 }
 
-// MenuAutomatikRoundRobinBool sets global variables and specify website menu by its name
+func MenuAutomatikMinRoundsInt(tc *traincontrol.TrainControl, i int) {
+	minRounds = i
+}
+
 func MenuAutomatikRoundRobinBool(tc *traincontrol.TrainControl, b bool) {
 	if b {
 		doRoundRobin = 1
