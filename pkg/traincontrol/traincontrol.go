@@ -79,7 +79,20 @@ func (sns *Sensor) close(lst <-chan bool) {
 	}
 }
 
-// Await waits for the sonsor to change to the desired state
+// Changed returns the new sensor state as soon as it changes
+func (sns *Sensor) Changed() bool {
+	lst := sns.getChan()
+	defer sns.close(lst)
+
+	// TODO: could be a potential infinite loop that might be solved by adding a context with a timeout
+	for s := range lst {
+		return s
+	}
+
+	return sns.State
+}
+
+// Await waits for the sensor to change to the desired state
 func (sns *Sensor) Await(state bool) {
 	lst := sns.getChan()
 	defer sns.close(lst)
@@ -92,6 +105,7 @@ func (sns *Sensor) Await(state bool) {
 	}
 }
 
+// CountTo counts the sensor state changes up to the given amount and returns
 func (sns *Sensor) CountTo(state bool, amount int) {
 	lst := sns.getChan()
 	defer sns.close(lst)
