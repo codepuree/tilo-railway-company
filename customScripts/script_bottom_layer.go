@@ -142,6 +142,15 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 }
 
+// func Flanke(tc *traincontrol.TrainControl) {
+// 	if tc.Sensors[sensorList[3]].Changed() == false {
+// 		log.Println("----------------Flanke Sensor ausgeloest")
+// 	}
+// 	if tc.Sensors[sensorList[3]].Changed() == true {
+// 		log.Println("----------------Flanke Sensor Ruhezustand ausgeloest")
+// 	}
+// }
+
 // PrintAll is just a function to print status of all values
 func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------PRINT ALL------------------- ", actualBlocks)
