@@ -182,6 +182,11 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 			inc = train.Accelerate.Step
 		}
 		actualSpeed += inc
+		tc.PublishMessage(struct {
+			ActualSpeed int `json:"actualspeed"`
+		}{
+			ActualSpeed: actualSpeed,
+		}) //synchronize all websites with set state
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
 	}
 }
