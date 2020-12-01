@@ -22,11 +22,11 @@ var EmptySensors = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 // EmptyDistances valid for specific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
 var EmptyDistances = []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 
-// now init value for SensorTimes. Used for section  A U T O M A T I C
-var now = time.Now()
+// ini init value for SensorTimes. Used for section  A U T O M A T I C
+var ini = time.Date(1986, time.May, 15, 15, 0, 0, 0, time.UTC)
 
 // SensorTimes valid for specific scenario. Definition of all available blocks in that scenario down at section  A U T O M A T I C
-var SensorTimes = []time.Time{now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now, now}
+var SensorTimes = []time.Time{ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini, ini}
 
 // global variables here
 var actualBlocks [4]string = EmptyBlock
@@ -50,6 +50,8 @@ var maxRounds = 10
 var minRounds = 1
 var randomDirection = 0
 var randomRounds = 0
+var timeResetFlag = 0
+var sensorPerRound = 7
 
 //=====================================================================================================================================================================
 //================================================================== C O N T R O L / M A I N ==========================================================================
@@ -69,6 +71,7 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 			if isDriveable() {
 				// Control(tc, tc.GetActiveTrain())
 				Control(tc, tc.Trains["N700"])
+				velocity(tc)
 			}
 			lastControlCycle = now
 		} else {
@@ -385,21 +388,85 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 //===================================================================== A U T O M A T I C =============================================================================
 //=====================================================================================================================================================================
 
-func getVelocity(tc *traincontrol.TrainControl, id int) {
-	distance := getPreviousDistance(tc, id)
-	end := time.Now()
-	start := getLastTime(tc, id)
+//testSensors tests sensors
+func testSensors(tc *traincontrol.TrainControl) {
+	for _, id := range sensorList { //for each id in sensorlist
+		if tc.Sensors[id].State == false && SensorTimes[id-1] == ini {
+			distance := getPreviousDistance(tc, id)
+			end := time.Now()
+			SensorTimes[id-1] = end
+			idbefore := getPreviousSensor(tc, id)
 
+			log.Println("----------------Sensorlist: ", sensorList)
+			log.Println("----------------ID: ", id)
+			log.Println("----------------previous ID: ", idbefore)
+			log.Println("----------------distance: ", distance)
+		}
+
+		if tc.Sensors[sensorList[sensorPerRound-1]].State == true && timeResetFlag == 1 {
+			timeResetFlag = 0
+		}
+
+		if tc.Sensors[sensorList[sensorPerRound-1]].State == false && timeResetFlag == 0 {
+			TimeReset(tc)
+			timeResetFlag = 1
+			log.Println("----------------TIME RESET ")
+		}
+	}
+}
+
+// velocity is the main function to measure alls velocitys for the sensors
+func velocity(tc *traincontrol.TrainControl) {
+	for _, id := range sensorList { //for each id in sensorlist
+		if tc.Sensors[id].State == false && SensorTimes[id-1] == ini {
+			distance := getPreviousDistance(tc, id)
+			end := time.Now()
+			start := getPreviousTime(tc, id)
+			SensorTimes[id-1] = end
+
+			speed := getVelocity(tc, start, end, distance)
+			log.Println("----------------Sensorlist: ", sensorList)
+			log.Println("----------------distance: ", distance)
+			log.Println("----------------start: ", start)
+			log.Println("----------------end: ", end)
+			log.Println("----------------Velocity between Sensor ", id, " and sensor before: ", speed, " km//h")
+			// tc.PublishMessage(struct {
+			// 	Velocity int `json:velocity"`
+			// }{
+			// 	Velocity: int(speed),
+			// })
+		}
+
+		if tc.Sensors[sensorList[sensorPerRound-1]].State == true && timeResetFlag == 1 {
+			timeResetFlag = 0
+		}
+
+		if tc.Sensors[sensorList[sensorPerRound-1]].State == false && timeResetFlag == 0 {
+			TimeReset(tc)
+			timeResetFlag = 1
+			log.Println("----------------TIME RESET ")
+		}
+	}
+
+	// if tc.Sensors[sensorList[0]].State == true {
+	// 	timeResetFlag = 0
+	// }
+
+	// if tc.Sensors[sensorList[0]].State == false && timeResetFlag == 0 {
+	// 	TimeReset(tc)
+	// 	log.Println("----------------TIME RESET ")
+	// 	timeResetFlag = 1
+	// }
+}
+
+//getVelocity measures velocity between sensprs
+func getVelocity(tc *traincontrol.TrainControl, start time.Time, end time.Time, distance float64) int {
 	duration := (end.Sub(start)).Seconds()
-	speed := (distance / duration) * 3.6 * 160 // calculate valocity in n scale (1:160) in km/h
+	speed := (distance / duration) * 3.6 * 160 // calculate float velocity in n scale (1:160) in km/h
+	//speedRoundedUp := int(math.Ceil(speed/10)) * 10 // round up to next ten
+	//speedRoundedDown := int(speed/10) * 10 // round down to next ten
 
-	log.Println("----------------Velocity between Sensor ", id, " and sensor before: ", speed, " km//h")
-
-	// tc.PublishMessage(struct {
-	// 	Velocity int `json:velocity"`
-	// }{
-	// 	Velocity: int(speed),
-	// })
+	return int(speed)
 }
 
 //=====================================================================================================================================================================
@@ -453,9 +520,19 @@ func setSensorList(tc *traincontrol.TrainControl, blocks [4]string, direction st
 	}
 }
 
-// getNextSensor provides information (ID and distance) of following sensor
-func getNextSensor(tc *traincontrol.TrainControl) {
-
+// getPreviousSensor provides distance to last sensor
+func getPreviousSensor(tc *traincontrol.TrainControl, id int) int {
+	for i := 0; i < len(sensorList); i++ {
+		if sensorList[i] == id {
+			if i == 0 {
+				//return sensorList[len(sensorList)-1]
+				return sensorList[sensorPerRound-1]
+			} else {
+				return sensorList[i-1]
+			}
+		}
+	}
+	return 0
 }
 
 // getPreviousDistance provides distance to last sensor
@@ -463,30 +540,38 @@ func getPreviousDistance(tc *traincontrol.TrainControl, id int) float64 {
 	for i := 0; i < len(distanceList); i++ {
 		if sensorList[i] == id {
 			if i == 0 {
-				return distanceList[len(distanceList)]
+				//return distanceList[len(distanceList)-1]
+				return distanceList[sensorPerRound-1]
+			} else {
+				return distanceList[i-1]
 			}
-			return distanceList[i-1]
 		}
 	}
 	return 0
 }
 
-// getNextDistance provides distance to last sensor
-func getNextDistance(tc *traincontrol.TrainControl, id int) float64 {
-	for i := 0; i < len(distanceList); i++ {
+// getPreviousTime provides time of last sensor activation
+func getPreviousTime(tc *traincontrol.TrainControl, id int) time.Time {
+	lastID := -1
+	for i := 0; i < len(sensorList); i++ {
 		if sensorList[i] == id {
-			return distanceList[i]
+			if i == 0 {
+				lastID = sensorList[len(sensorList)-1]
+			} else {
+				lastID = sensorList[i-1]
+			}
 		}
 	}
-	return 0
+
+	return SensorTimes[lastID-1]
 }
 
-// getLastTime provides time of last sensor activation
-func getLastTime(tc *traincontrol.TrainControl, id int) time.Time {
-	if id == 0 {
-		return SensorTimes[len(distanceList)]
+// TimeReset reset SensorTime to init values
+func TimeReset(tc *traincontrol.TrainControl) {
+	//SensorTimes = initTime
+	for i := 0; i < len(SensorTimes); i++ {
+		SensorTimes[i] = ini
 	}
-	return SensorTimes[id-1]
 }
 
 //=====================================================================================================================================================================
