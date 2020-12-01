@@ -1,24 +1,24 @@
 {
     "sensors": {
-        "1": { "id": 1, "state": false },
-        "2": { "id": 2, "state": false },
-        "3": { "id": 3, "state": false },
-        "4": { "id": 4, "state": false },
-        "5": { "id": 5, "state": false },
-        "6": { "id": 6, "state": false },
-        "7": { "id": 7, "state": false },
-        "8": { "id": 8, "state": false },
-        "9": { "id": 9, "state": false },
-        "10": { "id": 10, "state": false },
-        "11": { "id": 11, "state": false },
-        "12": { "id": 12, "state": false },
-        "13": { "id": 13, "state": false },
-        "14": { "id": 14, "state": false },
-        "15": { "id": 15, "state": false },
-        "16": { "id": 16, "state": false },
-        "17": { "id": 17, "state": false },
-        "18": { "id": 18, "state": false },
-        "19": { "id": 19, "state": false }
+        "1": { "id": 1, "state": true },
+        "2": { "id": 2, "state": true },
+        "3": { "id": 3, "state": true },
+        "4": { "id": 4, "state": true },
+        "5": { "id": 5, "state": true },
+        "6": { "id": 6, "state": true },
+        "7": { "id": 7, "state": true },
+        "8": { "id": 8, "state": true },
+        "9": { "id": 9, "state": true },
+        "10": { "id": 10, "state": true },
+        "11": { "id": 11, "state": true },
+        "12": { "id": 12, "state": true },
+        "13": { "id": 13, "state": true },
+        "14": { "id": 14, "state": true },
+        "15": { "id": 15, "state": true },
+        "16": { "id": 16, "state": true },
+        "17": { "id": 17, "state": true },
+        "18": { "id": 18, "state": true },
+        "19": { "id": 19, "state": true }
     },
 
     "trains": {
@@ -30,9 +30,9 @@
 		       "accelerate": {"step":1,"time":250}
 		     },
 	    "N700": { "name": "N700", 
-		       "crawl_speed": 37, 
-		       "max_speed": 75, 
-		       "brake": {"step":3,"time":500}, 
+		       "crawl_speed": 3, 
+		       "max_speed": 70, 
+		       "brake": {"step":9,"time":500}, 
 		       "accelerate": {"step":1,"time":250}
 		     }
     },
