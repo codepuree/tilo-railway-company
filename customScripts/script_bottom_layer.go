@@ -86,6 +86,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		actualDirection = targetDirection
 		setBlocksDirection(tc, actualBlocks, targetDirection)
 		setSensorList(tc, targetBlocks, targetDirection)
+		TimeReset(tc)
 		log.Println("----------------sensorList: ", sensorList)
 		log.Println("----------------distanceList: ", distanceList)
 	}
@@ -130,7 +131,8 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			}) //synchronize all websites with set state
 
 			setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
-			autoBrake = 0                                 //reset autobrake
+			TimeReset(tc)
+			autoBrake = 0 //reset autobrake
 			autoBrakeReleased = 0
 		}
 
@@ -259,6 +261,7 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 		Blocks: targetBlocks,
 	})
 	//synchronize all websites with set state
+	TimeReset(tc)
 }
 
 // isDriveable checks wheather a train can drive
@@ -402,23 +405,24 @@ func velocity(tc *traincontrol.TrainControl) {
 			end := time.Now()
 			start := getPreviousTime(tc, id)
 			SensorTimes[id-1] = end
-
 			speed := getVelocity(tc, start, end, distance)
+			lastID := getPreviousSensor(tc, id)
 
-			if actualSpeed == 0 { // Publish Speed
-				log.Println("----------------Velocity between Sensor ", id, " and sensor before: ", 0, " km//h")
-				tc.PublishMessage(struct {
-					Velocity int `json:"velocity"`
-				}{
-					Velocity: 0,
-				})
-			}
-			if speed > 0 && speed < 999 {
-				log.Println("----------------Velocity between Sensor ", id, " and sensor before: ", speed, " km//h")
+			if speed > 0 && speed < 999 { // Publish Speed (dirty and cheap attempt)
+				log.Println("----------------Velocity between Sensor ", id, " and sensor ", lastID, ": ", speed, " km/h")
 				tc.PublishMessage(struct {
 					Velocity int `json:"velocity"`
 				}{
 					Velocity: speed,
+				})
+			}
+
+			if actualSpeed == 0 { // Publish 0 Speed
+				log.Println("----------------Velocity is now: ", 0, " km/h")
+				tc.PublishMessage(struct {
+					Velocity int `json:"velocity"`
+				}{
+					Velocity: 0,
 				})
 			}
 		}
@@ -430,7 +434,6 @@ func velocity(tc *traincontrol.TrainControl) {
 		if tc.Sensors[sensorList[sensorPerRound-1]].State == false && timeResetFlag == 0 { // reset timelist and enable all sensors for next measurement
 			TimeReset(tc)
 			timeResetFlag = 1
-			log.Println("----------------TIME RESET at Sensor: ", sensorList[sensorPerRound-1])
 		}
 	}
 }
@@ -545,6 +548,7 @@ func getPreviousTime(tc *traincontrol.TrainControl, id int) time.Time {
 func TimeReset(tc *traincontrol.TrainControl) {
 	for i := 0; i < len(SensorTimes); i++ {
 		SensorTimes[i] = ini
+		log.Println("----------------TIME RESET at Sensor: ", sensorList[sensorPerRound-1])
 	}
 }
 
