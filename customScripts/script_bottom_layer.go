@@ -55,8 +55,6 @@ var randomRounds = 0
 var timeResetFlag = 0
 var sensorPerRound = 7 // number of sensors per full round (used to get proper distances for last sensor when end of list reached)
 var speedAverageList = []int{0, 0, 0, 0}
-var skipVelocityDuration = 1000 * time.Millisecond
-var skipVelocityResetTime = time.Now()
 
 //=====================================================================================================================================================================
 //================================================================== C O N T R O L / M A I N ==========================================================================
@@ -138,6 +136,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 			setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
 			TimeReset(tc)
+			//skipVelocityResetTime = time.Now()
 			autoBrake = 0 //reset autobrake
 			autoBrakeReleased = 0
 		}
@@ -421,7 +420,7 @@ func velocity(tc *traincontrol.TrainControl) {
 				id != sensorList[4] &&
 				id != sensorList[9] &&
 				id != sensorList[11] { // Publish Speed (dirty and cheap attempt)
-				//speed = averageSpeed(tc, speed)  // floating average of last 4 (prevent outliers and smotthe visualization)
+				speed = averageSpeed(tc, speed) // floating average of last 4 (prevent outliers and smotthe visualization)
 				log.Println("----------------Velocity between Sensor ", id, " and sensor ", lastID, ": ", speed, " km/h")
 				tc.PublishMessage(struct {
 					Velocity int `json:"velocity"`
