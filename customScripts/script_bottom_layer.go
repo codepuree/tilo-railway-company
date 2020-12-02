@@ -136,7 +136,6 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 			setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
 			TimeReset(tc)
-			//skipVelocityResetTime = time.Now()
 			autoBrake = 0 //reset autobrake
 			autoBrakeReleased = 0
 		}
@@ -151,15 +150,6 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	}
 
 }
-
-// func Flanke(tc *traincontrol.TrainControl) {
-// 	if tc.Sensors[sensorList[3]].Changed() == false {
-// 		log.Println("----------------Flanke Sensor ausgeloest")
-// 	}
-// 	if tc.Sensors[sensorList[3]].Changed() == true {
-// 		log.Println("----------------Flanke Sensor Ruhezustand ausgeloest")
-// 	}
-// }
 
 // PrintAll is just a function to print status of all values
 func PrintAll(tc *traincontrol.TrainControl) {
@@ -439,12 +429,10 @@ func velocity(tc *traincontrol.TrainControl) {
 			}
 		}
 
-		// if tc.Sensors[sensorList[sensorPerRound-1]].State == true && timeResetFlag == 1 { // enable reset
 		if tc.Sensors[sensorList[len(sensorList)-1]].State == true && timeResetFlag == 1 { // enable reset // reeet for short section as not as accurate as others
 			timeResetFlag = 0
 		}
 
-		// if tc.Sensors[sensorList[sensorPerRound-1]].State == false && timeResetFlag == 0 { // reset timelist and enable all sensors for next measurement
 		if tc.Sensors[sensorList[len(sensorList)-1]].State == false && timeResetFlag == 0 { // reset timelist and enable all sensors for next measurement
 			TimeReset(tc)
 			timeResetFlag = 1
