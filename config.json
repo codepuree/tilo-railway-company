@@ -32,7 +32,7 @@
 	    "N700": { "name": "N700", 
 		       "crawl_speed": 3, 
 		       "max_speed": 70, 
-		       "brake": {"step":9,"time":500}, 
+		       "brake": {"step":3,"time":200}, 
 		       "accelerate": {"step":1,"time":250}
 		     }
     },

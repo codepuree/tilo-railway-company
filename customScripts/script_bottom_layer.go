@@ -50,8 +50,13 @@ var maxRounds = 10
 var minRounds = 1
 var randomDirection = 0
 var randomRounds = 0
+
+// variables used for velocity measurment
 var timeResetFlag = 0
-var sensorPerRound = 7
+var sensorPerRound = 7 // number of sensors per full round (used to get proper distances for last sensor when end of list reached)
+var speedAverageList = []int{0, 0, 0, 0}
+var skipVelocityDuration = 1000 * time.Millisecond
+var skipVelocityResetTime = time.Now()
 
 //=====================================================================================================================================================================
 //================================================================== C O N T R O L / M A I N ==========================================================================
@@ -102,6 +107,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		setBlocksSpeed(tc, targetBlocks, actualSpeed)
 		setSensorList(tc, targetBlocks, actualDirection)
 		resetInactiveBlocks(tc, targetBlocks)
+		TimeReset(tc)
 	}
 
 	//Automation
@@ -193,11 +199,14 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 			inc = train.Accelerate.Step
 		}
 		actualSpeed += inc
-		tc.PublishMessage(struct {
-			ActualSpeed int `json:"actualspeed"`
-		}{
-			ActualSpeed: actualSpeed,
-		}) //synchronize all websites with set state
+
+		if actualSpeed%5 == 0 {
+			tc.PublishMessage(struct {
+				ActualSpeed int `json:"actualspeed"`
+			}{
+				ActualSpeed: actualSpeed,
+			}) //synchronize all websites with set state
+		}
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
 	}
 }
@@ -261,7 +270,6 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 		Blocks: targetBlocks,
 	})
 	//synchronize all websites with set state
-	TimeReset(tc)
 }
 
 // isDriveable checks wheather a train can drive
@@ -408,7 +416,12 @@ func velocity(tc *traincontrol.TrainControl) {
 			speed := getVelocity(tc, start, end, distance)
 			lastID := getPreviousSensor(tc, id)
 
-			if speed > 0 && speed < 999 { // Publish Speed (dirty and cheap attempt)
+			if speed > 0 && speed < 999 &&
+				id != sensorList[2] && // ignore measurments from short sections
+				id != sensorList[4] &&
+				id != sensorList[9] &&
+				id != sensorList[11] { // Publish Speed (dirty and cheap attempt)
+				//speed = averageSpeed(tc, speed)  // floating average of last 4 (prevent outliers and smotthe visualization)
 				log.Println("----------------Velocity between Sensor ", id, " and sensor ", lastID, ": ", speed, " km/h")
 				tc.PublishMessage(struct {
 					Velocity int `json:"velocity"`
@@ -427,11 +440,13 @@ func velocity(tc *traincontrol.TrainControl) {
 			}
 		}
 
-		if tc.Sensors[sensorList[sensorPerRound-1]].State == true && timeResetFlag == 1 { // enable reset
+		// if tc.Sensors[sensorList[sensorPerRound-1]].State == true && timeResetFlag == 1 { // enable reset
+		if tc.Sensors[sensorList[len(sensorList)-1]].State == true && timeResetFlag == 1 { // enable reset // reeet for short section as not as accurate as others
 			timeResetFlag = 0
 		}
 
-		if tc.Sensors[sensorList[sensorPerRound-1]].State == false && timeResetFlag == 0 { // reset timelist and enable all sensors for next measurement
+		// if tc.Sensors[sensorList[sensorPerRound-1]].State == false && timeResetFlag == 0 { // reset timelist and enable all sensors for next measurement
+		if tc.Sensors[sensorList[len(sensorList)-1]].State == false && timeResetFlag == 0 { // reset timelist and enable all sensors for next measurement
 			TimeReset(tc)
 			timeResetFlag = 1
 		}
@@ -443,8 +458,20 @@ func getVelocity(tc *traincontrol.TrainControl, start time.Time, end time.Time, 
 	duration := (end.Sub(start)).Seconds()
 	speed := (distance / duration) * 3.6 * 160 // calculate float velocity in n scale (1:160) in km/h
 	//speedRoundedUp := int(math.Ceil(speed/10)) * 10 // round up to next ten
-	speedRoundedDown := int(speed/10) * 10 // round down to next ten
+	speedRoundedDown := int(speed/5) * 5 // round down to next fifth
 	return int(speedRoundedDown)
+}
+
+// averageSpeed calculates mean of last 4 values
+func averageSpeed(tc *traincontrol.TrainControl, s int) int {
+	avg := 0
+	for i := 1; i < len(speedAverageList); i++ {
+		avg = avg + speedAverageList[i]
+		speedAverageList[i-1] = speedAverageList[i]
+	}
+	speedAverageList[3] = s
+	avg = (avg + s) / 3
+	return int(avg)
 }
 
 //=====================================================================================================================================================================
