@@ -189,13 +189,13 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		}
 		actualSpeed += inc
 
-		if actualSpeed%5 == 0 {
-			tc.PublishMessage(struct {
-				ActualSpeed int `json:"actualspeed"`
-			}{
-				ActualSpeed: actualSpeed,
-			}) //synchronize all websites with set state
-		}
+		// if actualSpeed%10 == 0 {
+		// 	tc.PublishMessage(struct {
+		// 		ActualSpeed int `json:"actualspeed"`
+		// 	}{
+		// 		ActualSpeed: actualSpeed,
+		// 	}) //synchronize all websites with set state
+		// }
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
 	}
 }
@@ -405,12 +405,12 @@ func velocity(tc *traincontrol.TrainControl) {
 			speed := getVelocity(tc, start, end, distance)
 			lastID := getPreviousSensor(tc, id)
 
-			if speed > 0 && speed < 999 &&
-				id != sensorList[2] && // ignore measurments from short sections
+			if speed > 0 && speed < 999 && //Smoothing Attempt 1: large Outlier Detection
+				id != sensorList[2] && // Smoothing Attempt 2: ignore measurments from short sections as inaccurate
 				id != sensorList[4] &&
 				id != sensorList[9] &&
 				id != sensorList[11] { // Publish Speed (dirty and cheap attempt)
-				speed = averageSpeed(tc, speed) // floating average of last 4 (prevent outliers and smotthe visualization)
+				speed = averageSpeedExcludeOutliers(tc, speed) // Smoothing Attempt 3: floating average of last value (Exclude largest Outlier in case of false measurement)
 				log.Println("----------------Velocity between Sensor ", id, " and sensor ", lastID, ": ", speed, " km/h")
 				tc.PublishMessage(struct {
 					Velocity int `json:"velocity"`
@@ -449,15 +449,32 @@ func getVelocity(tc *traincontrol.TrainControl, start time.Time, end time.Time, 
 	return int(speedRoundedDown)
 }
 
-// averageSpeed calculates mean of last 4 values
+// averageSpeed calculates mean of last values (depends on length of average list)
 func averageSpeed(tc *traincontrol.TrainControl, s int) int {
 	avg := 0
 	for i := 1; i < len(speedAverageList); i++ {
 		avg = avg + speedAverageList[i]
 		speedAverageList[i-1] = speedAverageList[i]
 	}
-	speedAverageList[3] = s
-	avg = (avg + s) / 3
+	speedAverageList[len(speedAverageList)-1] = s
+	avg = (avg + s) / len(speedAverageList)
+	return int(avg)
+}
+
+// averageSpeedExcludeOutliers same as Aver Speed but exlude largest Outlier
+func averageSpeedExcludeOutliers(tc *traincontrol.TrainControl, s int) int {
+	avg := 0
+	largest := s
+	for i := 1; i < len(speedAverageList); i++ {
+		avg = avg + speedAverageList[i]
+		if largest < speedAverageList[i] {
+			largest = speedAverageList[i]
+		}
+		speedAverageList[i-1] = speedAverageList[i]
+	}
+	speedAverageList[len(speedAverageList)-1] = s
+
+	avg = (avg + s - largest) / (len(speedAverageList) - 1)
 	return int(avg)
 }
 
@@ -562,7 +579,7 @@ func getPreviousTime(tc *traincontrol.TrainControl, id int) time.Time {
 func TimeReset(tc *traincontrol.TrainControl) {
 	for i := 0; i < len(SensorTimes); i++ {
 		SensorTimes[i] = ini
-		log.Println("----------------TIME RESET at Sensor: ", sensorList[sensorPerRound-1])
+		log.Println("----------------TIME RESET at Sensor: ", sensorList[len(sensorList)-1])
 	}
 }
 
