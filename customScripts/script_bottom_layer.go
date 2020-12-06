@@ -43,6 +43,8 @@ var lastAccelerateTick time.Time = time.Unix(0, 0)
 //flags for automatiion and program selection / behavior
 var doCircle = 0 // used in SetTrack and override individual branch selection for in- and outbound
 var doRoundRobin = 0
+
+//variable used for automatic
 var auto = 0              // will start automatic mode in control section
 var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
 var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
@@ -189,14 +191,14 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		}
 		actualSpeed += inc
 
-		// if actualSpeed%10 == 0 {
-		// 	tc.PublishMessage(struct {
-		// 		ActualSpeed int `json:"actualspeed"`
-		// 	}{
-		// 		ActualSpeed: actualSpeed,
-		// 	}) //synchronize all websites with set state
-		// }
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
+		if actualSpeed%1 == 0 {
+			tc.PublishMessage(struct {
+				ActualSpeed int `json:"actualspeed"`
+			}{
+				ActualSpeed: actualSpeed,
+			}) //synchronize all websites with set state
+		}
 	}
 }
 
@@ -536,9 +538,9 @@ func getPreviousSensor(tc *traincontrol.TrainControl, id int) int {
 			if i == 0 {
 				//return sensorList[len(sensorList)-1]
 				return sensorList[sensorPerRound-1]
-			} else {
-				return sensorList[i-1]
 			}
+			return sensorList[i-1]
+
 		}
 	}
 	return 0
@@ -551,9 +553,8 @@ func getPreviousDistance(tc *traincontrol.TrainControl, id int) float64 {
 			if i == 0 {
 				//return distanceList[len(distanceList)-1]
 				return distanceList[sensorPerRound-1]
-			} else {
-				return distanceList[i-1]
 			}
+			return distanceList[i-1]
 		}
 	}
 	return 0
