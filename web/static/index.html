@@ -27,8 +27,6 @@
         </ul>
         <div id="more" class="hidden">
             <ul>
-                <li>bla</li>
-                <li>blub</li>
             </ul>
         </div>
     </aside>
@@ -77,7 +75,8 @@
                 <img id="blk_1" src="/resources/inhalt/block_aktiv.png" alt="">
                 <img id="blk_2" src="/resources/inhalt/block_grau.png" alt="">
                 <img id="thumb" src="/resources/slider/slider_button.svg" alt=""> -->
-                <object type="image/svg+xml" data="/static/svg/slider.svg" style="width: 100%;"></object>
+                <object id="control-slider" type="image/svg+xml" data="/static/svg/slider.svg"
+                    style="width: 100%;"></object>
             </div>
         </main>
     </aside>
@@ -448,6 +447,86 @@
         })
     </script>
     <script src="/static/js/scripts.js"></script>
+    <script>
+        // Slider
+        const controlSlider = document.querySelector('#control-slider');
+
+        controlSlider.addEventListener('load', _ => {
+            const container = controlSlider.contentDocument.querySelector('svg')
+            const slider = container.querySelector('#Slider')
+            const sliderGlider = container.querySelector('#SliderGlider')
+
+            slider.setAttribute('draggable', true)
+            let isDragging = false;
+            sliderPos = slider.getBBox()
+            y = 0;
+            yOffset = 0;
+
+            // Mouse
+            slider.addEventListener('mousedown', startDrag)
+            slider.addEventListener('mousemove', drag)
+            slider.addEventListener('mouseup', endDrag)
+            slider.addEventListener('mouseleave', endDrag)
+
+            // Touch
+            slider.addEventListener('touchstart', startDrag)
+            slider.addEventListener('touchmove', drag)
+            slider.addEventListener('touchend', endDrag)
+            slider.addEventListener('touchleave', endDrag)
+            slider.addEventListener('touchcancel', endDrag)
+
+            function startDrag(event) {
+                isDragging = true
+                mousePos = getMousePosition(event)
+                yOffset = sliderPos.y + y - mousePos.y
+                console.log({ yOffset })
+            }
+
+            function drag(event) {
+                if (isDragging) {
+                    event.preventDefault()
+                    mousePos = getMousePosition(event)
+
+                    // calc offset between element and mouse
+
+                    if (mousePos.y - sliderPos.y + yOffset > -319.157470703125 && mousePos.y - sliderPos.y + yOffset < 171) {
+                        y = mousePos.y - sliderPos.y + yOffset
+
+                        slider.setAttributeNS(null, 'transform', `translate(0, ${y})`)
+                    }
+                }
+            }
+
+            function endDrag(event) {
+                isDragging = false
+                yOffset = 0
+                handleSpeed(y)
+            }
+
+            function getMousePosition(event) {
+                var pt = container.createSVGPoint()
+                if (event.touches) { event = event.touches[0]; }
+                pt.x = event.clientX; pt.y = event.clientY;
+                return pt.matrixTransform(container.getScreenCTM().inverse())
+            }
+
+            function handleSpeed(y) {
+                // 100: {m: 483.7701416015625, s: 747.4000244140625, y: -319.157470703125}
+                //   0: {m: 931.98583984375, s: 747.4000244140625, y: 123.826171875}
+                // OFF: {m: 1026.1634521484375, s: 747.4000244140625, y: 226.72396850585938}
+
+                if (y > 170) {
+                    webSocket.send(`s:SetBrake(1)`)
+                } else if (y <= 123.826171875) {
+                    m = 123.826171875 + 319.157470703125
+                    speed = Math.floor((y + 319.157470703125 - m) * (-1) / m * 100)
+                    webSocket.send(`s:SetSpeed(${speed})`)
+                } else {
+                    webSocket.send(`s:SetSpeed(0)`)
+                }
+            }
+        })
+    </script>
 </body>
 
 </html>

@@ -108,6 +108,7 @@ ul>li {
     z-index: 100;
     transition: all 400ms ease-in-out 0s;
     box-shadow: 2px 0 2px #00000033;
+    overflow-y: auto;
 }
 
 #more.hidden {
