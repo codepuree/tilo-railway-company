@@ -48,10 +48,14 @@ var doRoundRobin = 0
 var auto = 0              // will start automatic mode in control section
 var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
 var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
-var maxRounds = 10
+var maxRounds = 3
 var minRounds = 1
+var rounds = 0
 var randomDirection = 0
 var randomRounds = 0
+var randomRoundsFlag = 0
+var roundsCounter = 0
+var roundsCounterFlag = 0
 
 // variables used for velocity measurment
 var timeResetFlag = 0
@@ -151,6 +155,31 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 	}
 
+	if auto == 1 {
+		// ================================================================================================================ Set (Random) Values
+		if randomRounds == 1 && randomRoundsFlag == 0 {
+			//setRandomRounds(tc, minRounds, maxRounds)
+			//randomRoundsFlag = 1
+		} else {
+			rounds = maxRounds
+		}
+		// ================================================================================================================ Count Rounds
+		if tc.Sensors[sensorList[6]].State == false && roundsCounterFlag == 0 { // increase rounds counter each round
+			roundsCounter++
+			log.Println("----------------Actual Round: ", roundsCounter)
+			roundsCounterFlag = 1
+		}
+		if tc.Sensors[sensorList[4]].State == false { // release rounds counter
+			roundsCounterFlag = 0
+		}
+
+		// Brake Condition
+		if roundsCounter >= rounds {
+			SetBrake(tc, 1)
+		}
+
+	}
+
 }
 
 // PrintAll is just a function to print status of all values
@@ -192,7 +221,7 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		actualSpeed += inc
 
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
-		if actualSpeed%1 == 0 {
+		if actualSpeed%2 == 0 {
 			tc.PublishMessage(struct {
 				ActualSpeed int `json:"actualspeed"`
 			}{
@@ -293,8 +322,8 @@ func MenuFahreKreiseBool(tc *traincontrol.TrainControl, b bool) {
 	}
 }
 
-func MenuAutomatikBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+func SetAuto(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		auto = 1
 	} else {
 		auto = 0
@@ -431,7 +460,7 @@ func velocity(tc *traincontrol.TrainControl) {
 			}
 		}
 
-		if tc.Sensors[sensorList[len(sensorList)-1]].State == true && timeResetFlag == 1 { // enable reset // reeet for short section as not as accurate as others
+		if tc.Sensors[sensorList[len(sensorList)-1]].State == true && timeResetFlag == 1 { // enable reset
 			timeResetFlag = 0
 		}
 
