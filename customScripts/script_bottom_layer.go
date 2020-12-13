@@ -161,7 +161,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
 		}
 
-		if autoBrake == 1 { // reset automatic mode
+		if autoBrake == 1 && auto == 1 { // reset automatic mode
 			SetAuto(tc, 0)
 		}
 
@@ -187,8 +187,12 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 		// Start new round after Reset
 		if setSpeedFlag == 0 {
-			//SetSpeed(tc, train.MaxSpeed)
-			SetSpeed(tc, 25)
+			if targetSpeed <= train.MaxSpeed {
+				SetSpeed(tc, targetSpeed)
+			} else {
+				SetSpeed(tc, train.MaxSpeed)
+			}
+
 			setSpeedFlag = 1
 		}
 		// ================================================================================================================ Count Rounds
