@@ -47,10 +47,10 @@ var doCircle = 0 // used in SetTrack and override individual branch selection fo
 var doRoundRobin = 0
 
 //variable used for automatic
-var auto = 1                                // will start automatic mode in control section
-var autoSleepTime = 1500 * time.Millisecond // sleeptime in Ms after each iteration in automatic mode
-var autoBrake = 0                           // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
-var autoBrakeReleased = 0                   // used in autoBrake. flag used to mark action is running.
+var auto = 0              // will start automatic mode in control section
+var autoSleepTime = 1500  // sleeptime in Ms after each iteration in automatic mode
+var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
+var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
 var maxRounds = 1
 var minRounds = 1
 var rounds = 0
@@ -59,8 +59,8 @@ var randomDirectionFlag = 0
 var randomRounds = 0
 var randomRoundsFlag = 0
 var randomTrack = 1
-var randomTrackFlag = 0
-var randomValue = -1.0
+var randomTrackFlag = 1 // disable random Track for one iteration
+var trackValue = -1.0
 var setSpeedFlag = 0
 var roundsCounter = 0
 var roundsCounterFlag = 0
@@ -162,8 +162,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		}
 
 		if autoBrake == 1 { // reset automatic mode
-			auto = 0
-			resetAutoFlags(tc)
+			SetAuto(tc, 0)
 		}
 
 	}
@@ -179,6 +178,10 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 		if randomTrack == 1 && randomTrackFlag == 0 {
 			setRandomTrack(tc)
+			randomTrackFlag = 1
+		}
+		if randomTrack == 0 && randomTrackFlag == 0 {
+			setOrderTrack(tc, trackValue)
 			randomTrackFlag = 1
 		}
 
@@ -203,7 +206,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			SetBrake(tc, 2)
 
 			if actualSpeed == 0 {
-				time.Sleep(autoSleepTime)
+				time.Sleep(time.Duration(autoSleepTime) * time.Millisecond)
 				resetAutoFlags(tc)
 			}
 		}
@@ -322,7 +325,16 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 		Blocks: targetBlocks,
 	})
 	//synchronize all websites with set state
-	randomTrackFlag = 1 // disable random Track for one iteration
+	if track[0] == 'a' { // set trackValue.. used for setRandomTrack & setAutoTrack.. set here to avoid use same track twice after initialisation
+		trackValue = 0.0
+	} else if track[0] == 'b' {
+		trackValue = 0.25
+	} else if track[0] == 'c' {
+		trackValue = 0.5
+	} else if track[0] == 'd' {
+		trackValue = 0.75
+	}
+	//randomTrackFlag = 1 // disable random Track for one iteration
 }
 
 // isDriveable checks wheather a train can drive
@@ -347,8 +359,8 @@ func isDriveable() bool {
 //========================================================================== M E N U ==================================================================================
 //=====================================================================================================================================================================
 
-func MenuFahreKreiseBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+func DriveCircle(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		doCircle = 1
 	} else {
 		doCircle = 0
@@ -361,38 +373,42 @@ func SetAuto(tc *traincontrol.TrainControl, b int) {
 		doCircle = 1
 	} else {
 		auto = 0
+		resetAutoFlags(tc)
+		randomTrackFlag = 1 // set randomTrackFlag to initial value
 	}
 }
 
-func MenuAutomatikRandomDirectionBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+func RandomDirection(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		randomDirection = 1
 	} else {
 		randomDirection = 0
 	}
 }
 
-func MenuAutomatikRandomRoundsBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+func RandomRounds(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		randomRounds = 1
 	} else {
 		randomRounds = 0
 	}
 }
 
-func MenuAutomatikMaxRoundsInt(tc *traincontrol.TrainControl, i int) {
+func MaxRoundsInt(tc *traincontrol.TrainControl, i int) {
 	maxRounds = i
 }
 
-func MenuAutomatikMinRoundsInt(tc *traincontrol.TrainControl, i int) {
+func MinRoundsInt(tc *traincontrol.TrainControl, i int) {
 	minRounds = i
 }
 
-func MenuAutomatikRoundRobinBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+func DoRoundRobin(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		doRoundRobin = 1
+		SetAuto(tc, 1)
 	} else {
 		doRoundRobin = 0
+		SetAuto(tc, 0)
 	}
 }
 
@@ -425,15 +441,6 @@ func setSwitches(tc *traincontrol.TrainControl, blocks [4]string) {
 // getBlock return block letter for direction and speed (a,b,c,d,f,g and so on)
 func getBlock(block string) byte {
 	if len(block) > 0 {
-		if block[0] == 'a' { // set randomValue.. used for setRandomTrack.. set here to avoid use same track twice after initialisation
-			randomValue = 0.0
-		} else if block[0] == 'b' {
-			randomValue = 0.25
-		} else if block[0] == 'c' {
-			randomValue = 0.5
-		} else if block[0] == 'd' {
-			randomValue = 0.75
-		}
 		return block[0]
 	}
 	return '+'
@@ -468,30 +475,53 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 //===================================================================== A U T O M A T I C =============================================================================
 //=====================================================================================================================================================================
 
+// setOrderTrack sets a random Track
+func setOrderTrack(tc *traincontrol.TrainControl, value float64) {
+	if value == 0.0 {
+		SetTrack(tc, "bo")
+	} else if value == 0.25 {
+		SetTrack(tc, "co")
+	} else if value == 0.5 {
+		SetTrack(tc, "do")
+	} else {
+		SetTrack(tc, "ao")
+	}
+
+	// if trackValue == 0.75 { // increase track each round
+	// 	trackValue = 0.0
+	// } else {
+	// 	trackValue = trackValue + 0.25
+	// }
+}
+
 // setRandomTrack sets a random Track
 func setRandomTrack(tc *traincontrol.TrainControl) {
 	r := rand.Float64()
 	r = round(r, 0.25)
-	log.Println("----------------RandomValue now: ", r)
-	for r == randomValue || r == 1 {
+	log.Println("----------------trackValue now: ", r)
+	for r == trackValue || r == 1 {
 		r = rand.Float64()
 		r = round(r, 0.25)
-		log.Println("----------------Recalculation. RandomValue now: ", r)
+		log.Println("----------------Recalculation. trackValue now: ", r)
 	}
-	randomValue = r // exclude old track from new selection
+	trackValue = r // exclude old track from new selection
 
 	if r == 0 {
-		targetBlocks[0] = "ao"
-		targetBlocks[1] = "aw"
+		// targetBlocks[0] = "ao"
+		// targetBlocks[1] = "aw"
+		SetTrack(tc, "ao")
 	} else if r == 0.25 {
-		targetBlocks[0] = "bo"
-		targetBlocks[1] = "bw"
+		// targetBlocks[0] = "bo"
+		// targetBlocks[1] = "bw"
+		SetTrack(tc, "bo")
 	} else if r == 0.5 {
-		targetBlocks[0] = "co"
-		targetBlocks[1] = "cw"
+		// targetBlocks[0] = "co"
+		// targetBlocks[1] = "cw"
+		SetTrack(tc, "co")
 	} else {
-		targetBlocks[0] = "do"
-		targetBlocks[1] = "dw"
+		// targetBlocks[0] = "do"
+		// targetBlocks[1] = "dw"
+		SetTrack(tc, "do")
 	}
 
 	log.Println("----------------setTrack randomly: Blocks set: ", targetBlocks)
