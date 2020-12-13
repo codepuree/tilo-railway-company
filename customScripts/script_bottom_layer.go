@@ -288,6 +288,9 @@ func SetDirection(tc *traincontrol.TrainControl, d string) {
 
 // SetSpeed sets the speed
 func SetSpeed(tc *traincontrol.TrainControl, s int) {
+	if s > 99 {
+		s = 99
+	}
 	targetSpeed = s
 	//previousSpeed = actualSpeed  //need to be set only in case of sensor activation. do later in sensor block/actions
 	log.Println("----------------Speed set: ", s)
