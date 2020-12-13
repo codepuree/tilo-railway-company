@@ -47,23 +47,23 @@ var doCircle = 0 // used in SetTrack and override individual branch selection fo
 var doRoundRobin = 0
 
 //variable used for automatic
-var auto = 0              // will start automatic mode in control section
-var autoSleepTime = 1500  // sleeptime in Ms after each iteration in automatic mode
-var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
-var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
-var maxRounds = 1
-var minRounds = 1
-var rounds = 0
-var randomDirection = 0
-var randomDirectionFlag = 0
-var randomRounds = 0
-var randomRoundsFlag = 0
-var randomTrack = 1
-var randomTrackFlag = 1 // disable random Track for one iteration
-var trackValue = -1.0
-var setSpeedFlag = 0
-var roundsCounter = 0
-var roundsCounterFlag = 0
+var auto = 0                // will start automatic mode in control section
+var autoSleepTime = 1500    // sleeptime in Ms after each iteration in automatic mode
+var autoBrake = 0           // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
+var autoBrakeReleased = 0   // used in autoBrake. flag used to mark action is running.
+var maxRounds = 1           // amount of maximal rounds to be driven
+var minRounds = 1           // amount of minimal rounds to be driven
+var rounds = 0              // internal maxrounds (combinde with random rounds)
+var roundsCounter = 0       // Counter for actual driven Rounds.
+var roundsCounterFlag = 0   // enable disable Random/OrderRounds until next track/event is set
+var randomDirection = 0     // Start Stop RandomDirectionFunction
+var randomDirectionFlag = 0 // enable disable setDirection until next track/event is set
+var randomRounds = 0        // Start Stop RandomRounds Function
+var randomRoundsFlag = 0    // enable disable setTrack until next track/event is set
+var randomTrack = 0         // Start Stop RandomTrack Function
+var randomTrackFlag = 1     // disable random Track for one iteration
+var trackValue = -1.0       // valid value will be set after first SetTrack()
+var setSpeedFlag = 0        // enable disable setspeed until next track/event is set
 
 // variables used for velocity measurment
 var timeResetFlag = 0
