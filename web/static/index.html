@@ -76,7 +76,7 @@
                 <img id="blk_2" src="/resources/inhalt/block_grau.png" alt="">
                 <img id="thumb" src="/resources/slider/slider_button.svg" alt=""> -->
                 <object id="control-slider" type="image/svg+xml" data="/static/svg/slider.svg"
-                    style="width: 100%;"></object>											  
+                    style="width: 100%;"></object>
             </div>
         </main>
     </aside>
@@ -546,7 +546,7 @@
 
     </script>
     <script src="/static/js/scripts.js"></script>
-	<script>
+    <script>
         // Slider
         const controlSlider = document.querySelector('#control-slider');
 
@@ -590,7 +590,7 @@
 
                     // calc offset between element and mouse
 
-                    if (mousePos.y - sliderPos.y + yOffset > -385 && mousePos.y - sliderPos.y + yOffset < 51) {
+                    if (mousePos.y - sliderPos.y + yOffset > -383.63818359375 && mousePos.y - sliderPos.y + yOffset < 81.5) {
                         y = mousePos.y - sliderPos.y + yOffset
 
                         slider.setAttributeNS(null, 'transform', `translate(0, ${y})`)
@@ -613,8 +613,8 @@
             }
 
             function calcSpeed(y) {
-                m = 4 + 385
-                return Math.floor((y + 385 - m) * (-1) / m * 100)
+                m = 4 + 380
+                return Math.floor((y + 380 - m) * (-1) / m * 100)
             }
 
             function handleSpeed(y) {
@@ -622,7 +622,7 @@
                 //   0: {m: 931.98583984375, s: 747.4000244140625, y: 123.826171875}
                 // OFF: {m: 1026.1634521484375, s: 747.4000244140625, y: 226.72396850585938}
 
-                if (y > 51) {
+                if (y > 5) {
                     webSocket.send(`s:SetBrake(1)`)
                 } else if (y <= 4) {
                     speed = calcSpeed(y)
