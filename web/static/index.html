@@ -54,8 +54,8 @@
     </main>
     <aside class="right">
         <header style="padding: 5px;">
-            <!-- <img src="/static/imgs/Logo.png" width="100%" alt="Tilo Railway Company"
-                onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()"> -->
+            <img src="/static/imgs/Logo.png" width="100%" alt="Tilo Railway Company"
+                onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
         </header>
         <!-- <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
             <input type="range" name="" id="" style="transform: rotate(-90deg);">
@@ -76,7 +76,7 @@
                 <img id="blk_2" src="/resources/inhalt/block_grau.png" alt="">
                 <img id="thumb" src="/resources/slider/slider_button.svg" alt=""> -->
                 <object id="control-slider" type="image/svg+xml" data="/static/svg/slider.svg"
-                    style="width: 100%;"></object>
+                    style="width: 100%;"></object>											  
             </div>
         </main>
     </aside>
@@ -167,12 +167,13 @@
                 console.log('Message:', msg)
                 printMessage(msg.data)
 
+                // Map test
+                renderMap(lowerMap, msg)
+
                 if (msg.from === "arduino") {
                     signalTower.receiveMessage(msg.data)
-
-                    // Map test
-                    renderMap(lowerMap, msg.data)
                 }
+
             }
 
             webSocket.onerror = error => {
@@ -206,222 +207,267 @@
 
         function renderMap(map, msg) {
             map = document.querySelector('#lowerMap').contentDocument
-            if (Number.isInteger(parseInt(msg.charAt(0)))) {
-                // Sensor
-                let id = msg.substring(0, 2)
-                let state = msg.charAt(2)
+            if (msg.from == "traincontrol") {
+                //Direction
+                const diro = map.querySelector('#diro')
+                const dirw = map.querySelector('#dirw')
+                const diro_active = map.querySelector('#diro_active')
+                const dirw_active = map.querySelector('#dirw_active')
 
-                const sns = map.querySelector(`#sns${id}`)
-
-                function visGl(id, state) {
-                    const gl = map.querySelector(`#gl${id}`) //o,w,m
-                    if (state == "l") { // Low
-                        gl.style.fill = black
-                    } else { // High
-                        gl.style.fill = transparent
+                if (msg.data.direction != undefined) {
+                    if (msg.data.direction == "f") {
+                        dirw.style.display = "none"  // hidden = true
+                        dirw_active.style.display = "block" // hidden = false
+                        diro_active.style.display = "none"  // hidden = true
+                        diro.style.display = "block" // hidden = false
+                    }
+                    else /*(msg.data.direction == "b")*/ {
+                        diro.style.display = "none"  // hidden = true
+                        diro_active.style.display = "block" // hidden = false
+                        dirw_active.style.display = "none"  // hidden = true
+                        dirw.style.display = "block" // hidden = false
                     }
                 }
 
-                switch (id) {
-                    case "12": //Track4_out
-                        setTimeout(_ => {
-                            visGl("do", 'h')
-                            visGl("dm", 'h')
-                            visGl("dw", 'h')
-                        }, 3000)
-                        break;
-
-                    case "16": //Track4_in
-                        visGl("do", 'l')
-                        visGl("dm", 'l')
-                        visGl("dw", 'l')
-                        break;
-
-                    case "11": //Track3_out
-                        setTimeout(_ => {
-                            visGl("co", 'h')
-                            visGl("cm", 'h')
-                            visGl("cw", 'h')
-                        }, 3000)
-                        break;
-
-                    case "15": //Track3_in
-                        visGl("co", 'l')
-                        visGl("cm", 'l')
-                        visGl("cw", 'l')
-                        break;
-
-                    case "10": //Track2_out
-                        setTimeout(_ => {
-                            visGl("bo", 'h')
-                            visGl("bm", 'h')
-                            visGl("bw", 'h')
-                        }, 3000)
-                        break;
-
-                    case "14": //Track2_in
-                        visGl("bo", 'l')
-                        visGl("bm", 'l')
-                        visGl("bw", 'l')
-                        break;
-
-                    case "09": //Track1_out
-                        setTimeout(_ => {
-                            visGl("ao", 'h')
-                            visGl("am", 'h')
-                            visGl("aw", 'h')
-                        }, 3000)
-                        break;
-
-                    case "13": //Track1_in
-                        visGl("ao", 'l')
-                        visGl("am", 'l')
-                        visGl("aw", 'l')
-                        break;
-
-                    //-------------------------------------------Init Track occupation State--------------------------------------------------
-                    /* case "04": //Track4_occupied
-                         visGl("do", 'l')
-                         visGl("dm", 'l')
-                         visGl("dw", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;
- 
-                     case "08": //Track4_occupied
-                         visGl("do", 'l')
-                         visGl("dm", 'l')
-                         visGl("dw", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;
-                     
-                     case "03": //Track3_occupied
-                         visGl("co", 'l')
-                         visGl("cm", 'l')
-                         visGl("cw", 'l')
-                         visSw("a", 'l')
-                         visSw("f", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;
- 
-                     case "07": //Track3_occupied
-                         visGl("co", 'l')
-                         visGl("cm", 'l')
-                         visGl("cw", 'l')
-                         visSw("a", 'l')
-                         visSw("f", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;
-                     
-                     case "02": //Track2_occupied
-                         visGl("bo", 'l')
-                         visGl("bm", 'l')
-                         visGl("bw", 'l')
-                         visSw("a", 'l')
-                         visSw("f", 'l')
-                         visSw("e", 'l')
-                         visSw("b", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;
- 
-                     case "06": //Track2_occupied
-                         visGl("bo", 'l')
-                         visGl("bm", 'l')
-                         visGl("bw", 'l')
-                         visSw("a", 'l')
-                         visSw("f", 'l')
-                         visSw("e", 'l')
-                         visSw("b", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;
-                     
-                     case "01": //Track1_occupied
-                         visGl("ao", 'l')
-                         visGl("am", 'l')
-                         visGl("aw", 'l')
-                         visSw("a", 'l')
-                         visSw("f", 'l')
-                         visSw("e", 'l')
-                         visSw("b", 'l')
-                         visSw("d", 'l')
-                         visSw("c", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;
- 
-                     case "05": //Track1_occupied
-                         visGl("ao", 'l')
-                         visGl("am", 'l')
-                         visGl("aw", 'l')
-                         visSw("a", 'l')
-                         visSw("f", 'l')
-                         visSw("e", 'l')
-                         visSw("b", 'l')
-                         visSw("d", 'l')
-                         visSw("c", 'l')
-                         if (state == "l") { // Low
-                             sns.style.fill = yellow}
-                         else { // High
-                             sns.style.fill = white
-                         }
-                         break;*/
-
-                    default:
-                        if (state == "l") { // Low
-                            sns.style.fill = yellow
-                        } else { // High
-                            sns.style.fill = white
-                        }
+                //Speed
+                if (msg.data.velocity != undefined) {
+                    map.querySelector('#speed').textContent = msg.data.velocity + " km/h"
                 }
 
-            } else if (msg.charAt(0) == "y") {
-                // Weiche
-                let id = msg.charAt(1)
-                let state = msg.charAt(2)
+                //Track
+                // if (msg.data.blocks != undefined) {
+                //     Array.from(map.querySelectorAll('polygon')).filter(p => p.id.startsWith('gl')).forEach(p => p.style.fill = transparent)
+                //     msg.data.blocks.forEach(block => {
+                //         map.querySelector(`#gl${block}`).style.fill = blue
+                //     });
+                // }
 
-                // const sw = map.querySelector('#sw')
-            } else {
-                // Block
-                let id = msg.charAt(0)
+                // map.querySelector(`#gldo`).style.fill = blue
+                // map.querySelector(`#gldm`).style.fill = blue
+                // map.querySelector(`#gldw`).style.fill = blue
+                // map.querySelector(`#glg`).style.fill = blue
+            }
+            else if (msg.from == "arduino") {
+                msg = msg.data
+                if (Number.isInteger(parseInt(msg.charAt(0)))) {
+                    // Sensor
+                    let id = msg.substring(0, 2)
+                    let state = msg.charAt(2)
 
-                const gl = map.querySelector(`gl${id}`)
+                    const sns = map.querySelector(`#sns${id}`)
 
-                if (msg.charAt(1) == "d") {
-                    let direction = msg.charAt(2)
+                    function visGl(id, state) {
+                        const gl = map.querySelector(`#gl${id}`) //o,w,m (ost , west , middle)
+                        if (gl.style.fill != blue) {
+                            if (state == "l") { // Low
+                                gl.style.fill = black
+                            } else { // High
+                                gl.style.fill = transparent
+                            }
+                        }
+                    }
 
+                    switch (id) {
+                        case "12": //Track4_out
+                            setTimeout(_ => {
+                                visGl("do", 'h')
+                                visGl("dm", 'h')
+                                visGl("dw", 'h')
+                            }, 0)
+                            break;
+
+                        case "16": //Track4_in
+                            visGl("do", 'l')
+                            visGl("dm", 'l')
+                            visGl("dw", 'l')
+                            break;
+
+                        case "11": //Track3_out
+                            setTimeout(_ => {
+                                visGl("co", 'h')
+                                visGl("cm", 'h')
+                                visGl("cw", 'h')
+                            }, 0)
+                            break;
+
+                        case "15": //Track3_in
+                            visGl("co", 'l')
+                            visGl("cm", 'l')
+                            visGl("cw", 'l')
+                            break;
+
+                        case "10": //Track2_out
+                            setTimeout(_ => {
+                                visGl("bo", 'h')
+                                visGl("bm", 'h')
+                                visGl("bw", 'h')
+                            }, 0)
+                            break;
+
+                        case "14": //Track2_in
+                            visGl("bo", 'l')
+                            visGl("bm", 'l')
+                            visGl("bw", 'l')
+                            break;
+
+                        case "09": //Track1_out
+                            setTimeout(_ => {
+                                visGl("ao", 'h')
+                                visGl("am", 'h')
+                                visGl("aw", 'h')
+                            }, 0)
+                            break;
+
+                        case "13": //Track1_in
+                            visGl("ao", 'l')
+                            visGl("am", 'l')
+                            visGl("aw", 'l')
+                            break;
+
+                        //-------------------------------------------Init Track occupation State--------------------------------------------------
+                        /* case "04": //Track4_occupied
+                             visGl("do", 'l')
+                             visGl("dm", 'l')
+                             visGl("dw", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;
+     
+                         case "08": //Track4_occupied
+                             visGl("do", 'l')
+                             visGl("dm", 'l')
+                             visGl("dw", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;
+                         
+                         case "03": //Track3_occupied
+                             visGl("co", 'l')
+                             visGl("cm", 'l')
+                             visGl("cw", 'l')
+                             visSw("a", 'l')
+                             visSw("f", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;
+     
+                         case "07": //Track3_occupied
+                             visGl("co", 'l')
+                             visGl("cm", 'l')
+                             visGl("cw", 'l')
+                             visSw("a", 'l')
+                             visSw("f", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;
+                         
+                         case "02": //Track2_occupied
+                             visGl("bo", 'l')
+                             visGl("bm", 'l')
+                             visGl("bw", 'l')
+                             visSw("a", 'l')
+                             visSw("f", 'l')
+                             visSw("e", 'l')
+                             visSw("b", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;
+     
+                         case "06": //Track2_occupied
+                             visGl("bo", 'l')
+                             visGl("bm", 'l')
+                             visGl("bw", 'l')
+                             visSw("a", 'l')
+                             visSw("f", 'l')
+                             visSw("e", 'l')
+                             visSw("b", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;
+                         
+                         case "01": //Track1_occupied
+                             visGl("ao", 'l')
+                             visGl("am", 'l')
+                             visGl("aw", 'l')
+                             visSw("a", 'l')
+                             visSw("f", 'l')
+                             visSw("e", 'l')
+                             visSw("b", 'l')
+                             visSw("d", 'l')
+                             visSw("c", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;
+     
+                         case "05": //Track1_occupied
+                             visGl("ao", 'l')
+                             visGl("am", 'l')
+                             visGl("aw", 'l')
+                             visSw("a", 'l')
+                             visSw("f", 'l')
+                             visSw("e", 'l')
+                             visSw("b", 'l')
+                             visSw("d", 'l')
+                             visSw("c", 'l')
+                             if (state == "l") { // Low
+                                 sns.style.fill = yellow}
+                             else { // High
+                                 sns.style.fill = white
+                             }
+                             break;*/
+
+                        default:
+                            if (state == "l") { // Low
+                                sns.style.fill = yellow
+                            } else { // High
+                                sns.style.fill = white
+                            }
+                    }
+
+                } else if (msg.charAt(0) == "y") {
+                    // Weiche
+                    let id = msg.charAt(1)
+                    let state = msg.charAt(2)
+
+                    // const sw = map.querySelector('#sw')
                 } else {
-                    let speed = parseInt(msg.substring(2, 4))
+                    // Block
+                    let id = msg.charAt(0)
 
-                    if (speed > 0) {
+                    const gl = map.querySelector(`gl${id}`)
+
+                    if (msg.charAt(1) == "d") {
+                        let direction = msg.charAt(2)
 
                     } else {
+                        let speed = parseInt(msg.substring(2, 4))
 
+                        if (speed > 0) {
+
+                        } else {
+
+                        }
                     }
                 }
             }
@@ -429,25 +475,78 @@
 
         function addInteractivity(map) {
             // direction selection
+            map.querySelector('#diro_active').style.display = "none" //start case
+            map.querySelector('#dirw_active').style.display = "none"
             map.querySelector('#diro').addEventListener('click', event => {
-                webSocket.send("s:DirectionOst")
+                webSocket.send("s:SetDirection(\"b\")")
             })
 
             map.querySelector('#dirw').addEventListener('click', event => {
-                webSocket.send("s:DirectionWest")
+                webSocket.send("s:SetDirection(\"f\")")
             })
+
+            map.querySelector('#sig1o').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"ao\")")
+            })
+
+            map.querySelector('#sig1w').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"aw\")")
+            })
+
+            map.querySelector('#sig2o').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"bo\")")
+            })
+
+            map.querySelector('#sig2w').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"bw\")")
+            })
+
+            map.querySelector('#sig3o').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"co\")")
+            })
+
+            map.querySelector('#sig3w').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"cw\")")
+            })
+
+            map.querySelector('#sig4o').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"do\")")
+            })
+
+            map.querySelector('#sig4w').addEventListener('click', event => {
+                webSocket.send("s:SetTrack(\"dw\")")
+            })
+
         }
+
 
         document.querySelector('#lowerMap').addEventListener('load', _ => {
             addInteractivity(document.querySelector('#lowerMap').contentDocument)
+            control = document.querySelector('.controls>object').contentDocument
+            control.querySelector('#XMLID_6_').addEventListener('click', event => {
+                webSocket.send("s:SetSpeed(25)")
+            })
+            control.querySelector('#XMLID_2_').addEventListener('click', event => {
+                webSocket.send("s:SetSpeed(50)")
+            })
+            control.querySelector('#XMLID_16_').addEventListener('click', event => {
+                webSocket.send("s:SetSpeed(0)")
+            })
+            control.querySelector('#XMLID_28_').addEventListener('click', event => {
+                webSocket.send("s:EmergencyStop2Arduino")
+            })
         })
 
         document.querySelector('#lowerMap').addEventListener('readystatechange', _ => {
             addInteractivity(document.querySelector('#lowerMap').contentDocument)
         })
+
+
+
+
     </script>
     <script src="/static/js/scripts.js"></script>
-    <script>
+	<script>
         // Slider
         const controlSlider = document.querySelector('#control-slider');
 
