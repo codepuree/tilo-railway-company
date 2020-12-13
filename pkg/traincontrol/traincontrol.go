@@ -213,15 +213,15 @@ func NewTrainControl(rec <-chan string, send chan<- string, message chan<- Messa
 		}
 	}()
 
-	go func() {
-		tc.getSensorStates()
-		time.Sleep(5 * time.Second)
-		tc.getBlockDirections()
-		time.Sleep(5 * time.Second)
-		tc.getBlockSpeeds()
-		time.Sleep(5 * time.Second)
-		tc.getSignalStates()
-	}()
+	// go func() {
+	// 	tc.getSensorStates()
+	// 	time.Sleep(5 * time.Second)
+	// 	tc.getBlockDirections()
+	// 	time.Sleep(5 * time.Second)
+	// 	tc.getBlockSpeeds()
+	// 	time.Sleep(5 * time.Second)
+	// 	tc.getSignalStates()
+	// }()
 
 	return tc
 }
