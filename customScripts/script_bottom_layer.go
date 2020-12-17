@@ -43,27 +43,29 @@ var previousSpeed int = 0
 var lastAccelerateTick time.Time = time.Unix(0, 0)
 
 //flags for automatiion and program selection / behavior
+var auto = 0     // will start automatic mode in control section
 var doCircle = 0 // used in SetTrack and override individual branch selection for in- and outbound
 var doRoundRobin = 0
-
-//variable used for automatic
-var auto = 0                // will start automatic mode in control section
-var autoSleepTime = 1500    // sleeptime in Ms after each iteration in automatic mode
-var autoBrake = 0           // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
-var autoBrakeReleased = 0   // used in autoBrake. flag used to mark action is running.
-var maxRounds = 1           // amount of maximal rounds to be driven
-var minRounds = 1           // amount of minimal rounds to be driven
-var rounds = 0              // internal maxrounds (combinde with random rounds)
-var roundsCounter = 0       // Counter for actual driven Rounds.
-var roundsCounterFlag = 0   // enable disable Random/OrderRounds until next track/event is set
+var autoSleepTime = 1500  // sleeptime in Ms after each iteration in automatic mode
+var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
+var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
+var setSpeedFlag = 0      // enable disable setspeed until next track/event is set
+// for Direction Selection
 var randomDirection = 0     // Start Stop RandomDirectionFunction
-var randomDirectionFlag = 0 // enable disable setDirection until next track/event is set
-var randomRounds = 0        // Start Stop RandomRounds Function
-var randomRoundsFlag = 0    // enable disable setTrack until next track/event is set
-var randomTrack = 0         // Start Stop RandomTrack Function
-var randomTrackFlag = 1     // disable random Track for one iteration
-var trackValue = -1.0       // valid value will be set after first SetTrack()
-var setSpeedFlag = 0        // enable disable setspeed until next track/event is set
+var randomDirectionFlag = 1 // disable random Direction for one iteration
+var directionValue = -1.0   // valid value will be set after first SetDirection()
+// for Round Selection
+var randomRounds = 0      // Start Stop RandomRounds Function
+var randomRoundsFlag = 0  // enable disable setTrack until next track/event is set
+var maxRounds = 1         // amount of maximal rounds to be driven
+var minRounds = 1         // amount of minimal rounds to be driven
+var rounds = 0            // internal maxrounds (combinde with random rounds)
+var roundsCounter = 0     // Counter for actual driven Rounds.
+var roundsCounterFlag = 0 // enable disable Random/OrderRounds until next track/event is set
+// for Track Selection
+var randomTrack = 0     // Start Stop RandomTrack Function
+var randomTrackFlag = 1 // disable random Track for one iteration
+var trackValue = -1.0   // valid value will be set after first SetTrack()
 
 // variables used for velocity measurment
 var timeResetFlag = 0
@@ -126,6 +128,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	// autoBrake gets activated via sensor. Decrease speed down to crawlspeed. Stops completely when defined sensor is released.
 	if autoBrake > 0 {
 		if tc.Sensors[sensorList[7]].State == false && autoBrakeReleased == 0 {
+			previousSpeed = targetSpeed
 			targetSpeed = train.CrawlSpeed
 			autoBrakeReleased = 1
 			log.Println("----------------Braking. Speed set: ", targetSpeed)
@@ -176,6 +179,11 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			rounds = maxRounds
 		}
 
+		if randomDirection == 1 && randomDirectionFlag == 0 {
+			setRandomDirection(tc)
+			randomDirectionFlag = 1
+		}
+
 		if randomTrack == 1 && randomTrackFlag == 0 {
 			setRandomTrack(tc)
 			randomTrackFlag = 1
@@ -188,7 +196,11 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		// Start new round after Reset
 		if setSpeedFlag == 0 {
 			if targetSpeed <= train.MaxSpeed {
-				SetSpeed(tc, targetSpeed)
+				if previousSpeed != 0 {
+					SetSpeed(tc, previousSpeed)
+				} else {
+					SetSpeed(tc, targetSpeed)
+				}
 			} else {
 				SetSpeed(tc, train.MaxSpeed)
 			}
@@ -366,6 +378,7 @@ func isDriveable() bool {
 //========================================================================== M E N U ==================================================================================
 //=====================================================================================================================================================================
 
+// DriveCircle Menufunction for named funtion (selection of described mode)
 func DriveCircle(tc *traincontrol.TrainControl, b int) {
 	if b == 1 {
 		doCircle = 1
@@ -374,6 +387,7 @@ func DriveCircle(tc *traincontrol.TrainControl, b int) {
 	}
 }
 
+// SetAuto Menufunction for named funtion (selection of described mode)
 func SetAuto(tc *traincontrol.TrainControl, b int) {
 	if b == 1 {
 		auto = 1
@@ -381,10 +395,12 @@ func SetAuto(tc *traincontrol.TrainControl, b int) {
 	} else {
 		auto = 0
 		resetAutoFlags(tc)
-		randomTrackFlag = 1 // set randomTrackFlag to initial value
+		randomTrackFlag = 1     // set randomTrackFlag to initial value
+		randomDirectionFlag = 1 // set randomTrackFlag to initial value
 	}
 }
 
+// RandomDirection Menufunction for named funtion (selection of described mode)
 func RandomDirection(tc *traincontrol.TrainControl, b int) {
 	if b == 1 {
 		randomDirection = 1
@@ -393,6 +409,7 @@ func RandomDirection(tc *traincontrol.TrainControl, b int) {
 	}
 }
 
+// RandomRounds Menufunction for named funtion (selection of described mode)
 func RandomRounds(tc *traincontrol.TrainControl, b int) {
 	if b == 1 {
 		randomRounds = 1
@@ -401,14 +418,17 @@ func RandomRounds(tc *traincontrol.TrainControl, b int) {
 	}
 }
 
+// MaxRoundsInt Menufunction for named funtion (selection of described mode)
 func MaxRoundsInt(tc *traincontrol.TrainControl, i int) {
 	maxRounds = i
 }
 
+// MinRoundsInt Menufunction for named funtion (selection of described mode)
 func MinRoundsInt(tc *traincontrol.TrainControl, i int) {
 	minRounds = i
 }
 
+// DoRoundRobin Menufunction for named funtion (selection of described mode)
 func DoRoundRobin(tc *traincontrol.TrainControl, b int) {
 	if b == 1 {
 		doRoundRobin = 1
@@ -482,6 +502,25 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 //===================================================================== A U T O M A T I C =============================================================================
 //=====================================================================================================================================================================
 
+// setRandomDirection sets a random Direction
+func setRandomDirection(tc *traincontrol.TrainControl) {
+	r := rand.Float64()
+	r = round(r, 0.5)
+	log.Println("----------------DirectionValue now: ", r)
+	for r == 0 {
+		r = rand.Float64()
+		r = round(r, 0.5)
+		log.Println("----------------Recalculation. DirectionValue now: ", r)
+	}
+	directionValue = r // exclude old direction from new selection
+
+	if r == 0.5 {
+		SetDirection(tc, "f")
+	} else {
+		SetDirection(tc, "b")
+	}
+}
+
 // setOrderTrack sets a random Track
 func setOrderTrack(tc *traincontrol.TrainControl, value float64) {
 	if value == 0.0 {
@@ -493,12 +532,6 @@ func setOrderTrack(tc *traincontrol.TrainControl, value float64) {
 	} else {
 		SetTrack(tc, "ao")
 	}
-
-	// if trackValue == 0.75 { // increase track each round
-	// 	trackValue = 0.0
-	// } else {
-	// 	trackValue = trackValue + 0.25
-	// }
 }
 
 // setRandomTrack sets a random Track
@@ -514,20 +547,12 @@ func setRandomTrack(tc *traincontrol.TrainControl) {
 	trackValue = r // exclude old track from new selection
 
 	if r == 0 {
-		// targetBlocks[0] = "ao"
-		// targetBlocks[1] = "aw"
 		SetTrack(tc, "ao")
 	} else if r == 0.25 {
-		// targetBlocks[0] = "bo"
-		// targetBlocks[1] = "bw"
 		SetTrack(tc, "bo")
 	} else if r == 0.5 {
-		// targetBlocks[0] = "co"
-		// targetBlocks[1] = "cw"
 		SetTrack(tc, "co")
 	} else {
-		// targetBlocks[0] = "do"
-		// targetBlocks[1] = "dw"
 		SetTrack(tc, "do")
 	}
 
