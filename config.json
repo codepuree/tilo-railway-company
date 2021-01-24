@@ -58,51 +58,57 @@
 "_menu": [
         {
                 "name": "Automatik",
-                "childOf": null,
                 "type": "boolean",
                 "function": "SetAuto",
+                "stateVariable": "auto",
                 "children": [
                         {
                                 "name": "Volle Runden",
-                                "childOf": "Automatik",
                                 "type": "boolean",
-                                "function": "DriveCircle"
+                                "function": "DriveCircle",
+                                "stateVariable": "docircle"
                         },
                         {
                                 "name": "Round Robin",
-                                "childOf": "Automatik",
                                 "type": "boolean",
-                                "function": "DoRoundRobin"
+                                "function": "DoRoundRobin",
+                                "stateVariable": "doRoundRobin"
                         },
                         {
                                 "name": "Zufällige Richtung",
-                                "childOf": "Automatik",
                                 "type": "boolean",
-                                "function": "RandomDirection"
+                                "function": "RandomDirection",
+                                "stateVariable": "randomDirection"
+                        },
+                        {
+                                "name": "Zufälligs Gleis",
+                                "type": "boolean",
+                                "function": "RandomTrack",
+                                "stateVariable": "randomTrack"
                         },
                         {
                                 "name": "Zufällige Wartezeit",
-                                "childOf": "Automatik",
                                 "type": "boolean",
-                                "function": "RandomWaitTime"
+                                "function": "RandomWaitTime",
+                                "stateVariable": "randomWait"
                         },
                         {
                                 "name": "Zufällige Runden",
-                                "childOf": "Automatik",
                                 "type": "boolean",
                                 "function": "RandomRounds",
+                                "stateVariable": "randomRounds",
                                 "children": [
                                         {
                                                 "name": "Minimale Runden",
-                                                "childOf": "Zufällige Runden",
                                                 "type": "int",
-                                                "function": "MinRoundsInt"
+                                                "function": "MinRoundsInt",
+                                                "stateVariable": "minRoudns"
                                         },
                                         {
                                                 "name": "Maximale Runden",
-                                                "childOf": "Zufällige Runden",
                                                 "type": "int",
-                                                "function": "MaxRoundsInt"
+                                                "function": "MaxRoundsInt",
+                                                "stateVariable": "maxRounds"
                                         }
                                 ]
                         }
@@ -111,9 +117,9 @@
 
         {
                 "name": "Licht",
-                "childOf": null,
                 "type": "boolean",
                 "function": null,
+                "stateVariable": null,
                 "children": [
                 ]
         }
