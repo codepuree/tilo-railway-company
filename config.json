@@ -53,5 +53,69 @@
         "g": {  "id": "g", 
                 "sensors": [17, 18, 19],
                 "distances": [0.5427, 0.5397] }
-    }
+    },
+
+"_menu": [
+        {
+                "name": "Automatik",
+                "childOf": null,
+                "type": "boolean",
+                "function": "SetAuto",
+                "children": [
+                        {
+                                "name": "Volle Runden",
+                                "childOf": "Automatik",
+                                "type": "boolean",
+                                "function": "DriveCircle"
+                        },
+                        {
+                                "name": "Round Robin",
+                                "childOf": "Automatik",
+                                "type": "boolean",
+                                "function": "DoRoundRobin"
+                        },
+                        {
+                                "name": "Zufällige Richtung",
+                                "childOf": "Automatik",
+                                "type": "boolean",
+                                "function": "RandomDirection"
+                        },
+                        {
+                                "name": "Zufällige Wartezeit",
+                                "childOf": "Automatik",
+                                "type": "boolean",
+                                "function": "RandomWaitTime"
+                        },
+                        {
+                                "name": "Zufällige Runden",
+                                "childOf": "Automatik",
+                                "type": "boolean",
+                                "function": "RandomRounds",
+                                "children": [
+                                        {
+                                                "name": "Minimale Runden",
+                                                "childOf": "Zufällige Runden",
+                                                "type": "int",
+                                                "function": "MinRoundsInt"
+                                        },
+                                        {
+                                                "name": "Maximale Runden",
+                                                "childOf": "Zufällige Runden",
+                                                "type": "int",
+                                                "function": "MaxRoundsInt"
+                                        }
+                                ]
+                        }
+                ]
+        },
+
+        {
+                "name": "Licht",
+                "childOf": null,
+                "type": "boolean",
+                "function": null,
+                "children": [
+                ]
+        }
+]
 }
