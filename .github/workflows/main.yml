@@ -1,0 +1,27 @@
+on:
+  push:
+    branches:
+      - master
+      - github-actions
+  pull_request:
+    branches:
+      - master
+
+env:
+  GOOS: "linux"
+  GOARCH: "arm"
+  GOARM: "7"
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        go: [ '1.16', '1.15' ]
+    name: Go ${{ matrix.go }} Build
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go }}
+    - run: go build -a -tags netgo -ldflags '-w' -o ./bin/trc ./cmd/
