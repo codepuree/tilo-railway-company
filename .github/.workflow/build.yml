@@ -1,0 +1,25 @@
+name: Go Build
+
+on:
+  push:
+    branches:
+      - master
+      - github-actions
+  pull_request:
+    branches:
+      - master
+
+env:
+  GOOS: "linux"
+  GOARCH: "arm"
+  GOARM: "7"
+
+jobs:
+  build:
+    runs-on: [ubuntu-last]
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-go@v1
+      with:
+        go-version: '1.9.3' # The Go version to download (if necessary) and use.
+    - run: go build -a -tags netgo -ldflags '-w'
