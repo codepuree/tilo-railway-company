@@ -49,12 +49,11 @@ func (s *Server) Stop() {
 func (s *Server) setupRoutes() {
 	dir := "/var/www/static"
 
-	if _, err := os.Stat(dir); err == nil {
-		// path/to/whatever exists
-		log.Println("The path exists")
-	} else if os.IsNotExist(err) {
-		// path/to/whatever does *not* exist
-		log.Println("The path does not exists")
+	_, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		log.Println(fmt.Errorf("The path '%s' does not exists: %w", dir, err))
+	} else if err != nil {
+		log.Println(fmt.Errorf("Unable to load `static` website directory '%s': %w", dir, err))
 	}
 
 	s.Router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
