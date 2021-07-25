@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
@@ -11,8 +12,19 @@ import (
 )
 
 // HandleIndex handles and serves the index endpoint
-func HandleIndex(http.ResponseWriter, *http.Request) {
-	log.Println("Handling index")
+func HandleIndex(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Sending index to %s\n", r.RemoteAddr)
+	index, err := ioutil.ReadFile("/var/www/static/index.html")
+	if err != nil {
+		log.Println("unable to load index file")
+		return
+	}
+
+	_, err = w.Write(index)
+	if err != nil {
+		log.Println("unable to send index file")
+		return
+	}
 }
 
 var upgrader = websocket.Upgrader{
@@ -27,6 +39,8 @@ type Websocket struct {
 	listeners   []chan string
 	mu          sync.RWMutex
 	jsonEnc     json.Encoder
+	// onInitialConnection is a function that returns data that should be sent to client on their initial connection
+	onInitialConnection func() []byte
 }
 
 type Message struct {
@@ -51,6 +65,15 @@ func (ws *Websocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ws.connections = append(ws.connections, conn)
 
 	log.Printf("%s connected to the websocket", conn.RemoteAddr().String())
+
+	if ws.onInitialConnection != nil {
+		err = conn.WriteMessage(0, ws.onInitialConnection())
+		if err != nil {
+			log.Println(fmt.Errorf("unable to send inital message to client: %w", err))
+			return
+		}
+		log.Printf("%s got send the initial message", conn.RemoteAddr().String())
+	}
 
 	for {
 		messageType, msg, err := conn.ReadMessage()
