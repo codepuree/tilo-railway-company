@@ -27,7 +27,7 @@ func TestTrainControl_interpret(t *testing.T) {
 			Sensors:  make(map[int]*Sensor),
 			Switches: make(map[rune]*Switch),
 			Signals:  make(map[string]*Signal),
-			Blocks:   make(map[rune]*Block),
+			Blocks:   make(map[string]*Block),
 		},
 	}
 
@@ -136,7 +136,7 @@ func TestTrainControl_sendMessageAwait(t *testing.T) {
 		Sensors:  map[int]*Sensor{19: {ID: 19, State: false}},
 		Switches: make(map[rune]*Switch),
 		Signals:  make(map[string]*Signal),
-		Blocks:   make(map[rune]*Block),
+		Blocks:   make(map[string]*Block),
 	})
 
 	ctx := context.Background()

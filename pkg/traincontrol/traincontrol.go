@@ -380,11 +380,15 @@ func (tc *TrainControl) GetActiveBlocks() []*Block {
 	return abs
 }
 
-func (tc *TrainControl) GetOccupiedBlock() *Block {
+// GetOccupiedBlocks returns all blocks that are blocked, e.g. by trains
+func (tc *TrainControl) GetOccupiedBlocks() []*Block {
+	log.Println("Warn: 'GetOccupiedBlocks' is not implemented yet!")
 	return nil
 }
 
+// GetActiveTrain returns the train that is currently running
 func (tc *TrainControl) GetActiveTrain() *Train {
+	log.Println("Warn: 'GetActiveTrain' is not implemented yet!")
 	return nil
 }
 
