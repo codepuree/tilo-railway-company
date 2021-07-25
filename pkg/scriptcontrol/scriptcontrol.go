@@ -32,7 +32,7 @@ func LoadFromDir(interp *interp.Interpreter, dir string) (map[string]Func, error
 
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		log.Fatal(fmt.Errorf("unable to read files in directory: %w", err))
+		return nil, fmt.Errorf("unable to read files in directory: %w", err)
 	}
 
 	for _, file := range files {
