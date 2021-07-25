@@ -9,9 +9,11 @@ import (
 	"reflect"
 )
 
+var Symbols map[string]map[string]reflect.Value
+
 func init() {
-	Symbols = make(map[string]map[string]reflect.Value)
-	Symbols["github.com/codepuree/tilo-railway-company/pkg/traincontrol"] = map[string]reflect.Value{
+    Symbols = make(map[string]map[string]reflect.Value)
+	Symbols["github.com/codepuree/tilo-railway-company/pkg/traincontrol/traincontrol"] = map[string]reflect.Value{
 		// function, constant and variable definitions
 		"Backward":         reflect.ValueOf(constant.MakeFromLiteral("98", token.INT, 0)),
 		"Bent":             reflect.ValueOf(constant.MakeFromLiteral("49", token.INT, 0)),
@@ -37,4 +39,9 @@ func init() {
 		// interface wrapper definitions
 		"_Message": reflect.ValueOf((*_github_com_codepuree_tilo_railway_company_pkg_traincontrol_Message)(nil)),
 	}
+}
+
+// _github_com_codepuree_tilo_railway_company_pkg_traincontrol_Message is an interface wrapper for Message type
+type _github_com_codepuree_tilo_railway_company_pkg_traincontrol_Message struct {
+	IValue interface{}
 }
