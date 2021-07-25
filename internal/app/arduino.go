@@ -80,7 +80,7 @@ func (a *Arduino) Write(msg string) error {
 	if len(msg) != 4 {
 		return fmt.Errorf("the message '%s' to be send is to long", msg)
 	}
-	
+
 	log.Printf("Arduino<- '%s'", msg)
 
 	_, err := fmt.Fprint(a.conn, msg)
