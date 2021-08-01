@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"strings"
 	"time"
-	"fmt"
 
 	"github.com/codepuree/tilo-railway-company/pkg/traincontrol"
 )
@@ -17,7 +16,6 @@ import (
 // sudo systemctl start trc
 // sudo systemctl stop trc
 // sudo systemctl restart trc
-
 
 //=====================================================================================================================================================================
 //======================================================================== I N I T ====================================================================================
@@ -71,10 +69,10 @@ var rounds = 0            // internal maxrounds (combine with random rounds)
 var roundsCounter = 0     // Counter for actual driven Rounds.
 var roundsCounterFlag = 0 // enable disable Random/OrderRounds until next track/event is set
 // for Track Selection
-var doSetTrack = 0			// Determine Status if SetTrack was executed and if Update needed 
-var randomTrack = 0     	// Start Stop RandomTrack Function
-var randomTrackFlag = 1 	// disable random Track for one iteration
-var trackValue = -1.0   	// valid value will be set after first SetTrack()
+var doSetTrack = 0      // Determine Status if SetTrack was executed and if Update needed
+var randomTrack = 0     // Start Stop RandomTrack Function
+var randomTrackFlag = 1 // disable random Track for one iteration
+var trackValue = -1.0   // valid value will be set after first SetTrack()
 
 // variables used for velocity measurment
 var timeResetFlag = 0
@@ -133,14 +131,14 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			resetInactiveBlocks(tc, targetBlocks)
 			TimeReset(tc)
 			doSetTrack = 0
-		}	
+		}
 	}
 
 	// Brake Control while block not clear
 	// if block not clear Auto Brake will be set at entrance of tunnel. full stop at station end
 	if tc.Sensors[sensorList[7]].State == false && blockClear(actualBlocks) == false && autoBrake == 0 {
 		previousSpeed = targetSpeed
-		SetBrake(tc, 3)		
+		SetBrake(tc, 3)
 		autoBrakeAbsolute = 1
 	}
 
@@ -174,7 +172,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		// sensorList[7] tunnel entry after open rail (start sensor)
 		// sensorList[8] station entry, first sensor after switches but befor station entry
 		// if position [7] still released but [8] already release, prevent start of brake procedure as remaining track not long enough. brake next round.
-		if tc.Sensors[sensorList[7]].State == false && tc.Sensors[sensorList[8]].State == true && autoBrakeReleased == 0 { 
+		if tc.Sensors[sensorList[7]].State == false && tc.Sensors[sensorList[8]].State == true && autoBrakeReleased == 0 {
 			previousSpeed = targetSpeed
 			targetSpeed = train.CrawlSpeed
 			autoBrakeReleased = 1
@@ -206,7 +204,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		}
 
 		// break condition in case of acceleration while autobrake is running. twice brake.step because it can easily overshoot while braking
-		if (actualSpeed-targetSpeed < -2*train.Brake.Step) && (targetBlocks == actualBlocks) {  // check for block to prevent track change while braking
+		if (actualSpeed-targetSpeed < -2*train.Brake.Step) && (targetBlocks == actualBlocks) { // check for block to prevent track change while braking
 			autoBrake = 0
 			autoBrakeReleased = 0
 			log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
@@ -299,13 +297,11 @@ func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------previousSpeed: ", previousSpeed)
 	log.Println("----------------lastAccelerateTick: ", lastAccelerateTick)
 	log.Println("----------------isDriveable: ", isDriveable())
-	log.Println("----------------autoBrake: ",autoBrake)
-	log.Println("----------------autoBrakeRelease: ",autoBrakeReleased)
-	log.Println("----------------autoBrakeAbsolute: ",autoBrakeAbsolute)
-	log.Println("----------------doSetTrack: ",doSetTrack)
-	log.Println("----------------setSpeedFlag: ",setSpeedFlag)
-
-
+	log.Println("----------------autoBrake: ", autoBrake)
+	log.Println("----------------autoBrakeRelease: ", autoBrakeReleased)
+	log.Println("----------------autoBrakeAbsolute: ", autoBrakeAbsolute)
+	log.Println("----------------doSetTrack: ", doSetTrack)
+	log.Println("----------------setSpeedFlag: ", setSpeedFlag)
 
 }
 
@@ -327,13 +323,13 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		actualSpeed += inc
 
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
-		 if actualSpeed%2 == 0 {
-		 	tc.PublishMessage(struct {
-		 		ActualSpeed int `json:"actualspeed"`
-		 	}{
-		 		ActualSpeed: actualSpeed,
-		 	}) //synchronize all websites with set state
-		 }
+		if actualSpeed%2 == 0 {
+			tc.PublishMessage(struct {
+				ActualSpeed int `json:"actualspeed"`
+			}{
+				ActualSpeed: actualSpeed,
+			}) //synchronize all websites with set state
+		}
 	}
 }
 
@@ -345,7 +341,7 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 	// 3: used to brake in absolute mode (block not clear)
 
 	if s == 1 {
-		auto = 0	// reset Automatic mode in case of manual switch OFF
+		auto = 0 // reset Automatic mode in case of manual switch OFF
 		resetAutoFlags(tc)
 	}
 }
@@ -371,7 +367,7 @@ func SetSpeed(tc *traincontrol.TrainControl, s int) {
 	} else {
 		targetSpeed = s
 	}
-	
+
 	log.Println("----------------Speed set: ", s)
 
 	tc.PublishMessage(struct {
@@ -451,7 +447,7 @@ func allTrainsStopped() bool {
 	if actualSpeed > 0 {
 		return false
 	}
-	return true	
+	return true
 }
 
 //=====================================================================================================================================================================
@@ -463,7 +459,7 @@ func SwitchDoCircle(tc *traincontrol.TrainControl, b int) {
 	if b == 1 {
 		doCircle = 1
 		if isDriveable() {
-			SetTrack(tc,actualBlocks[0]) // synchronize track and switches with first actualBlock for doCircle Mode
+			SetTrack(tc, actualBlocks[0]) // synchronize track and switches with first actualBlock for doCircle Mode
 		}
 	} else {
 		doCircle = 0
@@ -471,20 +467,20 @@ func SwitchDoCircle(tc *traincontrol.TrainControl, b int) {
 }
 
 // SetAuto Menufunction for named funtion (selection of described mode)
-func SetAuto(tc *traincontrol.TrainControl, b int) {		
-	if b == 1 { 
+func SetAuto(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		//randomTrack = 1
-		//randomDirection = 1  
-		if isDriveable() && !allTrainsStopped(){
-			SetBrake(tc,1)
-		} 
+		//randomDirection = 1
+		if isDriveable() && !allTrainsStopped() {
+			SetBrake(tc, 1)
+		}
 		auto = 1
 		if doCircle == 0 {
-			SwitchDoCircle(tc,1)
-		}				
-	} else { 
-		if isDriveable() && !allTrainsStopped(){
-			SetBrake(tc,1)
+			SwitchDoCircle(tc, 1)
+		}
+	} else {
+		if isDriveable() && !allTrainsStopped() {
+			SetBrake(tc, 1)
 		}
 		auto = 0
 		resetAutoFlags(tc)
@@ -986,11 +982,10 @@ func round(x, unit float64) float64 {
 	return math.Round(x/unit) * unit
 }
 
-
 // absolute returns the absolute value of x-y.
 func absolute(x int, y int) int {
 	if x-y < 0 {
-		return -(x-y)
+		return -(x - y)
 	}
-	return x-y
+	return x - y
 }
