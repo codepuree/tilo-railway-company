@@ -3,13 +3,23 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Tilo Railway Company</title>
     <link rel="stylesheet" href="/static/css/index.css">
+
+	<!-- Import customElements -->
+	<script src="/static/js/control-component.js"></script>
+
+    <!-- Split-Flap-Display -->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.flightboard.js"></script>
 </head>
 
 <body>
+    <header style="grid-area: header; background-color: #222223; color: #e5e5e4;">
+        some random text
+    </header>
     <aside class="left">
         <ul>
             <li class="menu">
@@ -22,7 +32,10 @@
                     input:checked+label {
                         text-decoration: underline;
                     }
-                </style><input hidden type="checkbox" id="tog-console"><label for="tog-console">Console</label>
+                </style>
+                <input hidden type="checkbox" id="tog-console">
+                <label for="tog-console">🖥️</label>
+                <label for="tog-console">Console</label>
             </li>
         </ul>
         <div id="more" class="hidden">
@@ -30,13 +43,6 @@
             </ul>
         </div>
     </aside>
-    <!-- <aside class="left menu">
-        <img class="menuHandle" src="/resources/inhalt/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
-            style="filter: grayscale(100), saturate(8); grid-column: span 2;"
-            onclick="document.querySelector('.menu').classList.toggle('more')">
-        <label for="automatik">Automatik</label>
-        <input type="checkbox" name="" id="automatic">
-    </aside> -->
     <main>
         <!-- Upper level -->
         <article class="map">
@@ -53,33 +59,17 @@
         </article>
     </main>
     <aside class="right">
-        <header style="padding: 5px;">
+        <header style="padding: 10px;">
             <img src="/static/imgs/Logo.png" width="100%" alt="Tilo Railway Company"
                 onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
         </header>
-        <!-- <main style="flex: 1; display: grid; align-content: center; justify-content: center;">
-            <input type="range" name="" id="" style="transform: rotate(-90deg);">
-        </main> -->
-        <!-- <main style="position: relative;">
-            <img src="/resources/inhalt/schrift_merkmale/vmax.png" alt="" style="width: 50%; justify-self: end; margin-right: 8%;">
-            <object data="/resources/slider/slider.svg" type="image/svg+xml" style="height: 80%;"></object>
-            <img src="/resources/inhalt/notaus.png" alt="" style="width: 30%; justify-self: end; margin-top: -21%; margin-right: -5px;">
-            <img src="/resources/inhalt/block_aktiv.png" alt="" style="width: 30%;">
-            <img src="/resources/inhalt/block_grau.png" alt="" style="width: 30%;">
-        </main> -->
-        <main style="flex: 1; padding: 0.5vw 1vw; width: 100%; height: 100%;">
-            <div class="controls">
-                <!-- <img id="vmax" src="/resources/inhalt/schrift_merkmale/vmax.png" alt="">
-                <object id="slider" data="/resources/slider/slider.svg" type="image/svg+xml"></object>
-                <img id="notaus" src="/resources/inhalt/notaus.png" alt="">
-                <img id="blk_1" src="/resources/inhalt/block_aktiv.png" alt="">
-                <img id="blk_2" src="/resources/inhalt/block_grau.png" alt="">
-                <img id="thumb" src="/resources/slider/slider_button.svg" alt=""> -->
-                <object id="control-slider" type="image/svg+xml" data="/static/svg/slider.svg"
-                    style="width: 100%;"></object>
+        <main style="flex: 1; padding: 0.5vw 1vw; width: 100%; height: 100%; overflow: hidden;">
+            <div class="controls" style="overflow: hidden;">
+				<trc-control></trc-control>
             </div>
         </main>
     </aside>
+
 
     <dialog id="dev-console"
         style="/*display: grid;*/ grid-auto-rows: auto 1fr auto; padding: 4vmin; grid-gap: 4vmin; height: 50vh; margin: 25vh auto;">
@@ -233,19 +223,6 @@
                 if (msg.data.velocity != undefined) {
                     map.querySelector('#speed').textContent = msg.data.velocity + " km/h"
                 }
-
-                //Track
-                // if (msg.data.blocks != undefined) {
-                //     Array.from(map.querySelectorAll('polygon')).filter(p => p.id.startsWith('gl')).forEach(p => p.style.fill = transparent)
-                //     msg.data.blocks.forEach(block => {
-                //         map.querySelector(`#gl${block}`).style.fill = blue
-                //     });
-                // }
-
-                // map.querySelector(`#gldo`).style.fill = blue
-                // map.querySelector(`#gldm`).style.fill = blue
-                // map.querySelector(`#gldw`).style.fill = blue
-                // map.querySelector(`#glg`).style.fill = blue
             }
             else if (msg.from == "arduino") {
                 msg = msg.data
@@ -324,119 +301,6 @@
                             visGl("aw", 'l')
                             break;
 
-                        //-------------------------------------------Init Track occupation State--------------------------------------------------
-                        /* case "04": //Track4_occupied
-                             visGl("do", 'l')
-                             visGl("dm", 'l')
-                             visGl("dw", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;
-     
-                         case "08": //Track4_occupied
-                             visGl("do", 'l')
-                             visGl("dm", 'l')
-                             visGl("dw", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;
-                         
-                         case "03": //Track3_occupied
-                             visGl("co", 'l')
-                             visGl("cm", 'l')
-                             visGl("cw", 'l')
-                             visSw("a", 'l')
-                             visSw("f", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;
-     
-                         case "07": //Track3_occupied
-                             visGl("co", 'l')
-                             visGl("cm", 'l')
-                             visGl("cw", 'l')
-                             visSw("a", 'l')
-                             visSw("f", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;
-                         
-                         case "02": //Track2_occupied
-                             visGl("bo", 'l')
-                             visGl("bm", 'l')
-                             visGl("bw", 'l')
-                             visSw("a", 'l')
-                             visSw("f", 'l')
-                             visSw("e", 'l')
-                             visSw("b", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;
-     
-                         case "06": //Track2_occupied
-                             visGl("bo", 'l')
-                             visGl("bm", 'l')
-                             visGl("bw", 'l')
-                             visSw("a", 'l')
-                             visSw("f", 'l')
-                             visSw("e", 'l')
-                             visSw("b", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;
-                         
-                         case "01": //Track1_occupied
-                             visGl("ao", 'l')
-                             visGl("am", 'l')
-                             visGl("aw", 'l')
-                             visSw("a", 'l')
-                             visSw("f", 'l')
-                             visSw("e", 'l')
-                             visSw("b", 'l')
-                             visSw("d", 'l')
-                             visSw("c", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;
-     
-                         case "05": //Track1_occupied
-                             visGl("ao", 'l')
-                             visGl("am", 'l')
-                             visGl("aw", 'l')
-                             visSw("a", 'l')
-                             visSw("f", 'l')
-                             visSw("e", 'l')
-                             visSw("b", 'l')
-                             visSw("d", 'l')
-                             visSw("c", 'l')
-                             if (state == "l") { // Low
-                                 sns.style.fill = yellow}
-                             else { // High
-                                 sns.style.fill = white
-                             }
-                             break;*/
-
                         default:
                             if (state == "l") { // Low
                                 sns.style.fill = yellow
@@ -449,8 +313,6 @@
                     // Weiche
                     let id = msg.charAt(1)
                     let state = msg.charAt(2)
-
-                    // const sw = map.querySelector('#sw')
                 } else {
                     // Block
                     let id = msg.charAt(0)
@@ -519,119 +381,38 @@
 
         }
 
-
-        document.querySelector('#lowerMap').addEventListener('load', _ => {
-            addInteractivity(document.querySelector('#lowerMap').contentDocument)
-            control = document.querySelector('.controls>object').contentDocument
-            control.querySelector('#XMLID_6_').addEventListener('click', event => {
-                webSocket.send("s:SetSpeed(25)")
-            })
-            control.querySelector('#XMLID_2_').addEventListener('click', event => {
-                webSocket.send("s:SetSpeed(50)")
-            })
-            control.querySelector('#XMLID_16_').addEventListener('click', event => {
-                webSocket.send("s:SetSpeed(0)")
-            })
-            control.querySelector('#XMLID_28_').addEventListener('click', event => {
-                webSocket.send("s:EmergencyStop2Arduino")
-            })
-        })
-
-        document.querySelector('#lowerMap').addEventListener('readystatechange', _ => {
+       document.querySelector('#lowerMap').addEventListener('readystatechange', _ => {
             addInteractivity(document.querySelector('#lowerMap').contentDocument)
         })
-
-
-
-
     </script>
-    <script src="/static/js/scripts.js"></script>
     <script>
-        // Slider
-        const controlSlider = document.querySelector('#control-slider');
+        document.querySelector('trc-control').addEventListener('speed', event => console.log(event.detail))
+        document.querySelector('trc-control').addEventListener('emergencystop', event => webSocket.send("s:EmergencyStop2Arduino"))
+    </script>
+    <!-- <script src="/static/js/scripts.js"></script> -->
+    <script>
+        async function loadMenu() {
+            const config = await fetch("static/config.json").then(res => res.json())
+            const menu = config.menu
+            const container = document.querySelector('aside.left>ul')
 
-        controlSlider.addEventListener('load', _ => {
-            const container = controlSlider.contentDocument.querySelector('svg')
-            const slider = container.querySelector('#Slider')
-            const btnSlider = slider.querySelector('#SliderButton')
-            const txtSlieder = slider.querySelector('#SliderSpeed')
-            const sliderGlider = container.querySelector('#SliderGlider')
-
-            slider.setAttribute('draggable', true)
-            let isDragging = false;
-            sliderPos = slider.getBBox()
-            y = 0;
-            yOffset = 0;
-
-            // Mouse
-            btnSlider.addEventListener('mousedown', startDrag)
-            btnSlider.addEventListener('mousemove', drag)
-            btnSlider.addEventListener('mouseup', endDrag)
-            btnSlider.addEventListener('mouseleave', endDrag)
-
-            // Touch
-            btnSlider.addEventListener('touchstart', startDrag)
-            btnSlider.addEventListener('touchmove', drag)
-            btnSlider.addEventListener('touchend', endDrag)
-            btnSlider.addEventListener('touchleave', endDrag)
-            btnSlider.addEventListener('touchcancel', endDrag)
-
-            function startDrag(event) {
-                isDragging = true
-                mousePos = getMousePosition(event)
-                yOffset = sliderPos.y + y - mousePos.y
-                console.log({ yOffset })
-            }
-
-            function drag(event) {
-                if (isDragging) {
-                    event.preventDefault()
-                    mousePos = getMousePosition(event)
-
-                    // calc offset between element and mouse
-
-                    if (mousePos.y - sliderPos.y + yOffset > -383.63818359375 && mousePos.y - sliderPos.y + yOffset < 81.5) {
-                        y = mousePos.y - sliderPos.y + yOffset
-
-                        slider.setAttributeNS(null, 'transform', `translate(0, ${y})`)
-                        txtSlieder.innerHTML = calcSpeed(y)
-                    }
+            menu.forEach(item => {
+                const li  = document.createElement('li')
+                const inp = document.createElement('input')
+                const lbl = document.createElement('label')
+                
+                lbl.innerHTML = item.name
+                li.appendChild(lbl)
+                
+                if (item.type == 'boolean') {
+                    input.type = 'checkbox'
+                } else if (item.type == 'int') {
+                    input.type = ''
                 }
-            }
-
-            function endDrag(event) {
-                isDragging = false
-                yOffset = 0
-                handleSpeed(y)
-            }
-
-            function getMousePosition(event) {
-                var pt = container.createSVGPoint()
-                if (event.touches) { event = event.touches[0]; }
-                pt.x = event.clientX; pt.y = event.clientY;
-                return pt.matrixTransform(container.getScreenCTM().inverse())
-            }
-
-            function calcSpeed(y) {
-                m = 4 + 380
-                return Math.floor((y + 380 - m) * (-1) / m * 100)
-            }
-
-            function handleSpeed(y) {
-                // 100: {m: 483.7701416015625, s: 747.4000244140625, y: -319.157470703125}
-                //   0: {m: 931.98583984375, s: 747.4000244140625, y: 123.826171875}
-                // OFF: {m: 1026.1634521484375, s: 747.4000244140625, y: 226.72396850585938}
-
-                if (y > 25) {
-                    webSocket.send(`s:SetBrake(1)`)
-                } else if (y <= 4) {
-                    speed = calcSpeed(y)
-                    webSocket.send(`s:SetSpeed(${speed})`)
-                } else {
-                    webSocket.send(`s:SetSpeed(0)`)
-                }
-            }
-        })
+                
+                container.appendChild(li)
+            })
+        }
     </script>
 </body>
 
