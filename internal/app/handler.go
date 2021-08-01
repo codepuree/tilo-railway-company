@@ -98,9 +98,22 @@ func (ws *Websocket) SendToAll(msg Message) error {
 	return nil
 }
 
+func sendTo(conn *websocket.Conn, msgType int, msg []byte) error {
+    var err error
+    defer func() {
+        if a := recover(); a != nil {
+            err = fmt.Errorf("panic during write message: %w", a)
+        }
+    }()
+
+    err = conn.WriteMessage(msgType, msg)
+
+    return err
+}
+
 func (ws *Websocket) SendToAllRaw(msgType int, msg []byte) {
 	for _, conn := range ws.connections {
-		if err := conn.WriteMessage(msgType, msg); err != nil {
+		if err := sendTo(conn, msgType, msg); err != nil {
 			log.Println(fmt.Errorf("unable to send message to %s: %w", conn.UnderlyingConn().RemoteAddr(), err))
 
 			// TODO: check errors and delete connection if neccessary
