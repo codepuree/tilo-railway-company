@@ -7,9 +7,17 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"fmt"
 
 	"github.com/codepuree/tilo-railway-company/pkg/traincontrol"
 )
+
+//useful command for terminal: journalctl --unit=trc --follow -o short-precise
+// sudo systemctl status trc
+// sudo systemctl start trc
+// sudo systemctl stop trc
+// sudo systemctl restart trc
+
 
 //=====================================================================================================================================================================
 //======================================================================== I N I T ====================================================================================
@@ -43,27 +51,30 @@ var previousSpeed int = 0
 var lastAccelerateTick time.Time = time.Unix(0, 0)
 
 //flags for automatiion and program selection / behavior
+var auto = 0     // will start automatic mode in control section
 var doCircle = 0 // used in SetTrack and override individual branch selection for in- and outbound
 var doRoundRobin = 0
-
-//variable used for automatic
-var auto = 1                                // will start automatic mode in control section
-var autoSleepTime = 1500 * time.Millisecond // sleeptime in Ms after each iteration in automatic mode
-var autoBrake = 0                           // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
-var autoBrakeReleased = 0                   // used in autoBrake. flag used to mark action is running.
-var maxRounds = 1
-var minRounds = 1
-var rounds = 0
-var randomDirection = 0
-var randomDirectionFlag = 0
-var randomRounds = 0
-var randomRoundsFlag = 0
-var randomTrack = 1
-var randomTrackFlag = 0
-var randomValue = -1.0
-var setSpeedFlag = 0
-var roundsCounter = 0
-var roundsCounterFlag = 0
+var autoSleepTime = 1500  // sleeptime in Ms after each iteration in automatic mode
+var autoBrake = 0         // used to activate autoBrake. reset at the end OR in case of acceleration (SpeedDiff < 10)
+var autoBrakeReleased = 0 // used in autoBrake. flag used to mark action is running.
+var autoBrakeAbsolute = 0 // autoBrake release because of block not clear.
+var setSpeedFlag = 0      // enable disable setspeed until next track/event is set
+// for Direction Selection
+var randomDirection = 0     // Start Stop RandomDirectionFunction
+var randomDirectionFlag = 1 // disable random Direction for one iteration
+// for Round Selection
+var randomRounds = 0      // Start Stop RandomRounds Function
+var randomRoundsFlag = 0  // enable disable setTrack until next track/event is set
+var maxRounds = 1         // amount of maximal rounds to be driven
+var minRounds = 1         // amount of minimal rounds to be driven
+var rounds = 0            // internal maxrounds (combine with random rounds)
+var roundsCounter = 0     // Counter for actual driven Rounds.
+var roundsCounterFlag = 0 // enable disable Random/OrderRounds until next track/event is set
+// for Track Selection
+var doSetTrack = 0			// Determine Status if SetTrack was executed and if Update needed 
+var randomTrack = 0     	// Start Stop RandomTrack Function
+var randomTrackFlag = 1 	// disable random Track for one iteration
+var trackValue = -1.0   	// valid value will be set after first SetTrack()
 
 // variables used for velocity measurment
 var timeResetFlag = 0
@@ -108,24 +119,63 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		log.Println("----------------distanceList: ", distanceList)
 	}
 
-	if targetSpeed != actualSpeed {
+	if (targetSpeed != actualSpeed) && (targetBlocks == actualBlocks) { // check for block change because tracsk could be changed in between
 		adjustSpeed(tc, train, actualBlocks, targetSpeed)
 	}
 
-	if targetBlocks != actualBlocks {
-		actualBlocks = targetBlocks
-		setSwitches(tc, targetBlocks)
-		setBlocksDirection(tc, targetBlocks, actualDirection)
-		setBlocksSpeed(tc, targetBlocks, actualSpeed)
-		setSensorList(tc, targetBlocks, actualDirection)
-		resetInactiveBlocks(tc, targetBlocks)
+	if autoBrakeReleased == 0 { // switch blocks and tracks only if no brake procedure in progress
+		if (targetBlocks != actualBlocks) || (doSetTrack == 1) {
+			actualBlocks = targetBlocks
+			setSwitches(tc, targetBlocks)
+			setBlocksDirection(tc, targetBlocks, actualDirection)
+			setBlocksSpeed(tc, targetBlocks, actualSpeed)
+			setSensorList(tc, targetBlocks, actualDirection)
+			resetInactiveBlocks(tc, targetBlocks)
+			TimeReset(tc)
+			doSetTrack = 0
+		}	
+	}
+
+	// Brake Control while block not clear
+	// if block not clear Auto Brake will be set at entrance of tunnel. full stop at station end
+	if tc.Sensors[sensorList[7]].State == false && blockClear(actualBlocks) == false && autoBrake == 0 {
+		previousSpeed = targetSpeed
+		SetBrake(tc, 3)		
+		autoBrakeAbsolute = 1
+	}
+
+	if tc.Sensors[sensorList[10]].State == false && autoBrakeAbsolute == 1 && autoBrake == 1 {
+		targetSpeed = 0
+		actualSpeed = targetSpeed // set both values same level to not release brake ramp
+		log.Println("----------------Stop now. Speed set: ", targetSpeed)
+
+		tc.PublishMessage(struct {
+			Speed int `json:"speed"`
+		}{
+			Speed: targetSpeed,
+		}) //synchronize all websites with set state
+
+		setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
 		TimeReset(tc)
+		autoBrake = 0 //reset autobrake
+		autoBrakeReleased = 0
+		autoBrakeAbsolute = 0
+	}
+
+	if autoBrakeAbsolute == 1 && blockClear(actualBlocks) {
+		targetSpeed = previousSpeed
+		autoBrakeAbsolute = 0
 	}
 
 	//Automation
 	// autoBrake gets activated via sensor. Decrease speed down to crawlspeed. Stops completely when defined sensor is released.
 	if autoBrake > 0 {
-		if tc.Sensors[sensorList[7]].State == false && autoBrakeReleased == 0 {
+		// release brake process
+		// sensorList[7] tunnel entry after open rail (start sensor)
+		// sensorList[8] station entry, first sensor after switches but befor station entry
+		// if position [7] still released but [8] already release, prevent start of brake procedure as remaining track not long enough. brake next round.
+		if tc.Sensors[sensorList[7]].State == false && tc.Sensors[sensorList[8]].State == true && autoBrakeReleased == 0 { 
+			previousSpeed = targetSpeed
 			targetSpeed = train.CrawlSpeed
 			autoBrakeReleased = 1
 			log.Println("----------------Braking. Speed set: ", targetSpeed)
@@ -137,7 +187,8 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			}) //synchronize all websites with set state
 		}
 
-		if tc.Sensors[sensorList[3]].State == false && autoBrakeReleased == 1 {
+		// brake process finished at position [10], end of platform
+		if tc.Sensors[sensorList[10]].State == false && autoBrakeReleased == 1 {
 			targetSpeed = 0
 			actualSpeed = targetSpeed // set both values same level to not release brake ramp
 			log.Println("----------------Stop now. Speed set: ", targetSpeed)
@@ -155,15 +206,14 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		}
 
 		// break condition in case of acceleration while autobrake is running. twice brake.step because it can easily overshoot while braking
-		if actualSpeed-targetSpeed < -2*train.Brake.Step {
+		if (actualSpeed-targetSpeed < -2*train.Brake.Step) && (targetBlocks == actualBlocks) {  // check for block to prevent track change while braking
 			autoBrake = 0
 			autoBrakeReleased = 0
 			log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
 		}
 
-		if autoBrake == 1 { // reset automatic mode
-			auto = 0
-			resetAutoFlags(tc)
+		if autoBrake == 1 && auto == 1 { // reset automatic mode, in case user manually set velocity to zero
+			SetAuto(tc, 0)
 		}
 
 	}
@@ -171,21 +221,38 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	if auto == 1 {
 		// ================================================================================================================ Set (Random) Values
 		if randomRounds == 1 && randomRoundsFlag == 0 {
-			//setRandomRounds(tc, minRounds, maxRounds)
-			//randomRoundsFlag = 1
+			rounds = int(setRandomRounds(tc, minRounds, maxRounds))
+			randomRoundsFlag = 1
 		} else {
 			rounds = maxRounds
+		}
+
+		if randomDirection == 1 && randomDirectionFlag == 0 {
+			setRandomDirection(tc)
+			randomDirectionFlag = 1
 		}
 
 		if randomTrack == 1 && randomTrackFlag == 0 {
 			setRandomTrack(tc)
 			randomTrackFlag = 1
 		}
+		if randomTrack == 0 && randomTrackFlag == 0 {
+			setOrderTrack(tc, trackValue)
+			randomTrackFlag = 1
+		}
 
 		// Start new round after Reset
 		if setSpeedFlag == 0 {
-			//SetSpeed(tc, train.MaxSpeed)
-			SetSpeed(tc, 25)
+			if targetSpeed <= train.MaxSpeed {
+				if previousSpeed != 0 {
+					SetSpeed(tc, previousSpeed)
+				} else {
+					SetSpeed(tc, targetSpeed)
+				}
+			} else {
+				SetSpeed(tc, train.MaxSpeed)
+			}
+
 			setSpeedFlag = 1
 		}
 		// ================================================================================================================ Count Rounds
@@ -203,7 +270,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			SetBrake(tc, 2)
 
 			if actualSpeed == 0 {
-				time.Sleep(autoSleepTime)
+				time.Sleep(time.Duration(autoSleepTime) * time.Millisecond)
 				resetAutoFlags(tc)
 			}
 		}
@@ -231,6 +298,15 @@ func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------targetSpeed: ", targetSpeed)
 	log.Println("----------------previousSpeed: ", previousSpeed)
 	log.Println("----------------lastAccelerateTick: ", lastAccelerateTick)
+	log.Println("----------------isDriveable: ", isDriveable())
+	log.Println("----------------autoBrake: ",autoBrake)
+	log.Println("----------------autoBrakeRelease: ",autoBrakeReleased)
+	log.Println("----------------autoBrakeAbsolute: ",autoBrakeAbsolute)
+	log.Println("----------------doSetTrack: ",doSetTrack)
+	log.Println("----------------setSpeedFlag: ",setSpeedFlag)
+
+
+
 }
 
 func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actualBlocks [4]string, targetSpeed int) {
@@ -251,13 +327,13 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		actualSpeed += inc
 
 		setBlocksSpeed(tc, actualBlocks, actualSpeed)
-		// if actualSpeed%2 == 0 {
-		// 	tc.PublishMessage(struct {
-		// 		ActualSpeed int `json:"actualspeed"`
-		// 	}{
-		// 		ActualSpeed: actualSpeed,
-		// 	}) //synchronize all websites with set state
-		// }
+		 if actualSpeed%2 == 0 {
+		 	tc.PublishMessage(struct {
+		 		ActualSpeed int `json:"actualspeed"`
+		 	}{
+		 		ActualSpeed: actualSpeed,
+		 	}) //synchronize all websites with set state
+		 }
 	}
 }
 
@@ -266,6 +342,12 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 	autoBrake = s
 	// 1: used for manual mode (overrides and resets auto mode)
 	// 2: used to brake in auto mode
+	// 3: used to brake in absolute mode (block not clear)
+
+	if s == 1 {
+		auto = 0	// reset Automatic mode in case of manual switch OFF
+		resetAutoFlags(tc)
+	}
 }
 
 // SetDirection sets the direction
@@ -281,8 +363,15 @@ func SetDirection(tc *traincontrol.TrainControl, d string) {
 
 // SetSpeed sets the speed
 func SetSpeed(tc *traincontrol.TrainControl, s int) {
-	targetSpeed = s
-	//previousSpeed = actualSpeed  //need to be set only in case of sensor activation. do later in sensor block/actions
+	if s > 99 {
+		s = 99
+	}
+	if autoBrakeAbsolute == 1 { // set previous speed to s indstead of targetspeed because brake active because block not clear
+		previousSpeed = s // will be set to target speed after brake process done
+	} else {
+		targetSpeed = s
+	}
+	
 	log.Println("----------------Speed set: ", s)
 
 	tc.PublishMessage(struct {
@@ -315,6 +404,10 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 		targetBlocks[0] = block + "o"
 		targetBlocks[1] = block + "w"
 	}
+
+	if doSetTrack == 0 {
+		doSetTrack = 1 // set flag to execute block update in control
+	}
 	log.Println("----------------setTrack: Blocks set: ", targetBlocks)
 	tc.PublishMessage(struct {
 		Blocks [4]string `json:"blocks"`
@@ -322,7 +415,17 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 		Blocks: targetBlocks,
 	})
 	//synchronize all websites with set state
-	randomTrackFlag = 1 // disable random Track for one iteration
+
+	if track[0] == 'a' { // set trackValue.. used for setRandomTrack and setOrderTrack..  set here to avoid use same track twice after initialisation
+		trackValue = 0.0
+	} else if track[0] == 'b' {
+		trackValue = 0.25
+	} else if track[0] == 'c' {
+		trackValue = 0.5
+	} else if track[0] == 'd' {
+		trackValue = 0.75
+	}
+	//randomTrackFlag = 1 // disable random Track for one iteration
 }
 
 // isDriveable checks wheather a train can drive
@@ -343,56 +446,96 @@ func isDriveable() bool {
 	return true
 }
 
+// allTrainsStopped will stop actual train at stop location befor program continues.
+func allTrainsStopped() bool {
+	if actualSpeed > 0 {
+		return false
+	}
+	return true	
+}
+
 //=====================================================================================================================================================================
 //========================================================================== M E N U ==================================================================================
 //=====================================================================================================================================================================
 
-func MenuFahreKreiseBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+// SwitchDoCircle Menufunction for named funtion (selection of described mode)
+func SwitchDoCircle(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		doCircle = 1
+		if isDriveable() {
+			SetTrack(tc,actualBlocks[0]) // synchronize track and switches with first actualBlock for doCircle Mode
+		}
 	} else {
 		doCircle = 0
 	}
 }
 
-func SetAuto(tc *traincontrol.TrainControl, b int) {
-	if b == 1 {
+// SetAuto Menufunction for named funtion (selection of described mode)
+func SetAuto(tc *traincontrol.TrainControl, b int) {		
+	if b == 1 { 
+		//randomTrack = 1
+		//randomDirection = 1  
+		if isDriveable() && !allTrainsStopped(){
+			SetBrake(tc,1)
+		} 
 		auto = 1
-		doCircle = 1
-	} else {
+		if doCircle == 0 {
+			SwitchDoCircle(tc,1)
+		}				
+	} else { 
+		if isDriveable() && !allTrainsStopped(){
+			SetBrake(tc,1)
+		}
 		auto = 0
+		resetAutoFlags(tc)
 	}
 }
 
-func MenuAutomatikRandomDirectionBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+// SwitchRandomDirection Menufunction for named funtion (selection of described mode)
+func SwitchRandomDirection(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		randomDirection = 1
 	} else {
 		randomDirection = 0
 	}
 }
 
-func MenuAutomatikRandomRoundsBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+// SwitchRandomTrack Menufunction for named funtion (selection of described mode)
+func SwitchRandomTrack(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
+		randomTrack = 1 // overrides ordered track selection
+	} else {
+		randomTrack = 0 // if automatic active always ordered track is choosen
+	}
+}
+
+// SwitchRandomRounds Menufunction for named funtion (selection of described mode)
+func SwitchRandomRounds(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		randomRounds = 1
 	} else {
 		randomRounds = 0
 	}
 }
 
-func MenuAutomatikMaxRoundsInt(tc *traincontrol.TrainControl, i int) {
+// SetMaxRoundsInt Menufunction for named funtion (selection of described mode)
+func SetMaxRoundsInt(tc *traincontrol.TrainControl, i int) {
 	maxRounds = i
 }
 
-func MenuAutomatikMinRoundsInt(tc *traincontrol.TrainControl, i int) {
+// SetMinRoundsInt Menufunction for named funtion (selection of described mode)
+func SetMinRoundsInt(tc *traincontrol.TrainControl, i int) {
 	minRounds = i
 }
 
-func MenuAutomatikRoundRobinBool(tc *traincontrol.TrainControl, b bool) {
-	if b {
+// SwitchRoundRobin Menufunction for named funtion (selection of described mode)
+func SwitchRoundRobin(tc *traincontrol.TrainControl, b int) {
+	if b == 1 {
 		doRoundRobin = 1
+		SetAuto(tc, 1)
 	} else {
 		doRoundRobin = 0
+		SetAuto(tc, 0)
 	}
 }
 
@@ -425,15 +568,6 @@ func setSwitches(tc *traincontrol.TrainControl, blocks [4]string) {
 // getBlock return block letter for direction and speed (a,b,c,d,f,g and so on)
 func getBlock(block string) byte {
 	if len(block) > 0 {
-		if block[0] == 'a' { // set randomValue.. used for setRandomTrack.. set here to avoid use same track twice after initialisation
-			randomValue = 0.0
-		} else if block[0] == 'b' {
-			randomValue = 0.25
-		} else if block[0] == 'c' {
-			randomValue = 0.5
-		} else if block[0] == 'd' {
-			randomValue = 0.75
-		}
 		return block[0]
 	}
 	return '+'
@@ -464,34 +598,75 @@ func resetInactiveBlocks(tc *traincontrol.TrainControl, blocks [4]string) {
 	}
 }
 
+//blockClear returns if train can safely leave the station
+func blockClear(blocks [4]string) bool {
+	eastbound := getBlock(blocks[0])
+	westbound := getBlock(blocks[1])
+
+	if eastbound == westbound {
+		return true
+	}
+	return false
+}
+
 //=====================================================================================================================================================================
 //===================================================================== A U T O M A T I C =============================================================================
 //=====================================================================================================================================================================
+
+//setRandomRounds sets a random amount of rounds between minRounds and maxRounds
+func setRandomRounds(tc *traincontrol.TrainControl, minRounds int, maxRounds int) float64 {
+	diff := absolute(maxRounds, minRounds)
+	return rand.Float64()*float64(diff) + float64(minRounds)
+}
+
+// setRandomDirection sets a random Direction
+func setRandomDirection(tc *traincontrol.TrainControl) {
+	r := rand.Float64()
+	log.Println("----------------DirectionValue now: ", r)
+
+	if r > 0.5 {
+		SetDirection(tc, "f")
+		log.Println("----------------Forward because DirectionValue was: ", r)
+	} else {
+		SetDirection(tc, "b")
+		log.Println("----------------Backward because DirectionValue was: ", r)
+	}
+}
+
+// setOrderTrack sets a random Track
+func setOrderTrack(tc *traincontrol.TrainControl, value float64) {
+	if value == 0.0 {
+		SetTrack(tc, "bo")
+	} else if value == 0.25 {
+		SetTrack(tc, "co")
+	} else if value == 0.5 {
+		SetTrack(tc, "do")
+	} else {
+		SetTrack(tc, "ao")
+	}
+	log.Println("----------------setTrack in order: Blocks set: ", targetBlocks)
+}
 
 // setRandomTrack sets a random Track
 func setRandomTrack(tc *traincontrol.TrainControl) {
 	r := rand.Float64()
 	r = round(r, 0.25)
-	log.Println("----------------RandomValue now: ", r)
-	for r == randomValue || r == 1 {
+	log.Println("----------------trackValue now: ", r)
+	for r == trackValue || r == 1 { // recalculate to make sure to not drive same track twice in a row
 		r = rand.Float64()
 		r = round(r, 0.25)
-		log.Println("----------------Recalculation. RandomValue now: ", r)
+		log.Println("----------------Recalculation. trackValue now: ", r)
 	}
-	randomValue = r // exclude old track from new selection
+	trackValue = r // store value to exclude old track from new selection (next round)
 
 	if r == 0 {
-		targetBlocks[0] = "ao"
-		targetBlocks[1] = "aw"
+		SetTrack(tc, "ao")
 	} else if r == 0.25 {
-		targetBlocks[0] = "bo"
-		targetBlocks[1] = "bw"
+		SetTrack(tc, "bo")
 	} else if r == 0.5 {
-		targetBlocks[0] = "co"
-		targetBlocks[1] = "cw"
+		SetTrack(tc, "co")
 	} else {
-		targetBlocks[0] = "do"
-		targetBlocks[1] = "dw"
+		SetTrack(tc, "do")
 	}
 
 	log.Println("----------------setTrack randomly: Blocks set: ", targetBlocks)
@@ -622,7 +797,7 @@ func getDistances(tc *traincontrol.TrainControl, block string, direction string)
 // setSensorList creates depending on actual blocks the sensor list with defined order referring distances
 func setSensorList(tc *traincontrol.TrainControl, blocks [4]string, direction string) {
 
-	// start sensorList for first letter of defined block. add all sensors but skip last sensor to sensorList
+	// start sensorList for first letter of defined block. add all sensors but skip last sensor to sensorList (done in getSensors)
 	// start distanceList for first letter of defined block. add all distances in correct order
 	if direction == "b" { // Backward Direction (0,3,1 -> east, middle, west))
 		sensorPart := getSensors(tc, blocks[1], direction)
@@ -647,6 +822,9 @@ func setSensorList(tc *traincontrol.TrainControl, blocks [4]string, direction st
 		distancePart = append(distancePart, getDistances(tc, blocks[0], direction)...)
 		distanceList = distancePart
 	}
+
+	log.Println("----------------sensorList: ", sensorList)
+	log.Println("----------------distanceList: ", distanceList)
 }
 
 // getPreviousSensor provides distance to last sensor
@@ -654,7 +832,6 @@ func getPreviousSensor(tc *traincontrol.TrainControl, id int) int {
 	for i := 0; i < len(sensorList); i++ {
 		if sensorList[i] == id {
 			if i == 0 {
-				//return sensorList[len(sensorList)-1]
 				return sensorList[sensorPerRound-1]
 			}
 			return sensorList[i-1]
@@ -669,7 +846,6 @@ func getPreviousDistance(tc *traincontrol.TrainControl, id int) float64 {
 	for i := 0; i < len(distanceList); i++ {
 		if sensorList[i] == id {
 			if i == 0 {
-				//return distanceList[len(distanceList)-1]
 				return distanceList[sensorPerRound-1]
 			}
 			return distanceList[i-1]
@@ -808,4 +984,13 @@ func reverseAny(s interface{}) {
 
 func round(x, unit float64) float64 {
 	return math.Round(x/unit) * unit
+}
+
+
+// absolute returns the absolute value of x-y.
+func absolute(x int, y int) int {
+	if x-y < 0 {
+		return -(x-y)
+	}
+	return x-y
 }
