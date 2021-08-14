@@ -17,6 +17,8 @@ import (
 // sudo systemctl stop trc
 // sudo systemctl restart trc
 
+//root@train:~/Schreibtisch/trc/Tilo-Railway-Company# GOOS=linux GOARCH=arm GOARM=7 go build -a -tags netgo -ldflags '-w' -o ../trc ./cmd/
+
 //=====================================================================================================================================================================
 //======================================================================== I N I T ====================================================================================
 //=====================================================================================================================================================================
@@ -126,7 +128,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			actualBlocks = targetBlocks
 			setSwitches(tc, targetBlocks)
 			setBlocksDirection(tc, targetBlocks, actualDirection)
-			setBlocksSpeed(tc, targetBlocks, actualSpeed)
+			setBlocksSpeed(tc, train, targetBlocks, actualSpeed)
 			setSensorList(tc, targetBlocks, actualDirection)
 			resetInactiveBlocks(tc, targetBlocks)
 			TimeReset(tc)
@@ -153,7 +155,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			Speed: targetSpeed,
 		}) //synchronize all websites with set state
 
-		setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
+		setBlocksSpeed(tc, train, actualBlocks, actualSpeed) //override brake ramp
 		TimeReset(tc)
 		autoBrake = 0 //reset autobrake
 		autoBrakeReleased = 0
@@ -197,7 +199,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 				Speed: targetSpeed,
 			}) //synchronize all websites with set state
 
-			setBlocksSpeed(tc, actualBlocks, actualSpeed) //override brake ramp
+			setBlocksSpeed(tc, train, actualBlocks, actualSpeed) //override brake ramp
 			TimeReset(tc)
 			autoBrake = 0 //reset autobrake
 			autoBrakeReleased = 0
@@ -241,14 +243,10 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 		// Start new round after Reset
 		if setSpeedFlag == 0 {
-			if targetSpeed <= train.MaxSpeed {
-				if previousSpeed != 0 {
-					SetSpeed(tc, previousSpeed)
-				} else {
-					SetSpeed(tc, targetSpeed)
-				}
+			if previousSpeed != 0 {
+				SetSpeed(tc, previousSpeed)
 			} else {
-				SetSpeed(tc, train.MaxSpeed)
+				SetSpeed(tc, targetSpeed)
 			}
 
 			setSpeedFlag = 1
@@ -322,7 +320,7 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		}
 		actualSpeed += inc
 
-		setBlocksSpeed(tc, actualBlocks, actualSpeed)
+		setBlocksSpeed(tc, train, actualBlocks, actualSpeed)
 		if actualSpeed%2 == 0 {
 			tc.PublishMessage(struct {
 				ActualSpeed int `json:"actualspeed"`
@@ -549,9 +547,10 @@ func setBlocksDirection(tc *traincontrol.TrainControl, blocks [4]string, directi
 }
 
 // setBlocksSpeed sets the speed for all blocks
-func setBlocksSpeed(tc *traincontrol.TrainControl, blocks [4]string, speed int) {
+func setBlocksSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, blocks [4]string, speed int) {
 	for _, block := range blocks {
-		speed2Arduino(tc, getBlock(block), speed)
+		// recalculate real speed based on MaxSpeed per train defined in Config Json
+		speed2Arduino(tc, getBlock(block), int(math.Round(float64(speed)*(float64(train.MaxSpeed)/100))))
 	}
 }
 
