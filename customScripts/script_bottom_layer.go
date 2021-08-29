@@ -71,7 +71,6 @@ var rounds = 0            // internal maxrounds (combine with random rounds)
 var roundsCounter = 0     // Counter for actual driven Rounds.
 var roundsCounterFlag = 0 // enable disable Random/OrderRounds until next track/event is set
 // for Track Selection
-var doSetTrack = 0      // Determine Status if SetTrack was executed and if Update needed
 var randomTrack = 0     // Start Stop RandomTrack Function
 var randomTrackFlag = 1 // disable random Track for one iteration
 var trackValue = -1.0   // valid value will be set after first SetTrack()
@@ -123,8 +122,8 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		adjustSpeed(tc, train, actualBlocks, targetSpeed)
 	}
 
-	if autoBrakeReleased == 0 { // switch blocks and tracks only if no brake procedure in progress
-		if (targetBlocks != actualBlocks) || (doSetTrack == 1) {
+	if autoBrakeReleased == 0 && autoBrakeAbsolute == 0 && (canSwitch(tc, targetBlocks, actualBlocks) || allTrainsStopped()) { // switch blocks and tracks only if no brake procedure in progress
+		if targetBlocks != actualBlocks {
 			actualBlocks = targetBlocks
 			setSwitches(tc, targetBlocks)
 			setBlocksDirection(tc, targetBlocks, actualDirection)
@@ -132,39 +131,20 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 			setSensorList(tc, targetBlocks, actualDirection)
 			resetInactiveBlocks(tc, targetBlocks)
 			TimeReset(tc)
-			doSetTrack = 0
 		}
 	}
 
 	// Brake Control while block not clear
 	// if block not clear Auto Brake will be set at entrance of tunnel. full stop at station end
 	if tc.Sensors[sensorList[7]].State == false && blockClear(actualBlocks) == false && autoBrake == 0 {
-		previousSpeed = targetSpeed
 		SetBrake(tc, 3)
 		autoBrakeAbsolute = 1
 	}
 
-	if tc.Sensors[sensorList[10]].State == false && autoBrakeAbsolute == 1 && autoBrake == 1 {
-		targetSpeed = 0
-		actualSpeed = targetSpeed // set both values same level to not release brake ramp
-		log.Println("----------------Stop now. Speed set: ", targetSpeed)
-
-		tc.PublishMessage(struct {
-			Speed int `json:"speed"`
-		}{
-			Speed: targetSpeed,
-		}) //synchronize all websites with set state
-
-		setBlocksSpeed(tc, train, actualBlocks, actualSpeed) //override brake ramp
-		TimeReset(tc)
-		autoBrake = 0 //reset autobrake
-		autoBrakeReleased = 0
-		autoBrakeAbsolute = 0
-	}
-
-	if autoBrakeAbsolute == 1 && blockClear(actualBlocks) {
+	if autoBrakeAbsolute == 1 && allTrainsStopped() && blockClear(targetBlocks) {
 		targetSpeed = previousSpeed
 		autoBrakeAbsolute = 0
+		autoBrakeReleased = 0
 	}
 
 	//Automation
@@ -298,7 +278,6 @@ func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------autoBrake: ", autoBrake)
 	log.Println("----------------autoBrakeRelease: ", autoBrakeReleased)
 	log.Println("----------------autoBrakeAbsolute: ", autoBrakeAbsolute)
-	log.Println("----------------doSetTrack: ", doSetTrack)
 	log.Println("----------------setSpeedFlag: ", setSpeedFlag)
 
 }
@@ -399,9 +378,6 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 		targetBlocks[1] = block + "w"
 	}
 
-	if doSetTrack == 0 {
-		doSetTrack = 1 // set flag to execute block update in control
-	}
 	log.Println("----------------setTrack: Blocks set: ", targetBlocks)
 	tc.PublishMessage(struct {
 		Blocks [4]string `json:"blocks"`
@@ -446,6 +422,32 @@ func allTrainsStopped() bool {
 		return false
 	}
 	return true
+}
+
+// canSwitch will return if allowed to send switches depending from train position (sensor released)
+func canSwitch(tc *traincontrol.TrainControl, targetBlocks [4]string, actualBlocks [4]string) bool {
+	//f = westbound = default
+	targetInbound := getBlock(targetBlocks[0])
+	targetOutbound := getBlock(targetBlocks[1])
+	actualInbound := getBlock(actualBlocks[0])
+	actualOutbound := getBlock(actualBlocks[1])
+	if actualDirection == "b" { //b= eastbound
+		targetInbound = getBlock(targetBlocks[0])
+		targetOutbound = getBlock(targetBlocks[1])
+		actualInbound = getBlock(actualBlocks[0])
+		actualOutbound = getBlock(actualBlocks[1])
+	}
+
+	//[7] Tunnel Entry, [5] Tunnel Exit
+	//allow setSwitches only at specific locations of track (most far away) to operate secure
+	if (targetInbound != actualInbound) && tc.Sensors[sensorList[5]].State == false {
+		return true
+	}
+
+	if (targetOutbound != actualOutbound) && tc.Sensors[sensorList[7]].State == false {
+		return true
+	}
+	return false
 }
 
 //=====================================================================================================================================================================
