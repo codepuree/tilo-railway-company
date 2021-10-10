@@ -1,31 +1,304 @@
 {
+
     "sensors": {
-        "1": { "id": 1, "state": false },
-        "2": { "id": 2, "state": false },
-        "3": { "id": 3, "state": false },
-        "4": { "id": 4, "state": false },
-        "5": { "id": 5, "state": false },
-        "6": { "id": 6, "state": false },
-        "7": { "id": 7, "state": false },
-        "8": { "id": 8, "state": false },
-        "9": { "id": 9, "state": false },
-        "10": { "id": 10, "state": false },
-        "11": { "id": 11, "state": false },
-        "12": { "id": 12, "state": false },
-        "13": { "id": 13, "state": false },
-        "14": { "id": 14, "state": false },
-        "15": { "id": 15, "state": false },
-        "16": { "id": 16, "state": false },
-        "17": { "id": 17, "state": false },
-        "18": { "id": 18, "state": false },
-        "19": { "id": 19, "state": false }
-    },
-    "_blocks": {
-        "a": { "id": "a", "sensors": [13,  5,  1,  9] },
-        "b": { "id": "b", "sensors": [14,  6,  2, 10] },
-        "c": { "id": "c", "sensors": [15,  7,  3, 11] },
-        "d": { "id": "d", "sensors": [16,  8,  4, 12] },
-        "e": { "id": "e", "sensors": [ 9, 10, 11, 12, 17, 10, 13, 14, 15, 16] },
-        "f": { "id": "f", "sensors": [17, 18, 19] }
-    }
+        "1": {
+                "id": 1,
+                "state": true
+        },
+        "2": {
+                "id": 2,
+                "state": true
+        },
+        "3": {
+                "id": 3,
+                "state": true
+        },
+        "4": {
+                "id": 4,
+                "state": true
+        },
+        "5": {
+                "id": 5,
+                "state": true
+        },
+        "6": {
+                "id": 6,
+                "state": true
+        },
+        "7": {
+                "id": 7,
+                "state": true
+        },
+        "8": {
+                "id": 8,
+                "state": true
+        },
+        "9": {
+                "id": 9,
+                "state": true
+        },
+        "10": {
+                "id": 10,
+                "state": true
+        },
+        "11": {
+                "id": 11,
+                "state": true
+        },
+        "12": {
+                "id": 12,
+                "state": true
+        },
+        "13": {
+                "id": 13,
+                "state": true
+        },
+        "14": {
+                "id": 14,
+                "state": true
+        },
+        "15": {
+                "id": 15,
+                "state": true
+        },
+        "16": {
+                "id": 16,
+                "state": true
+        },
+        "17": {
+                "id": 17,
+                "state": true
+        },
+        "18": {
+                "id": 18,
+                "state": true
+        },
+        "19": {
+                "id": 19,
+                "state": true
+        }
+},
+
+
+
+    "trains": {
+        "D16": {
+                "name": "D16",
+                "crawl_speed": 37,
+                "max_speed": 75,
+                "brake": {
+                        "step": 3,
+                        "time": 500
+                },
+                "accelerate": {
+                        "step": 1,
+                        "time": 250
+                }
+        },
+        "N700": {
+                "name": "N700",
+                "crawl_speed": 15,
+                "max_speed": 40,
+                "brake": {
+                        "step": 5,
+                        "time": 200
+                },
+                "accelerate": {
+                        "step": 1,
+                        "time": 250
+                }
+        },
+        "VacuumCleaner": {
+                "name": "VacuumCleaner",
+                "crawl_speed": 15,
+                "max_speed": 100,
+                "brake": {
+                        "step": 5,
+                        "time": 200
+                },
+                "accelerate": {
+                        "step": 1,
+                        "time": 250
+                }
+        }
+},
+
+
+
+    "blocks": {
+
+        "a": {  "id": "a", 
+
+                "sensors": [19, 13,  5,  1,  9, 17],
+
+                "distances": [0.5385, 0.2697, 0.6697, 0.1765, 0.5242] },
+
+        "b": {  "id": "b", 
+
+                "sensors": [19, 14,  6,  2,  10, 17],
+
+                "distances": [0.5561, 0.1751, 0.6726, 0.1816, 0.4528] },
+
+        "c": {  "id": "c", 
+
+                "sensors": [19, 15,  7,  3,  11, 17],
+
+                "distances": [0.5072, 0.1636, 0.6737, 0.1751, 0.4354] },
+
+        "d": {  "id": "d", 
+
+                "sensors": [19, 16,  8,  4,  12, 17],
+
+                "distances": [0.4862, 0.1594, 0.6669, 0.1799, 0.3777] },
+
+        "g": {  "id": "g", 
+
+                "sensors": [17, 18, 19],
+
+                "distances": [0.5427, 0.5397] }
+
+},
+
+    "menu": {
+        "Automatic": {
+                "name": "Automatik",
+                "type": "bool",
+                "command": "S:SetAuto(xxx)",
+                "submenu": {
+                        "RoundRobin": {
+                                "name": "Rundlauf-Verfahren",
+                                "type": "bool",
+                                "command": "S:SwitchRoundRobin(xxx)"
+                        },
+                        "DoCircle": {
+                                "name": "Kreisfahrt",
+                                "type": "bool",
+                                "command": "S:SwitchDoCircle(xxx)"
+                        },
+                        "MaxRounds": {
+                                "name": "max. Runden",
+                                "type": "number",
+                                "command": "S:SetMaxRoundsInt(xxx)"
+                        },
+                        "MinRounds": {
+                                "name": "min. Runden",
+                                "type": "number",
+                                "command": "S:SetMinRoundsInt(xxx)"
+                        },
+                        "RandomDrection": {
+                                "name": "Kreisfahrt",
+                                "type": "bool",
+                                "command": "S:SwitchRandomDirection(xxx)"
+                        },
+                        "RandomTrack": {
+                                "name": "Kreisfahrt",
+                                "type": "bool",
+                                "command": "S:SwitchRandomTrack(xxx)"
+                        },
+                        "RandomRounds": {
+                                "name": "Kreisfahrt",
+                                "type": "bool",
+                                "command": "S:SwitchRandomRounds(xxx)"
+                        }
+                }
+        },
+
+        "Lights": {
+                "name": "Licht",
+                "submenu": {
+                        "LightStation": {
+                                "name": "Bahnhof",
+                                "type": "bool",
+                                "command": "S:SwitchLightStation(xxx)"
+                        },
+                        "LightStationService": {
+                                "name": "Bahnhof Wartung",
+                                "type": "bool",
+                                "command": "S:SwitchLightStationService(xxx)"
+                        },
+                        "LightTunnel": {
+                                "name": "Tunnel",
+                                "type": "bool",
+                                "command": "S:SwitchLightTunnel(xxx)"
+                        },
+                        "LightDetail": {
+                                "name": "Bahnsteig Details",
+                                "type": "bool",
+                                "command": "S:SwitchLightDetail(xxx)"
+                        },
+                        "LightRuralStation": {
+                                "name": "Nebenbahnhof",
+                                "type": "bool",
+                                "command": "S:SwitchLightRuralStation(xxx)"
+                        },
+                        "LightLandscape": {
+                                "name": "Nebenbahnhof Details",
+                                "type": "bool",
+                                "command": "S:SwitchLightRuralDetail(xxx)"
+                        }
+                }
+        },
+
+        "Configuration": {
+                "name": "Konfiguration",
+                "submenu": {
+                        "Track1": {
+                                "name": "Gleis 1",
+                                "type": "dropdown",
+                                "command": "S:SetTrain1(xxx)"
+                        },
+                        "Track2": {
+                                "name": "Gleis 2",
+                                "type": "dropdown",
+                                "command": "S:SetTrain2(xxx)"
+                        },
+                        "Track3": {
+                                "name": "Gleis 3",
+                                "type": "dropdown",
+                                "command": "S:SetTrain3(xxx)"
+                        },
+                        "Track4": {
+                                "name": "Gleis 4",
+                                "type": "dropdown",
+                                "command": "S:SetTrain4(xxx)"
+                        },
+                        "Track5": {
+                                "name": "Gleis 5",
+                                "type": "dropdown",
+                                "command": "S:SetTrain5(xxx)"
+                        },
+                        "Track6": {
+                                "name": "Gleis 6",
+                                "type": "dropdown",
+                                "command": "S:SetTrain6(xxx)"
+                        },
+                        "ModifyConfig": {
+                                "name": "Zug hinzufügen/löschen",
+                                "type": "bool",
+                                "command": "S:SwitchLightStationService(xxx)"
+                        }
+                }
+        },
+
+        "System": {
+                "name": "KSystem",
+                "submenu": {
+                        "ShutDown": {
+                                "name": "Abschalten",
+                                "type": "button",
+                                "command": "/sys/shutdown"
+                        },
+                        "Reboot": {
+                                "name": "Neustart",
+                                "type": "button",
+                                "command": "/sys/reboot"
+                        },
+                        "Console": {
+                                "name": "Konsole",
+                                "type": "button"
+                        }
+                }
+        }
+}
+
 }
