@@ -388,8 +388,8 @@ func (tc *TrainControl) GetOccupiedBlocks() []*Block {
 
 // GetActiveTrain returns the train that is currently running
 func (tc *TrainControl) GetActiveTrain() *Train {
-	log.Println("Warn: 'GetActiveTrain' is not implemented yet!")
-	return nil
+	// log.Println("Warn: 'GetActiveTrain' is not implemented yet!")
+	return tc.Trains["N700"]
 }
 
 func (tc *TrainControl) Close() {

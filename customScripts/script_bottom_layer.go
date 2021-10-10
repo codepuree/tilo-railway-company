@@ -96,8 +96,8 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 		var sleepTime = controlCycleDuration - waitTime
 		if sleepTime < 1 {
 			if isDriveable() {
-				// Control(tc, tc.GetActiveTrain())
-				Control(tc, tc.Trains["N700"])
+				Control(tc, tc.GetActiveTrain())
+				//Control(tc, tc.Trains["N700"])
 				velocity(tc)
 			}
 			lastControlCycle = now
@@ -546,6 +546,13 @@ func setBlocksDirection(tc *traincontrol.TrainControl, blocks [4]string, directi
 	for _, block := range blocks {
 		direction2Arduino(tc, getBlock(block), direction)
 	}
+	tc.PublishMessage(struct {
+		Blocks    [4]string `json:"blocks"`
+		Direction string    `json:"direction"`
+	}{
+		Blocks:    blocks,
+		Direction: direction,
+	}) //synchronize all websites with set state
 }
 
 // setBlocksSpeed sets the speed for all blocks
