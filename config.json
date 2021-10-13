@@ -185,18 +185,18 @@
                                 "type": "number",
                                 "command": "S:SetMinRoundsInt(xxx)"
                         },
-                        "RandomDrection": {
-                                "name": "Kreisfahrt",
+                        "RandomDirection": {
+                                "name": "zufällige Richtung",
                                 "type": "bool",
                                 "command": "S:SwitchRandomDirection(xxx)"
                         },
                         "RandomTrack": {
-                                "name": "Kreisfahrt",
+                                "name": "zufälliges Gleis",
                                 "type": "bool",
                                 "command": "S:SwitchRandomTrack(xxx)"
                         },
                         "RandomRounds": {
-                                "name": "Kreisfahrt",
+                                "name": "zufällige Rundenanzahl",
                                 "type": "bool",
                                 "command": "S:SwitchRandomRounds(xxx)"
                         }

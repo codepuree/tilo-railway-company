@@ -456,14 +456,14 @@ func canSwitch(tc *traincontrol.TrainControl, targetBlocks [4]string, actualBloc
 
 // SwitchDoCircle Menufunction for named funtion (selection of described mode)
 func SwitchDoCircle(tc *traincontrol.TrainControl, b int) {
-	if b == 1 {
+	if b == 0 {
+		doCircle = 0
+	} else {
 		doCircle = 1
 		if isDriveable() {
 			SetTrack(tc, actualBlocks[0]) // synchronize track and switches with first actualBlock for doCircle Mode
 		}
-	} else {
-		doCircle = 0
-	}
+	} 
 }
 
 // SetAuto Menufunction for named funtion (selection of described mode)
@@ -532,6 +532,17 @@ func SwitchRoundRobin(tc *traincontrol.TrainControl, b int) {
 	} else {
 		doRoundRobin = 0
 		SetAuto(tc, 0)
+	}
+}
+
+// SwitchLightTunnel will turn on the service light under the main platform (lower level)
+func SwitchLightTunnel(tc *traincontrol.TrainControl, b int) {
+	if b>0 {
+		tc.SetBlockDirection("j","b")
+		tc.SetBlockSpeed("j", b)
+	}	else {
+		tc.SetBlockDirection("j","s")
+		tc.SetBlockSpeed("j", 0)
 	}
 }
 
@@ -649,6 +660,12 @@ func setOrderTrack(tc *traincontrol.TrainControl, value float64) {
 		SetTrack(tc, "ao")
 	}
 	log.Println("----------------setTrack in order: Blocks set: ", targetBlocks)
+	tc.PublishMessage(struct {
+		Blocks [4]string `json:"blocks"`
+	}{
+		Blocks: targetBlocks,
+	})
+	//synchronize all websites with set state
 }
 
 // setRandomTrack sets a random Track
