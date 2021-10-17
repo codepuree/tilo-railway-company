@@ -3,6 +3,10 @@
 <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="-250 192.3 1199.1 448.2" style="enable-background:new -250 192.3 1199.1 448.2;" xml:space="preserve">
 <style type="text/css">
+@font-face {
+      	font-family: Corporate-Logo-Rounded;
+      	src: url('/static/fonts/lcd.ttf');
+    }
 	.st0{fill:#191919;}
 	.st1{fill:none;}
 	.st2{fill:#E4E4E3;stroke:#212122;stroke-width:5;stroke-miterlimit:10;}
