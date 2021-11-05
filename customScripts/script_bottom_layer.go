@@ -52,6 +52,7 @@ var lastAccelerateTick time.Time = time.Unix(0, 0)
 
 //flags for automatiion and program selection / behavior
 var auto = 0     // will start automatic mode in control section
+var manual = 0   // will enable the simple/direct mode
 var doCircle = 0 // used in SetTrack and override individual branch selection for in- and outbound
 var doRoundRobin = 0
 var autoSleepTime = 1500  // sleeptime in Ms after each iteration in automatic mode
@@ -107,6 +108,11 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 	}
 }
 
+// ControlSimple is run in a short interval
+func ControlSimple(tc *traincontrol.TrainControl, train *traincontrol.Train) {
+
+}
+
 // Control is run in a short interval
 func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	if targetDirection != actualDirection {
@@ -123,6 +129,19 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	}
 
 	if autoBrakeReleased == 0 && autoBrakeAbsolute == 0 && (canSwitch(tc, targetBlocks, actualBlocks) || allTrainsStopped()) { // switch blocks and tracks only if no brake procedure in progress
+		if targetBlocks != actualBlocks {
+			actualBlocks = targetBlocks
+			setSwitches(tc, targetBlocks)
+			setBlocksDirection(tc, targetBlocks, actualDirection)
+			setBlocksSpeed(tc, train, targetBlocks, actualSpeed)
+			setSensorList(tc, targetBlocks, actualDirection)
+			resetInactiveBlocks(tc, targetBlocks)
+			TimeReset(tc)
+		}
+	}
+
+	// in case of manual send switch command as soon as it will be received without any double checks
+	if manual == 1 {
 		if targetBlocks != actualBlocks {
 			actualBlocks = targetBlocks
 			setSwitches(tc, targetBlocks)
@@ -298,6 +317,9 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 			inc = train.Accelerate.Step
 		}
 		actualSpeed += inc
+		if manual == 1 {
+			actualSpeed = targetSpeed
+		}
 
 		setBlocksSpeed(tc, train, actualBlocks, actualSpeed)
 		if actualSpeed%2 == 0 {
@@ -320,6 +342,11 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 	if s == 1 {
 		auto = 0 // reset Automatic mode in case of manual switch OFF
 		resetAutoFlags(tc)
+	}
+
+	if manual == 1 { // in manual mode ignos brake procedure, just stop
+		autoBrake = 0
+		targetSpeed = 0
 	}
 }
 
@@ -463,7 +490,16 @@ func SwitchDoCircle(tc *traincontrol.TrainControl, b int) {
 		if isDriveable() {
 			SetTrack(tc, actualBlocks[0]) // synchronize track and switches with first actualBlock for doCircle Mode
 		}
-	} 
+	}
+}
+
+// SetSimpleMode Menufunction for named funtion (selection of described mode)
+func SetSimpleMode(tc *traincontrol.TrainControl, b int) {
+	if b == 0 {
+		manual = 0
+	} else {
+		manual = 1
+	}
 }
 
 // SetAuto Menufunction for named funtion (selection of described mode)
@@ -475,6 +511,7 @@ func SetAuto(tc *traincontrol.TrainControl, b int) {
 			SetBrake(tc, 1)
 		}
 		auto = 1
+		manual = 0
 		if doCircle == 0 {
 			SwitchDoCircle(tc, 1)
 		}
@@ -537,11 +574,11 @@ func SwitchRoundRobin(tc *traincontrol.TrainControl, b int) {
 
 // SwitchLightTunnel will turn on the service light under the main platform (lower level)
 func SwitchLightTunnel(tc *traincontrol.TrainControl, b int) {
-	if b>0 {
-		tc.SetBlockDirection("j","b")
+	if b > 0 {
+		tc.SetBlockDirection("j", "b")
 		tc.SetBlockSpeed("j", b)
-	}	else {
-		tc.SetBlockDirection("j","s")
+	} else {
+		tc.SetBlockDirection("j", "s")
 		tc.SetBlockSpeed("j", 0)
 	}
 }
