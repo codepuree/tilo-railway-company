@@ -108,11 +108,6 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 	}
 }
 
-// ControlSimple is run in a short interval
-func ControlSimple(tc *traincontrol.TrainControl, train *traincontrol.Train) {
-
-}
-
 // Control is run in a short interval
 func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	if targetDirection != actualDirection {
