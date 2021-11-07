@@ -1008,20 +1008,15 @@ func switches2Arduino(tc *traincontrol.TrainControl, block string) {
 // EmergencyStop2Arduino stops all tracks
 func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 	log.Println("----------------Emergency Stop released")
-	tc.SetBlockDirection("a", "s")
-	tc.SetBlockDirection("b", "s")
-	tc.SetBlockDirection("c", "s")
-	tc.SetBlockDirection("c", "s")
-	tc.SetBlockDirection("d", "s")
-	tc.SetBlockDirection("f", "s")
-	tc.SetBlockDirection("g", "s")
-
-	tc.SetBlockSpeed("a", 0)
-	tc.SetBlockSpeed("b", 0)
-	tc.SetBlockSpeed("c", 0)
-	tc.SetBlockSpeed("d", 0)
-	tc.SetBlockSpeed("f", 0)
-	tc.SetBlockSpeed("g", 0)
+	var history = 1
+	if manual == 0 {
+		history = 0
+		manual = 1
+	}
+	SetActualSpeed(tc, 0)
+	if actualSpeed == 0 && history == 0 { // set manual to 0 only if it was 0 before
+		manual = 0
+	}
 }
 
 //=====================================================================================================================================================================
