@@ -568,7 +568,7 @@ func SwitchRoundRobin(tc *traincontrol.TrainControl, b int) {
 	}
 }
 
-// SwitchLightTunnel will turn on the service light under the main platform (lower level)
+// SwitchLightTunnel will turn on the service light in tunnel and back of station wall (lower level)
 func SwitchLightTunnel(tc *traincontrol.TrainControl, b int) {
 	if b > 0 {
 		tc.SetBlockDirection("j", "b")
