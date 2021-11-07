@@ -119,7 +119,7 @@
         <trc-map id="lowerMap" src="/static/svg/strecke_unten.svg"></trc-map>
     </main>
     <aside style="grid-area: right; padding: var(--gap);">
-        <trc-control value="42" actual-speed="10"></trc-control>
+        <trc-control value="0" actual-speed="0"></trc-control>
     </aside>
     <trc-console id="dev-console"></trc-console>
     <!-- <dialog id="dev-console" -->
@@ -205,16 +205,21 @@
             }
 
             webSocket.onmessage = message => {
-                const msg = JSON.parse(message.data)
+                try{
+                    const msg = JSON.parse(message.data)
 
-                console.log('Message:', msg)
-                printMessage(msg.data)
+                    console.log('Message:', msg)
+                    printMessage(msg.data)
 
-                // Map test
-                renderMap(lowerMap, msg)
+                    // Map test
+                    renderMapShort(lowerMap, msg)
+                    // renderMap(lowerMap, msg)
 
-                if (msg.from === "arduino") {
-                    signalTower.receiveMessage(msg.data)
+                    if (msg.from === "arduino") {
+                        signalTower.receiveMessage(msg.data)
+                    }
+                } catch (e) {
+                    console.error(e,message.data)
                 }
 
             }
@@ -248,187 +253,76 @@
             document.querySelector('#more>ul').appendChild(li)
         }
 
-        function renderMap(map, msg) {
-            map = document.querySelector('#lowerMap')
+        function renderMapShort(map, msg) {
+            // map = document.querySelector('#lowerMap')
             if (msg.from == "traincontrol") {
-                //Direction
-                if (msg.data.direction != undefined) {
-                    if (msg.data.direction == "f") {
-                        map.direction = 'w'
-                    }
-                    else /*(msg.data.direction == "b")*/ {
-                        map.direction = 'e'
-                    }
+                // //Direction
+                // if (msg.data.direction != undefined) {
+                //     if (msg.data.direction == "f") {
+                //         map.direction = 'w'
+                //     }
+                //     else /*(msg.data.direction == "b")*/ {
+                //         map.direction = 'e'
+                //     }
+                // }
+
+                //Velocity
+                if (msg.data.velocity != undefined) {
+                    document.querySelector('#lowerMap').speed = msg.data.velocity
                 }
 
                 //Speed
-                if (msg.data.velocity != undefined) {
-                    map.speed = msg.data.velocity
+                if (msg.data.speed != undefined) {
+                    document.querySelector('trc-control').value = msg.data.speed
                 }
-            }
-            else if (msg.from == "arduino") {
-                msg = msg.data
-                if (Number.isInteger(parseInt(msg.charAt(0)))) {
-                    // Sensor
-                    let id = msg.substring(0, 2)
-                    let state = msg.charAt(2)
 
-                    const sns = map.querySelector(`#sns${id}`)
+                //Direction
+                if (msg.data.direction != undefined) {
+                    console.log("diretion ",msg.data.direction)
+                    if (msg.data.direction == "b") document.querySelector('#lowerMap').direction = "o"
+                    else document.querySelector('#lowerMap').direction = "w"
+                }
 
-                    function visGl(id, state) {
-                        const gl = map.querySelector(`#gl${id}`) //o,w,m (ost , west , middle)
-                        if (gl.style.fill != blue) {
-                            if (state == "l") { // Low
-                                gl.style.fill = black
-                            } else { // High
-                                gl.style.fill = transparent
-                            }
-                        }
-                    }
-
-                    switch (id) {
-                        case "12": //Track4_out
-                            setTimeout(_ => {
-                                visGl("do", 'h')
-                                visGl("dm", 'h')
-                                visGl("dw", 'h')
-                            }, 0)
-                            break;
-
-                        case "16": //Track4_in
-                            visGl("do", 'l')
-                            visGl("dm", 'l')
-                            visGl("dw", 'l')
-                            break;
-
-                        case "11": //Track3_out
-                            setTimeout(_ => {
-                                visGl("co", 'h')
-                                visGl("cm", 'h')
-                                visGl("cw", 'h')
-                            }, 0)
-                            break;
-
-                        case "15": //Track3_in
-                            visGl("co", 'l')
-                            visGl("cm", 'l')
-                            visGl("cw", 'l')
-                            break;
-
-                        case "10": //Track2_out
-                            setTimeout(_ => {
-                                visGl("bo", 'h')
-                                visGl("bm", 'h')
-                                visGl("bw", 'h')
-                            }, 0)
-                            break;
-
-                        case "14": //Track2_in
-                            visGl("bo", 'l')
-                            visGl("bm", 'l')
-                            visGl("bw", 'l')
-                            break;
-
-                        case "09": //Track1_out
-                            setTimeout(_ => {
-                                visGl("ao", 'h')
-                                visGl("am", 'h')
-                                visGl("aw", 'h')
-                            }, 0)
-                            break;
-
-                        case "13": //Track1_in
-                            visGl("ao", 'l')
-                            visGl("am", 'l')
-                            visGl("aw", 'l')
-                            break;
-
-                        default:
-                            if (state == "l") { // Low
-                                sns.style.fill = yellow
-                            } else { // High
-                                sns.style.fill = white
-                            }
-                    }
-
-                } else if (msg.charAt(0) == "y") {
-                    // Weiche
-                    let id = msg.charAt(1)
-                    let state = msg.charAt(2)
-                } else {
-                    // Block
-                    let id = msg.charAt(0)
-
-                    const gl = map.querySelector(`gl${id}`)
-
-                    if (msg.charAt(1) == "d") {
-                        let direction = msg.charAt(2)
-
-                    } else {
-                        let speed = parseInt(msg.substring(2, 4))
-
-                        if (speed > 0) {
-
-                        } else {
-
-                        }
-                    }
+                //ActualSpeed
+                if (msg.data.actualspeed != undefined) {
+                    document.querySelector('trc-control').actualSpeed = msg.data.actualspeed
                 }
             }
         }
 
-        function addInteractivity(map) {
-            // direction selection
-            map.querySelector('#diro_active').style.display = "none" //start case
-            map.querySelector('#dirw_active').style.display = "none"
-            map.querySelector('#diro').addEventListener('click', event => {
-                webSocket.send("s:SetDirection(\"b\")")
-            })
-
-            map.querySelector('#dirw').addEventListener('click', event => {
-                webSocket.send("s:SetDirection(\"f\")")
-            })
-
-            map.querySelector('#sig1o').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"ao\")")
-            })
-
-            map.querySelector('#sig1w').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"aw\")")
-            })
-
-            map.querySelector('#sig2o').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"bo\")")
-            })
-
-            map.querySelector('#sig2w').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"bw\")")
-            })
-
-            map.querySelector('#sig3o').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"co\")")
-            })
-
-            map.querySelector('#sig3w').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"cw\")")
-            })
-
-            map.querySelector('#sig4o').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"do\")")
-            })
-
-            map.querySelector('#sig4w').addEventListener('click', event => {
-                webSocket.send("s:SetTrack(\"dw\")")
-            })
-
-        }
-
-       document.querySelector('#lowerMap').addEventListener('readystatechange', _ => {
-            addInteractivity(document.querySelector('#lowerMap').contentDocument)
+        document.querySelector('#lowerMap').addEventListener('change', event => {
+            console.log(event.detail)
+            if (event.detail.value=="w") {
+                webSocket.send(`s:SetDirection("f")`)
+            }
+            if (event.detail.value=="e") {
+                webSocket.send(`s:SetDirection("b")`)
+            }
+        })        
+        document.querySelector('#lowerMap').addEventListener('signal', event => webSocket.send(`s:SetTrack("${String.fromCharCode(96+event.detail.id)}${event.detail.direction}")`))
+        
+        document.querySelector('trc-control').addEventListener('change', event => {
+            if (event.detail.value > 0){
+                webSocket.send(`s:SetSpeed(${event.detail.value})`)
+            }
+            else if (event.detail.value < -35){
+                webSocket.send(`s:SetBrake(1)`)
+            }
+            else {
+                webSocket.send(`s:SetSpeed(0)`)
+            }
         })
-
-        document.querySelector('trc-control').addEventListener('speed', event => console.log(event.detail))
-        document.querySelector('trc-control').addEventListener('emergencystop', event => webSocket.send("s:EmergencyStop2Arduino"))
+        
+        document.querySelector('trc-control').addEventListener('input', event => {
+            if (event.detail.value > 0){
+                webSocket.send(`s:SetActualSpeed(${event.detail.value})`)
+            }
+            else {
+                webSocket.send(`s:SetActualSpeed(0)`)
+            }
+        })
+        
+        document.querySelector('trc-control').addEventListener('emergency', event => webSocket.send("s:EmergencyStop2Arduino"))
     </script>
 </body>
 </html>

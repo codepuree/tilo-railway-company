@@ -317,13 +317,11 @@ func adjustSpeed(tc *traincontrol.TrainControl, train *traincontrol.Train, actua
 		}
 
 		setBlocksSpeed(tc, train, actualBlocks, actualSpeed)
-		if actualSpeed%2 == 0 {
-			tc.PublishMessage(struct {
-				ActualSpeed int `json:"actualspeed"`
-			}{
-				ActualSpeed: actualSpeed,
-			}) //synchronize all websites with set state
-		}
+		tc.PublishMessage(struct {
+			ActualSpeed int `json:"actualspeed"`
+		}{
+			ActualSpeed: actualSpeed,
+		}) //synchronize all websites with set state
 	}
 }
 
@@ -348,12 +346,20 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 // SetDirection sets the direction
 func SetDirection(tc *traincontrol.TrainControl, d string) {
 	targetDirection = d
+
 	tc.PublishMessage(struct {
 		Direction string `json:"direction"`
 	}{
 		Direction: targetDirection,
 	})
 	log.Println("----------------Direction set: ", targetDirection)
+}
+
+// SetActualSpeed sets the speed
+func SetActualSpeed(tc *traincontrol.TrainControl, s int) {
+	if manual == 1 {
+		SetSpeed(tc, s)
+	}
 }
 
 // SetSpeed sets the speed
@@ -1001,6 +1007,7 @@ func switches2Arduino(tc *traincontrol.TrainControl, block string) {
 
 // EmergencyStop2Arduino stops all tracks
 func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
+	log.Println("----------------Emergency Stop released")
 	tc.SetBlockDirection("a", "s")
 	tc.SetBlockDirection("b", "s")
 	tc.SetBlockDirection("c", "s")
