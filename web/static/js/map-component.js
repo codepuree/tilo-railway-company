@@ -40,6 +40,11 @@ class TRCMap extends HTMLElement {
         this.#svgAddClass(this.btnFocusLine, 'inactive')
         this.btnFocusLine.addEventListener('click', (event => {
             this.focus = !this.focus // TODO: Maybe it's better to send an event
+            if (this.focus) {
+                this.dispatchEvent(new CustomEvent('focus', { detail: { value: this.focus } }))
+            } else {
+                this.dispatchEvent(new CustomEvent('blur', { detail: { value: this.focus } }))
+            }
         }).bind(this))
 
 
@@ -66,6 +71,7 @@ class TRCMap extends HTMLElement {
         this.#svgAddClass(this.directionEast, 'inactive')
         this.directionEast.addEventListener('click', (event => {
             this.direction = 'e'
+            this.dispatchEvent(new CustomEvent('change', { detail: { value: this.direction } }))
         }).bind(this))
     }
 
