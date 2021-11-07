@@ -8,7 +8,7 @@ class TRCControl extends HTMLElement {
 		this.attachShadow({ mode: 'open' })
 
 		self.controlSlider = document.createElement('object')
-		self.controlSlider.setAttribute('data', '/static/svg/slider_dark.svg')
+		self.controlSlider.setAttribute('data', '/static/svg/slider.svg')
 		self.controlSlider.setAttribute('type', 'image/svg+xml')
 		self.controlSlider.style.height = '100%'
 		self.controlSlider.style.width  = '100%'
