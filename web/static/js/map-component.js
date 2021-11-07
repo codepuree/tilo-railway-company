@@ -81,7 +81,7 @@ class TRCMap extends HTMLElement {
         signals.map(signal => {
             const {id, direction} = signal.id.match(/sig(?<id>\d+)(?<direction>\w)/).groups
             signal.addEventListener('click', event => {
-                this.dispatchEvent(new CustomEvent('signal', { detail: { id, direction } }))
+                this.dispatchEvent(new CustomEvent('signal', { detail: { id: parseInt(id), direction } }))
             })
         })
     }
