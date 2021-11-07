@@ -494,6 +494,7 @@ func SetSimpleMode(tc *traincontrol.TrainControl, b int) {
 		manual = 0
 	} else {
 		manual = 1
+		auto = 0 // make sure automatic is off
 	}
 }
 
@@ -506,7 +507,7 @@ func SetAuto(tc *traincontrol.TrainControl, b int) {
 			SetBrake(tc, 1)
 		}
 		auto = 1
-		manual = 0
+		manual = 0 // make sure manual mode is off
 		if doCircle == 0 {
 			SwitchDoCircle(tc, 1)
 		}
