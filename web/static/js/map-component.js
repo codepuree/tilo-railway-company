@@ -73,6 +73,17 @@ class TRCMap extends HTMLElement {
             this.direction = 'e'
             this.dispatchEvent(new CustomEvent('change', { detail: { value: 'e' } }))
         }).bind(this))
+
+        // Signals
+        const signals = Array.from(this.map.querySelectorAll('*'))
+            .filter(e => e.id.includes('sig'))
+
+        signals.map(signal => {
+            const {id, direction} = signal.id.match(/sig(?<id>\d+)(?<direction>\w)/).groups
+            signal.addEventListener('click', event => {
+                this.dispatchEvent(new CustomEvent('signal', { detail: { id, direction } }))
+            })
+        })
     }
 
     #svgAddClass(elem, className) {
