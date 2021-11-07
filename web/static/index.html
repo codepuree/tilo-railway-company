@@ -3,109 +3,158 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Tilo Railway Company</title>
-    <link rel="stylesheet" href="/static/css/index.css">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <script src="/static/js/control-component.js"></script>
+    <script src="/static/js/map-component.js"></script>
+    <script src="/static/js/console-component.js"></script>
+    <link href="http://fonts.cdnfonts.com/css/myriad-pro" rel="stylesheet" />
+    <style>
+    :root {
+        --clr-gap: #191919;
+        --clr-bg: #222223;
+        --clr-inactive: #3c3c3c;
+        --clr-active: #e5e5e4;
+        --gap: 8px;
+    }
 
-	<!-- Import customElements -->
-	<script src="/static/js/control-component.js"></script>
+    *, *::before, *::after {
+        box-sizing: border-box;
+        font-family: 'Myriad Pro', san-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        text-align: center;
+        /* font-size: 5vh; */
+        color: white;
+        letter-spacing: 0.5vh;
+    }
 
-    <!-- Split-Flap-Display -->
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.flightboard.js"></script>
+    html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+        background: var(--clr-gap);
+    }
+
+    body {
+        margin: 0;
+        display: grid;
+        grid-template:
+            "header header logo" 15vh
+            "left main right" 1fr
+            / 20vw 1fr 20vw;
+        gap: var(--gap);
+        padding: var(--gap);
+        height: 100%;
+        overflow: hidden;
+        background: var(--clr-gap);
+    }
+
+    body>* {
+        background-color: var(--clr-bg);
+        overflow: hidden;
+    }
+
+    main {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    main>* {
+        flex: 1 auto;
+        overflow: hidden;
+        padding: var(--gap);
+    }
+
+    main>article>object {
+        height: 100%;
+        max-width: 100%;
+    }
+    </style>
+    <style>
+    input[type=text] {
+        font-size: 23px;
+        width: 60px;
+        background-color: var(--clr-inactive);
+        color: var(--clr-active);
+        border: 1px solid var(--clr-active);
+        padding: 2px;
+        margin: 0;
+    }
+    </style>
 </head>
 
 <body>
-    <header style="grid-area: header; background-color: #222223; color: #e5e5e4;">
-        some random text
+    <header style="grid-area: header; padding: var(--gap);">
+        <object id="header" type="image/svg+xml" data="/static/svg/SplitFlap_Mockup.svg" style="height: 100%; width: 100%; max-height: 100%; max-width: 100%;">
+            Logo
+        </object>
     </header>
-    <aside class="left">
-        <ul>
-            <li class="menu">
-                <img class="menuHandle" src="/static/svg/menu.svg" width="25px" height="25px" alt="Hamburger_icon"
-                    style="filter: grayscale(100), saturate(8);"
-                    onclick="document.querySelector('#more').classList.toggle('hidden')">
-            </li>
-            <li>
-                <style>
-                    input:checked+label {
-                        text-decoration: underline;
-                    }
-                </style>
-                <input hidden type="checkbox" id="tog-console">
-                <label for="tog-console">🖥️</label>
-                <label for="tog-console">Console</label>
-            </li>
-        </ul>
-        <div id="more" class="hidden">
-            <ul>
-            </ul>
+    <div style="grid-area: logo; padding: calc(var(--gap) + 3px);" onclick="console.log('test');document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
+        <object id="logo" type="image/svg+xml" data="/static/svg/Logo_light.svg" style="height: 100%; width: 100%; max-height: 100%; max-width: 100%;">
+            Logo
+        </object>
+    </div>
+    <aside style="grid-area: left">
+        <div class="icons">
+            <label class="switch"><input type="checkbox"><span class="slider round"></span></label>
+            <input type="text" />
+            <label class="switch"><input type="checkbox"><span class="slider round"></span></label>
+            <input hidden type="checkbox" id="tog-console">
+            <label for="tog-console">🖥️</label>
+            <label for="tog-console">Console</label>
+        </div>
+        <div class="labels">
+            <label>Option 1</label>
+            <label>Option 2</label>
+            <label>Option 3</label>
         </div>
     </aside>
-    <main>
+    <main style="grid-area: main">
         <!-- Upper level -->
-        <article class="map">
-            <object type="image/svg+xml" data="/static/svg/strecke_oben.svg">
-                Streckenplan_oben
-            </object>
-        </article>
-
-        <!-- Lower level -->
-        <article class="map">
-            <object id="lowerMap" type="image/svg+xml" data="/static/svg/strecke_unten.svg">
-                Streckenplan_unten
-            </object>
-        </article>
+        <trc-map id="upperMap" src="/static/svg/strecke_oben.svg"></trc-map>
+        <trc-map id="lowerMap" src="/static/svg/strecke_unten.svg"></trc-map>
     </main>
-    <aside class="right">
-        <header style="padding: 10px;">
-            <img src="/static/imgs/Logo.png" width="100%" alt="Tilo Railway Company"
-                onclick="document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
-        </header>
-        <main style="flex: 1; padding: 0.5vw 1vw; width: 100%; height: 100%; overflow: hidden;">
-            <div class="controls" style="overflow: hidden;">
-				<trc-control></trc-control>
-            </div>
-        </main>
+    <aside style="grid-area: right; padding: var(--gap);">
+        <trc-control value="42" actual-speed="10"></trc-control>
     </aside>
+    <trc-console id="dev-console"></trc-console>
+    <!-- <dialog id="dev-console" -->
+    <!--     style="/*display: grid;*/ grid-auto-rows: auto 1fr auto; padding: 4vmin; grid-gap: 4vmin; height: 50vh; margin: 25vh auto;"> -->
+    <!--     <header> -->
+    <!--         <h3 style="grid-column: span 3; margin: 0; padding: 0;">Serial command line:</h3> -->
+    <!--         <button -->
+    <!--             onclick="confirm('Möchtest du wirklich herunterfahren?') ? fetch('/sys/shutdown') : void(0)">🛑</button> -->
+    <!--         <button onclick="confirm('Möchtest du wirklich neustarten?') ? fetch('/sys/reboot') : void(0)">🔄</button> -->
+    <!--     </header> -->
+    <!--     <main style="overflow: hidden;"> -->
+    <!--         <div id="outMsg" style="grid-column: span 3; overflow: auto;"></div> -->
+    <!--     </main> -->
+    <!--     <footer> -->
+    <!--         <label for="inMsg">Message:</label><input id="inMsg" type="text" style="width: 100%;"> -->
+    <!--         <input id="btnSend" type="button" value="Send"> -->
+    <!--     </footer> -->
+         <script> 
+             const togConsole = document.querySelector("#tog-console") 
+             const devConsole = document.querySelector('trc-console') 
+             togConsole.addEventListener("change", event => { 
+                 devConsole.open = event.target.checked 
 
-
-    <dialog id="dev-console"
-        style="/*display: grid;*/ grid-auto-rows: auto 1fr auto; padding: 4vmin; grid-gap: 4vmin; height: 50vh; margin: 25vh auto;">
-        <header>
-            <h3 style="grid-column: span 3; margin: 0; padding: 0;">Serial command line:</h3
-                style="grid-column: span 3;">
-            <button
-                onclick="confirm('Möchtest du wirklich herunterfahren?') ? fetch('/sys/shutdown') : void(0)">🛑</button>
-            <button onclick="confirm('Möchtest du wirklich neustarten?') ? fetch('/sys/reboot') : void(0)">🔄</button>
-        </header>
-        <main style="overflow: hidden;">
-            <div id="outMsg" style="grid-column: span 3; overflow: auto;"></div>
-        </main>
-        <footer>
-            <label for="inMsg">Message:</label><input id="inMsg" type="text">
-            <input id="btnSend" type="button" value="Send">
-        </footer>
-    </dialog>
-
+                 if (event.target.checked) { 
+                     devConsole.style.display = "grid" 
+                 } else { 
+                     devConsole.style.display = "none" 
+                 } 
+             }) 
+         </script> 
+    <!-- </dialog> -->
     <script src="/static/js/signal-tower.js"></script>
     <script>
-        const togConsole = document.querySelector("#tog-console")
-        const devConsole = document.querySelector('#dev-console')
-        togConsole.addEventListener("change", event => {
-            devConsole.open = event.target.checked
-
-            if (event.target.checked) {
-                devConsole.style.display = "grid"
-            } else {
-                devConsole.style.display = "none"
-            }
-        })
-    </script>
-    <script>
         const signalTower = new SignalTower();
-        const lowerMap = document.querySelector('#lowerMap').contentDocument
+        const lowerMap = document.querySelector('#lowerMap')
 
         const red = '#e44513'
         const yellow = '#eac721'
@@ -116,30 +165,34 @@
         const blue = '#0fb5e8'
         const black = 'black'
 
-        function printMessage(msg, type = 'log') {
-            let out = ''
-            switch (type) {
-                case 'error':
-                    out = `<span style="color: red;"><b>Error:</b> ${msg}</span><br>`
-                    break;
+        // const printMessage = document.querySelector('trc-console').printMessage
+        const outMsg = document.querySelector('#outMsg') | document.querySelector('trc-console') 
+        function printMessage(msg, type_ = 'log') { 
+            document.querySelector('trc-console').printMessage(msg, type_)
+            /*let out = '' 
+            switch (type) { 
+                case 'error': 
+                    out = `<span style="color: red;"><b>Error:</b> ${msg}</span><br>` 
+                    break; 
 
-                case 'warning':
-                    out = `<span style="color: orange;"><b>Warning:</b> ${msg}</span><br>`
-                    break;
+                case 'warning': 
+                    out = `<span style="color: orange;"><b>Warning:</b> ${msg}</span><br>` 
+                    break; 
 
-                case 'info':
-                    out = `<span style="color: darkgray;"><b>Info:</b> ${msg}</span><br>`
-                    break;
+                case 'info': 
+                    out = `<span style="color: darkgray;"><b>Info:</b> ${msg}</span><br>` 
+                    break; 
 
-                case 'log':
-                default:
-                    out = `<span>${msg}</span><br>`
-                    break;
-            }
+                case 'log': 
+                default: 
+                    out = `<span>${msg}</span><br>` 
+                    break; 
+            } 
 
-            document.querySelector('#outMsg').innerHTML = document.querySelector('#outMsg').innerHTML + out
-            document.querySelector('#outMsg').lastChild.scrollIntoView()
-        }
+            outMsg.innerHTML = outMsg.innerHTML + out 
+            console.log('lastChild', outMsg.lastChild) 
+            outMsg.lastChild.scrollIntoView() */
+        } 
 
         const webSocket = startWebsocket()
 
@@ -182,9 +235,9 @@
             return webSocket
         }
 
-        document.querySelector('#btnSend').addEventListener('click', event => {
+        /* document.querySelector('#btnSend').addEventListener('click', event => {
             webSocket.send(document.querySelector('#inMsg').value)
-        })
+        }) */
 
         function addScriptButton(name, func) {
             let li = document.createElement('li')
@@ -196,32 +249,21 @@
         }
 
         function renderMap(map, msg) {
-            map = document.querySelector('#lowerMap').contentDocument
+            map = document.querySelector('#lowerMap')
             if (msg.from == "traincontrol") {
                 //Direction
-                const diro = map.querySelector('#diro')
-                const dirw = map.querySelector('#dirw')
-                const diro_active = map.querySelector('#diro_active')
-                const dirw_active = map.querySelector('#dirw_active')
-
                 if (msg.data.direction != undefined) {
                     if (msg.data.direction == "f") {
-                        dirw.style.display = "none"  // hidden = true
-                        dirw_active.style.display = "block" // hidden = false
-                        diro_active.style.display = "none"  // hidden = true
-                        diro.style.display = "block" // hidden = false
+                        map.direction = 'w'
                     }
                     else /*(msg.data.direction == "b")*/ {
-                        diro.style.display = "none"  // hidden = true
-                        diro_active.style.display = "block" // hidden = false
-                        dirw_active.style.display = "none"  // hidden = true
-                        dirw.style.display = "block" // hidden = false
+                        map.direction = 'e'
                     }
                 }
 
                 //Speed
                 if (msg.data.velocity != undefined) {
-                    map.querySelector('#speed').textContent = msg.data.velocity + " km/h"
+                    map.speed = msg.data.velocity
                 }
             }
             else if (msg.from == "arduino") {
@@ -384,36 +426,9 @@
        document.querySelector('#lowerMap').addEventListener('readystatechange', _ => {
             addInteractivity(document.querySelector('#lowerMap').contentDocument)
         })
-    </script>
-    <script>
+
         document.querySelector('trc-control').addEventListener('speed', event => console.log(event.detail))
         document.querySelector('trc-control').addEventListener('emergencystop', event => webSocket.send("s:EmergencyStop2Arduino"))
     </script>
-    <!-- <script src="/static/js/scripts.js"></script> -->
-    <script>
-        async function loadMenu() {
-            const config = await fetch("static/config.json").then(res => res.json())
-            const menu = config.menu
-            const container = document.querySelector('aside.left>ul')
-
-            menu.forEach(item => {
-                const li  = document.createElement('li')
-                const inp = document.createElement('input')
-                const lbl = document.createElement('label')
-                
-                lbl.innerHTML = item.name
-                li.appendChild(lbl)
-                
-                if (item.type == 'boolean') {
-                    input.type = 'checkbox'
-                } else if (item.type == 'int') {
-                    input.type = ''
-                }
-                
-                container.appendChild(li)
-            })
-        }
-    </script>
 </body>
-
 </html>
