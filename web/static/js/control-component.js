@@ -4,6 +4,7 @@ class TRCControl extends HTMLElement {
 	constructor() {
 		console.log('Initializing TRCControl')
 		self = super()
+        console.log('TRCControl value:', this.getAttribute('value'))
 		this.attachShadow({ mode: 'open' })
 
 		self.controlSlider = document.createElement('object')
@@ -17,7 +18,7 @@ class TRCControl extends HTMLElement {
 
         self.controlSlider.addEventListener('load', _ => {
             // Constants
-            this.container     = self.controlSlider.contentDocument.querySelector('svg')
+            this.container      = this.controlSlider.contentDocument.querySelector('svg')
 			this.slider         = this.container.querySelector('#Slider')
 			const btnSlider     = this.slider.querySelector('#SliderButton')
 			this.txtSlider      = this.slider.querySelector('#SliderSpeed')
@@ -28,13 +29,12 @@ class TRCControl extends HTMLElement {
             this.raspberry      = this.container.querySelector('#Raspberry')
 
             // Variables
-            this.isDragging = false
+            this.isDragging  = false
             this.intStartPos = this.container.createSVGPoint()
             this.offsetY = 0
             this.y = 0
             this.speed = 0
             this.fullPosY = -sliderGlider.getBBox().y
-            console.log(`fullPosY: ${this.fullPosY}  ${sliderGlider.getCTM().f}`)
             this.zeroPosY = btnSlider.getBBox().y + btnSlider.getBBox().height / 2
             this.offPosY  = 86  // TODO: find way to calculate value
 
@@ -43,6 +43,7 @@ class TRCControl extends HTMLElement {
             style.innerText = `
                 #SliderButton {
                     cursor: pointer;
+                    user-select: none;
                 }
 
                 #EmergencyButton {
@@ -71,17 +72,17 @@ class TRCControl extends HTMLElement {
             this.slider.setAttribute('draggable', true)
 
             // Mouse
-            btnSlider.addEventListener('mousedown',  self.#startDrag.bind(this))
-            btnSlider.addEventListener('mousemove',  self.#drag.bind(this))
-            btnSlider.addEventListener('mouseup',    self.#endDrag.bind(this))
-            btnSlider.addEventListener('mouseleave', self.#endDrag.bind(this))
+            btnSlider.addEventListener('mousedown',  this.#startDrag.bind(this))
+            btnSlider.addEventListener('mousemove',  this.#drag.bind(this))
+            btnSlider.addEventListener('mouseup',    this.#endDrag.bind(this))
+            btnSlider.addEventListener('mouseleave', this.#endDrag.bind(this))
 
             // Touch
-            btnSlider.addEventListener('touchstart',  self.#startDrag.bind(this))
-            btnSlider.addEventListener('touchmove',   self.#drag.bind(this))
-            btnSlider.addEventListener('touchend',    self.#endDrag.bind(this))
-            btnSlider.addEventListener('touchleave',  self.#endDrag.bind(this))
-            btnSlider.addEventListener('touchcancel', self.#endDrag.bind(this))
+            btnSlider.addEventListener('touchstart',  this.#startDrag.bind(this))
+            btnSlider.addEventListener('touchmove',   this.#drag.bind(this))
+            btnSlider.addEventListener('touchend',    this.#endDrag.bind(this))
+            btnSlider.addEventListener('touchleave',  this.#endDrag.bind(this))
+            btnSlider.addEventListener('touchcancel', this.#endDrag.bind(this))
 
             // Emergency Button
             btnEmergency.addEventListener('click', _ => {
@@ -155,11 +156,6 @@ class TRCControl extends HTMLElement {
                 this.dispatchEvent(new CustomEvent('input', { detail: { value: this.speed } }))
             }
             this.slider.setAttributeNS(null, 'transform', `translate(0, ${this.y})`)
-            
-            // Set position of the bar
-            // this.barActualSpeed.points[1].y = this.fullPosY + this.speed*2
-            // this.barActualSpeed.points[2].y = this.fullPosY + this.speed*2
-            console.log("y: ", -(49 + this.speed*2))
         }
     }
 
@@ -200,8 +196,6 @@ class TRCControl extends HTMLElement {
             this.txtSlider.innerHTML = value
             // Set bar position
             const ctm = this.slider.getCTM()
-            // this.barActualSpeed.points[1].y = ctm.f
-            // this.barActualSpeed.points[2].y = ctm.f
 
             if (value >= 0) {
                 this.txtSlider.innerHTML = value
@@ -211,17 +205,17 @@ class TRCControl extends HTMLElement {
 
     #setArduinoConnection(isConnected) {
         if (isConnected) {
-            self.arduino.setAttribute('active', true)
+            this.arduino.setAttribute('active', true)
         } else {
-            self.arduino.removeAttribute('active')
+            this.arduino.removeAttribute('active')
         }
     }
 
     #setRaspberryConnection(isConnected) {
         if (isConnected) {
-            self.raspberry.setAttribute('active', true)
+            this.raspberry.setAttribute('active', true)
         } else {
-            self.raspberry.removeAttribute('active')
+            this.raspberry.removeAttribute('active')
         }
     }
 
@@ -239,19 +233,19 @@ class TRCControl extends HTMLElement {
         if (oldValue != newValue) {
             switch (name) {
                 case 'value':
-                    self.#setSpeed(newValue)
+                    this.#setSpeed(newValue)
                     break;
 
                 case 'actual-speed':
-                    self.#setBarActualSpeed(newValue)
+                    this.#setBarActualSpeed(newValue)
                     break;
 
                 case 'is-arduino-connected':
-                    self.#setArduinoConnection(newValue)
+                    this.#setArduinoConnection(newValue)
                     break;
 
                 case 'is-raspberry-connected':
-                    self.#setRaspberryConnection(newValue)
+                    this.#setRaspberryConnection(newValue)
                     break;
 
                 default:
