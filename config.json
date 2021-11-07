@@ -160,43 +160,47 @@
 },
 
     "menu": {
+        "DoCircle": {
+                "name": "Round Trip",
+                "type": "bool",
+                "command": "S:SwitchDoCircle(xxx)"
+        },
+        "Manual": {
+                "name": "Fully Manual",
+                "type": "bool",
+                "command": "S:SetSimpleMode(xxx)"
+        },
         "Automatic": {
-                "name": "Automatik",
+                "name": "Automatic",
                 "type": "bool",
                 "command": "S:SetAuto(xxx)",
                 "submenu": {
                         "RoundRobin": {
-                                "name": "Rundlauf-Verfahren",
+                                "name": "Round Robin",
                                 "type": "bool",
                                 "command": "S:SwitchRoundRobin(xxx)"
                         },
-                        "DoCircle": {
-                                "name": "Kreisfahrt",
-                                "type": "bool",
-                                "command": "S:SwitchDoCircle(xxx)"
-                        },
                         "MaxRounds": {
-                                "name": "max. Runden",
-                                "type": "number",
+                                "name": "max. Rounds",
                                 "command": "S:SetMaxRoundsInt(xxx)"
                         },
                         "MinRounds": {
-                                "name": "min. Runden",
+                                "name": "min. Rounds",
                                 "type": "number",
                                 "command": "S:SetMinRoundsInt(xxx)"
                         },
                         "RandomDirection": {
-                                "name": "zufällige Richtung",
+                                "name": "Random Direction",
                                 "type": "bool",
                                 "command": "S:SwitchRandomDirection(xxx)"
                         },
                         "RandomTrack": {
-                                "name": "zufälliges Gleis",
+                                "name": "Random Track",
                                 "type": "bool",
                                 "command": "S:SwitchRandomTrack(xxx)"
                         },
                         "RandomRounds": {
-                                "name": "zufällige Rundenanzahl",
+                                "name": "Random No. of Rounds",
                                 "type": "bool",
                                 "command": "S:SwitchRandomRounds(xxx)"
                         }
@@ -204,15 +208,15 @@
         },
 
         "Lights": {
-                "name": "Licht",
+                "name": "Light",
                 "submenu": {
                         "LightStation": {
-                                "name": "Bahnhof",
+                                "name": "Station",
                                 "type": "bool",
                                 "command": "S:SwitchLightStation(xxx)"
                         },
                         "LightStationService": {
-                                "name": "Bahnhof Wartung",
+                                "name": "Station Maintenance",
                                 "type": "bool",
                                 "command": "S:SwitchLightStationService(xxx)"
                         },
@@ -222,17 +226,17 @@
                                 "command": "S:SwitchLightTunnel(xxx)"
                         },
                         "LightDetail": {
-                                "name": "Bahnsteig Details",
+                                "name": "Platform Details",
                                 "type": "bool",
                                 "command": "S:SwitchLightDetail(xxx)"
                         },
                         "LightRuralStation": {
-                                "name": "Nebenbahnhof",
+                                "name": "Rural Station",
                                 "type": "bool",
                                 "command": "S:SwitchLightRuralStation(xxx)"
                         },
                         "LightLandscape": {
-                                "name": "Nebenbahnhof Details",
+                                "name": "Rural Station Details",
                                 "type": "bool",
                                 "command": "S:SwitchLightRuralDetail(xxx)"
                         }
@@ -240,40 +244,40 @@
         },
 
         "Configuration": {
-                "name": "Konfiguration",
+                "name": "Configuration",
                 "submenu": {
                         "Track1": {
-                                "name": "Gleis 1",
+                                "name": "Track 1",
                                 "type": "dropdown",
                                 "command": "S:SetTrain1(xxx)"
                         },
                         "Track2": {
-                                "name": "Gleis 2",
+                                "name": "Track 2",
                                 "type": "dropdown",
                                 "command": "S:SetTrain2(xxx)"
                         },
                         "Track3": {
-                                "name": "Gleis 3",
+                                "name": "Track 3",
                                 "type": "dropdown",
                                 "command": "S:SetTrain3(xxx)"
                         },
                         "Track4": {
-                                "name": "Gleis 4",
+                                "name": "Track 4",
                                 "type": "dropdown",
                                 "command": "S:SetTrain4(xxx)"
                         },
                         "Track5": {
-                                "name": "Gleis 5",
+                                "name": "Track 5",
                                 "type": "dropdown",
                                 "command": "S:SetTrain5(xxx)"
                         },
                         "Track6": {
-                                "name": "Gleis 6",
+                                "name": "Track 6",
                                 "type": "dropdown",
                                 "command": "S:SetTrain6(xxx)"
                         },
                         "ModifyConfig": {
-                                "name": "Zug hinzufügen/löschen",
+                                "name": "Add/Delete Train",
                                 "type": "bool",
                                 "command": "S:SwitchLightStationService(xxx)"
                         }
@@ -281,20 +285,20 @@
         },
 
         "System": {
-                "name": "KSystem",
+                "name": "System",
                 "submenu": {
                         "ShutDown": {
-                                "name": "Abschalten",
+                                "name": "Shutdown",
                                 "type": "button",
                                 "command": "/sys/shutdown"
                         },
                         "Reboot": {
-                                "name": "Neustart",
+                                "name": "Restart",
                                 "type": "button",
                                 "command": "/sys/reboot"
                         },
                         "Console": {
-                                "name": "Konsole",
+                                "name": "Console",
                                 "type": "button"
                         }
                 }
