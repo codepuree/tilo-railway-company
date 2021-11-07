@@ -58,7 +58,7 @@ class TRCMap extends HTMLElement {
         this.#svgAddClass(this.directionWest, 'inactive')
         this.directionWest.addEventListener('click', (event => {
             this.direction = 'w'
-            this.dispatchEvent(new CustomEvent('change', { detail: { value: this.direction } }))
+            this.dispatchEvent(new CustomEvent('change', { detail: { value: 'w' } }))
         }).bind(this))
 
         // Set up direction east
@@ -71,7 +71,7 @@ class TRCMap extends HTMLElement {
         this.#svgAddClass(this.directionEast, 'inactive')
         this.directionEast.addEventListener('click', (event => {
             this.direction = 'e'
-            this.dispatchEvent(new CustomEvent('change', { detail: { value: this.direction } }))
+            this.dispatchEvent(new CustomEvent('change', { detail: { value: 'e' } }))
         }).bind(this))
     }
 
