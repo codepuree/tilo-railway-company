@@ -155,10 +155,18 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		autoBrakeAbsolute = 1
 	}
 
-	if autoBrakeAbsolute == 1 && allTrainsStopped() && blockClear(targetBlocks) {
+	if autoBrakeAbsolute == 1 && allTrainsStopped() && blockClear(targetBlocks) { // resume with previous speed in case of absolute brake since tracks weren't clear. To break procedure in station see below
 		targetSpeed = previousSpeed
 		autoBrakeAbsolute = 0
 		autoBrakeReleased = 0
+	}
+
+	if autoBrake == 1 && allTrainsStopped() { // Break condition to reset speed whil in station. set speed zero in case brake was release while train was stopped as it was blocked
+		targetSpeed = 0
+		previousSpeed = 0
+		if auto == 1 {
+			SetAuto(tc, 0)
+		}
 	}
 
 	//Automation
@@ -191,6 +199,12 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 				Speed int `json:"speed"`
 			}{
 				Speed: targetSpeed,
+			}) //synchronize all websites with set state
+
+			tc.PublishMessage(struct {
+				ActualSpeed int `json:"actualspeed"`
+			}{
+				ActualSpeed: actualSpeed,
 			}) //synchronize all websites with set state
 
 			setBlocksSpeed(tc, train, actualBlocks, actualSpeed) //override brake ramp
@@ -1014,7 +1028,7 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 		manual = 1
 	}
 	SetActualSpeed(tc, 0)
-	if actualSpeed == 0 && history == 0 { // set manual to 0 only if it was 0 before
+	if history == 0 { // set manual to 0 only if it was 0 before
 		manual = 0
 	}
 }
