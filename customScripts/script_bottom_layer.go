@@ -984,6 +984,13 @@ func TimeReset(tc *traincontrol.TrainControl) {
 //======================================================================= A R D U I N O ===============================================================================
 //=====================================================================================================================================================================
 
+// resetArduino resets Arduino
+func resetArduino(tc *traincontrol.TrainControl) {
+	log.Println("----------------RESET ARDUINO BOTTOM LAYER (MAIN LINE)")
+	//rstz
+	tc.ResetArduino()
+}
+
 // direction2Arduino sets direction for block
 func direction2Arduino(tc *traincontrol.TrainControl, block byte, direction string) {
 	tc.SetBlockDirection(string(block), direction)
@@ -1056,7 +1063,25 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 		manual = 1
 	}
 
-	SetActualSpeed(tc, 0)
+	//SetActualSpeed(tc, 0)
+	resetArduino(tc)
+	actualBlocks = EmptyBlock
+	targetBlocks = EmptyBlock
+	sensorList = EmptySensors
+	distanceList = EmptyDistances
+	actualDirection = "s"
+	targetDirection = "s"
+	actualSpeed = 0
+	targetSpeed = 0
+	previousSpeed = 0
+
+	log.Println("----------------Velocity is now: ", 0, " km/h")
+	tc.PublishMessage(struct {
+		Velocity int `json:"velocity"`
+	}{
+		Velocity: 0,
+	})
+
 	if history == 0 { // set manual to 0 only if it was 0 before
 		manual = 0
 	}
