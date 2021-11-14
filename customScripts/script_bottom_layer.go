@@ -170,6 +170,8 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	if autoBrake == 1 && allTrainsStopped() { // Break condition to reset speed whil in station. set speed zero in case brake was release while train was stopped as it was blocked
 		targetSpeed = 0
 		previousSpeed = 0
+		autoBrake = 0
+		autoBrakeAbsolute = 0
 		if auto == 1 {
 			SetAuto(tc, 0)
 		}
@@ -380,6 +382,11 @@ func SetBrake(tc *traincontrol.TrainControl, s int) {
 
 // SetDirection sets the direction
 func SetDirection(tc *traincontrol.TrainControl, d string) {
+	if targetDirection != d && autoBrakeAbsolute == 1 {
+		targetSpeed = 0
+		autoBrake = 0
+		autoBrakeAbsolute = 0
+	}
 	targetDirection = d
 
 	tc.PublishMessage(struct {
@@ -495,10 +502,10 @@ func canSwitch(tc *traincontrol.TrainControl, targetBlocks [4]string, actualBloc
 	actualInbound := getBlock(actualBlocks[0])
 	actualOutbound := getBlock(actualBlocks[1])
 	if actualDirection == "b" { //b= eastbound
-		targetInbound = getBlock(targetBlocks[0])
-		targetOutbound = getBlock(targetBlocks[1])
-		actualInbound = getBlock(actualBlocks[0])
-		actualOutbound = getBlock(actualBlocks[1])
+		targetInbound = getBlock(targetBlocks[1])
+		targetOutbound = getBlock(targetBlocks[0])
+		actualInbound = getBlock(actualBlocks[1])
+		actualOutbound = getBlock(actualBlocks[0])
 	}
 
 	//[7] Tunnel Entry, [5] Tunnel Exit
@@ -1048,10 +1055,23 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 		history = 0
 		manual = 1
 	}
+
 	SetActualSpeed(tc, 0)
 	if history == 0 { // set manual to 0 only if it was 0 before
 		manual = 0
 	}
+
+	tc.PublishMessage(struct {
+		Speed int `json:"speed"`
+	}{
+		Speed: 0,
+	}) //synchronize all websites with set state
+
+	tc.PublishMessage(struct {
+		ActualSpeed int `json:"actualspeed"`
+	}{
+		ActualSpeed: 0,
+	}) //synchronize all websites with set state
 }
 
 //=====================================================================================================================================================================
