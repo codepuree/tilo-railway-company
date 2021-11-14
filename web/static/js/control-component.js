@@ -118,11 +118,11 @@ class TRCControl extends HTMLElement {
     }
 
     set isArduinoConnected(isConnected) {
-        self.#setArduinoConnection(isConnected)
+        this.#setArduinoConnection(isConnected)
     }
 
     set isRaspberryConnected(isConnected) {
-        self.#setRaspberryConnection(isConnected)
+        this.#setRaspberryConnection(isConnected)
     }
 
     #startDrag(event) {
@@ -212,7 +212,13 @@ class TRCControl extends HTMLElement {
     }
 
     #setRaspberryConnection(isConnected) {
-        if (!this.raspberry) {setTimeout(_ => {this.#setRaspberryConnection(isConnected)}, 500); return}  // FIX: Find a better way to retry calls that were invoked before the graphic could be loaded
+        // FIX: Find a better way to retry calls that were invoked before the graphic could be loaded
+        if (!this.raspberry) {
+            setTimeout((_ => {
+                this.#setRaspberryConnection(isConnected)
+            }).bind(this), 500);
+            return
+        }
 
         if (isConnected) {
             this.raspberry.setAttribute('active', true)
