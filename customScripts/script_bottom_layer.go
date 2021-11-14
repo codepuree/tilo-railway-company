@@ -159,6 +159,12 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		targetSpeed = previousSpeed
 		autoBrakeAbsolute = 0
 		autoBrakeReleased = 0
+
+		tc.PublishMessage(struct {
+			Speed int `json:"speed"`
+		}{
+			Speed: targetSpeed,
+		}) //synchronize all websites with set state
 	}
 
 	if autoBrake == 1 && allTrainsStopped() { // Break condition to reset speed whil in station. set speed zero in case brake was release while train was stopped as it was blocked
@@ -186,6 +192,21 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 				Speed int `json:"speed"`
 			}{
 				Speed: targetSpeed,
+			}) //synchronize all websites with set state
+		}
+
+		// While autoBrake, break speed ramp (at position Sensor [8]) in case of to slow braking (can be modified below)
+		var speedMuliplicator = 3                                                                                                   // MODIFY THIS LINE TO CHANGE SPEED BREAK BEHAVIOR (RELEASE EARLIER/LATER)
+		if tc.Sensors[sensorList[8]].State == false && autoBrakeReleased == 1 && actualSpeed > speedMuliplicator*train.CrawlSpeed { // Set CrawlSpeed hard since brake procedure took too long
+			log.Println("----------------Override brake ramp. CrawlSpeed set, since actualSpeed was: ", actualSpeed)
+			actualSpeed = train.CrawlSpeed
+
+			setBlocksSpeed(tc, train, actualBlocks, actualSpeed) //override brake ramp
+
+			tc.PublishMessage(struct {
+				ActualSpeed int `json:"actualspeed"`
+			}{
+				ActualSpeed: actualSpeed,
 			}) //synchronize all websites with set state
 		}
 
