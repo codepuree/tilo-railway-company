@@ -25,3 +25,6 @@ jobs:
       with:
         go-version: ${{ matrix.go }}
     - run: go build -a -tags netgo -ldflags '-w' -o ./bin/trc ./cmd/
+    - uses: actions/upload-artifact@v2.2.4
+      with:
+        path: ./bin/trc
