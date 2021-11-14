@@ -397,6 +397,11 @@ func (tc *TrainControl) Close() {
 	time.Sleep(time.Duration(v) * time.Millisecond)
 }
 
+// ResetArduino sends `rstz` to the Arduino, this causes a software reset
+func (tc *TrainControl) ResetArduino() {
+    tc.send <- "rstz"
+}
+
 // PublishMessage publishes a desired message
 func (tc *TrainControl) PublishMessage(msg Message) {
 	tc.message <- msg
