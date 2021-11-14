@@ -212,6 +212,8 @@ class TRCControl extends HTMLElement {
     }
 
     #setRaspberryConnection(isConnected) {
+        if (!this.raspberry) {setTimeout(_ => {this.#setRaspberryConnection(isConnected)}, 500); return}  // FIX: Find a better way to retry calls that were invoked before the graphic could be loaded
+
         if (isConnected) {
             this.raspberry.setAttribute('active', true)
         } else {

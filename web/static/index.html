@@ -202,6 +202,7 @@
             webSocket.onopen = open => {
                 console.log('Open:', open)
                 printMessage("Successfully connected to Raspberry PI")
+                document.querySelector('trc-control').isRaspberryConnected = true
             }
 
             webSocket.onmessage = message => {
@@ -227,9 +228,11 @@
             webSocket.onerror = error => {
                 console.log('Error:', error)
                 printMessage(error, 'error')
+                document.querySelector('trc-control').isRaspberryConnected = false
             }
 
             webSocket.onclose = close => {
+                document.querySelector('trc-control').isRaspberryConnected = false
                 console.log('Close:', close)
                 printMessage("Receonnecting in 5sec...", 'info')
                 setTimeout(_ => {
