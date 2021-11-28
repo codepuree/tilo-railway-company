@@ -122,35 +122,19 @@
         <trc-control value="0" actual-speed="0"></trc-control>
     </aside>
     <trc-console id="dev-console"></trc-console>
-    <!-- <dialog id="dev-console" -->
-    <!--     style="/*display: grid;*/ grid-auto-rows: auto 1fr auto; padding: 4vmin; grid-gap: 4vmin; height: 50vh; margin: 25vh auto;"> -->
-    <!--     <header> -->
-    <!--         <h3 style="grid-column: span 3; margin: 0; padding: 0;">Serial command line:</h3> -->
-    <!--         <button -->
-    <!--             onclick="confirm('Möchtest du wirklich herunterfahren?') ? fetch('/sys/shutdown') : void(0)">🛑</button> -->
-    <!--         <button onclick="confirm('Möchtest du wirklich neustarten?') ? fetch('/sys/reboot') : void(0)">🔄</button> -->
-    <!--     </header> -->
-    <!--     <main style="overflow: hidden;"> -->
-    <!--         <div id="outMsg" style="grid-column: span 3; overflow: auto;"></div> -->
-    <!--     </main> -->
-    <!--     <footer> -->
-    <!--         <label for="inMsg">Message:</label><input id="inMsg" type="text" style="width: 100%;"> -->
-    <!--         <input id="btnSend" type="button" value="Send"> -->
-    <!--     </footer> -->
-         <script> 
-             const togConsole = document.querySelector("#tog-console") 
-             const devConsole = document.querySelector('trc-console') 
-             togConsole.addEventListener("change", event => { 
-                 devConsole.open = event.target.checked 
+       <script> 
+           const togConsole = document.querySelector("#tog-console") 
+           const devConsole = document.querySelector('trc-console') 
+           togConsole.addEventListener("change", event => { 
+               devConsole.open = event.target.checked 
 
-                 if (event.target.checked) { 
-                     devConsole.style.display = "grid" 
-                 } else { 
-                     devConsole.style.display = "none" 
-                 } 
-             }) 
-         </script> 
-    <!-- </dialog> -->
+               if (event.target.checked) { 
+                   devConsole.open = true
+               } else { 
+                   devConsole.open = false
+               } 
+           }) 
+       </script> 
     <script src="/static/js/signal-tower.js"></script>
     <script>
         const signalTower = new SignalTower();
@@ -165,34 +149,22 @@
         const blue = '#0fb5e8'
         const black = 'black'
 
-        // const printMessage = document.querySelector('trc-console').printMessage
-        const outMsg = document.querySelector('#outMsg') | document.querySelector('trc-console') 
-        function printMessage(msg, type_ = 'log') { 
-            document.querySelector('trc-console').printMessage(msg, type_)
-            /*let out = '' 
-            switch (type) { 
-                case 'error': 
-                    out = `<span style="color: red;"><b>Error:</b> ${msg}</span><br>` 
-                    break; 
-
-                case 'warning': 
-                    out = `<span style="color: orange;"><b>Warning:</b> ${msg}</span><br>` 
-                    break; 
-
-                case 'info': 
-                    out = `<span style="color: darkgray;"><b>Info:</b> ${msg}</span><br>` 
-                    break; 
-
-                case 'log': 
-                default: 
-                    out = `<span>${msg}</span><br>` 
-                    break; 
-            } 
-
-            outMsg.innerHTML = outMsg.innerHTML + out 
-            console.log('lastChild', outMsg.lastChild) 
-            outMsg.lastChild.scrollIntoView() */
-        } 
+        const printMessage = devConsole.printMessage.bind(devConsole)
+        devConsole.addEventListener('shutdown', _ => {
+            if (confirm('Möchtest du wirklich herunterfahren?')) {
+                fetch('/sys/shutdown')
+            }
+        })
+        devConsole.addEventListener('shutdown', _ => {
+            if (confirm('Möchtest du wirklich neustarten?')) {
+                fetch('/sys/reboot')
+            }
+        })
+        devConsole.addEventListener('message', event => {
+            if (webSocket) {
+              webSocket.send(event.detail.message)
+            }
+        })
 
         const webSocket = startWebsocket()
 
