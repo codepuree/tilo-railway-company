@@ -157,6 +157,7 @@ type Block struct {
 	Sensors   []int          `json:"sensors,omitempty"` // TODO: custom unmarshal from ids to sensors
 	// sensors   []*Sensor
 	Distances []float64 `json:"distances,omitempty"`
+	Train     Train     // The train that is currently in the block.
 }
 
 type BlockDirection rune
@@ -399,7 +400,7 @@ func (tc *TrainControl) Close() {
 
 // ResetArduino sends `rstz` to the Arduino, this causes a software reset
 func (tc *TrainControl) ResetArduino() {
-    tc.send <- "rstz"
+	tc.send <- "rstz"
 }
 
 // PublishMessage publishes a desired message
