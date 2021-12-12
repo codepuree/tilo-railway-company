@@ -120,6 +120,19 @@
                         "step": 1,
                         "time": 250
                 }
+        },
+        "RoundRobin": {
+                "name": "RoundRobin",
+                "crawl_speed": 15,
+                "max_speed": 25,
+                "brake": {
+                        "step": 5,
+                        "time": 200
+                },
+                "accelerate": {
+                        "step": 1,
+                        "time": 250
+                }
         }
 },
 
