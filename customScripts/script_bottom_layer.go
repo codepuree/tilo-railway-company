@@ -325,7 +325,7 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 // ControlRoundRobin is run in a short interval
 func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
-	//RoundRobin Initialozation ==========================================================================
+	//RoundRobin Initialization ==========================================================================
 
 	//Decide between track 1 or 2 (Display Location)
 	if initialRoundRobin == 0 {
@@ -392,67 +392,52 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 
 		if tc.Sensors[sensorList[3]].State == false { // Station Exit (Round start) 15%
 			if progressCurrentTrain <= 15 { // Current Train on Display Track (will start first)
-				progressCurrentTrain = 15
-				// Publish message
+				updateCurrentTrain(tc, 15)
 				// start current Train
 			}
-
-			if progressCurrentTrain >= 50 {
-				progressNextTrain = 15
-				// Publish message
+			if progressCurrentTrain >= 50 && progressNextTrain < 15 {
+				updateNextTrain(tc, 15)
 			}
 		}
 
 		if tc.Sensors[sensorList[4]].State == false { // Station Block Exit 20%
 			if progressCurrentTrain <= 20 {
-				progressCurrentTrain = 20
-				// Publish message
+				updateCurrentTrain(tc, 20)
 			}
-
-			if progressCurrentTrain >= 50 {
-				progressNextTrain = 20
-				// Publish message
+			if progressCurrentTrain >= 50 && progressNextTrain < 20 {
+				updateNextTrain(tc, 20)
 			}
 
 		}
 
 		if tc.Sensors[sensorList[5]].State == false { // Tunnel Exit 35%
 			if progressCurrentTrain <= 35 {
-				progressCurrentTrain = 35
-				// Publish message
+				updateCurrentTrain(tc, 35)
 			}
-
-			if progressCurrentTrain >= 50 {
-				progressNextTrain = 35
-				// Publish message
+			if progressCurrentTrain >= 50 && progressNextTrain < 35 {
+				updateNextTrain(tc, 35)
 			}
 
 		}
 
 		if tc.Sensors[sensorList[6]].State == false { // open Track 50%
 			if progressCurrentTrain <= 50 {
-				progressCurrentTrain = 50
-				// Publish message
+				updateCurrentTrain(tc, 50)
 				// switch west outbound to next Train
 				// start next Train
 			}
-
-			if progressCurrentTrain >= 80 {
-				progressNextTrain = 50
-				// Publish message
+			if progressCurrentTrain >= 80 && progressNextTrain < 50 {
+				updateNextTrain(tc, 50)
 				// brake to crawlspeed in case progressCurrentTrain not at least at 85%
 			}
 		}
 
 		if tc.Sensors[sensorList[7]].State == false { // Tunnel Entry 65%
 			if progressCurrentTrain <= 65 {
-				progressCurrentTrain = 65
-				// Publish message
+				updateCurrentTrain(tc, 65)
 			}
-
-			if progressCurrentTrain >= 80 {
-				progressNextTrain = 65
-				// Publish message
+			if progressCurrentTrain >= 80 && progressNextTrain < 65 {
+				updateNextTrain(tc, 65)
 				// if at least progressCurrentTrain reached 85%: switch inbound east to current train and target speed max
 				// else: brake and wait until current train is at 85% before switching and ramping up again
 			}
@@ -460,45 +445,34 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 
 		if tc.Sensors[sensorList[8]].State == false { // Station Block Entry 80%
 			if progressCurrentTrain <= 80 {
-				progressCurrentTrain = 80
-				// Publish message
+				updateCurrentTrain(tc, 80)
 			}
-
-			if progressCurrentTrain >= 85 {
-				progressNextTrain = 80
-				// Publish message
+			if progressCurrentTrain >= 85 && progressNextTrain < 80 {
+				updateNextTrain(tc, 80)
 			}
 		}
 
 		if tc.Sensors[sensorList[9]].State == false { // Station Entry 85%
 			if progressCurrentTrain <= 85 {
-				progressCurrentTrain = 85
-				// Publish message
+				updateCurrentTrain(tc, 85)
 			}
-
-			if progressCurrentTrain >= 100 {
-				progressNextTrain = 85
-				// Publish message
+			if progressCurrentTrain >= 100 && progressNextTrain < 85 {
+				updateNextTrain(tc, 85)
 			}
 		}
 
 		if tc.Sensors[sensorList[10]].State == false { // Tunnel Exit (End of Round) 100%
 			if progressCurrentTrain <= 100 {
-				progressCurrentTrain = 100
-				// Publish message
+				updateCurrentTrain(tc, 100)
 			}
-
-			if progressCurrentTrain >= 100 {
-				progressNextTrain = 100
-				// Publish message
+			if progressCurrentTrain >= 100 && progressNextTrain < 100 {
+				updateNextTrain(tc, 100)
 			}
 		}
 
 		//Set target speed for actual blocks
 
 		//start adjust speedblock
-
-		//track both trains via sensors
 
 		//write back trains definition to new tracks
 		if progressCurrentTrain >= 100 && progressNextTrain >= 100 {
@@ -869,6 +843,7 @@ func SwitchRoundRobin(tc *traincontrol.TrainControl, b int) {
 	} else {
 		doRoundRobin = 0
 		initialRoundRobin = 0
+		resetRoundRobin(tc)
 		SetAuto(tc, 0)
 		tc.PublishMessage(struct {
 			DoRoundRobin bool `json:"doRoundRobin"`
@@ -1396,4 +1371,24 @@ func absolute(x int, y int) int {
 		return -(x - y)
 	}
 	return x - y
+}
+
+// updateCurrentTrain publish message to all listeners and update variable
+func updateCurrentTrain(tc *traincontrol.TrainControl, progress int) {
+	progressCurrentTrain = progress
+	tc.PublishMessage(struct {
+		ProgressCurrentTrain int `json:"progressCurrentTrain"`
+	}{
+		ProgressCurrentTrain: progress,
+	}) //synchronize all websites with set state
+}
+
+// updateNextTrain publish message to all listeners and update variable
+func updateNextTrain(tc *traincontrol.TrainControl, progress int) {
+	progressNextTrain = progress
+	tc.PublishMessage(struct {
+		ProgressNextTrain int `json:"progressNextTrain"`
+	}{
+		ProgressNextTrain: progress,
+	}) //synchronize all websites with set state
 }
