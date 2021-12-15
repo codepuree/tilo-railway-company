@@ -341,7 +341,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			initialRoundRobin = 0
 			resetRoundRobin(tc)
 			tc.PublishMessage(struct {
-				DoRoundRobin bool `json:"doRoundRobin"`
+				DoRoundRobin bool `json:"doroundrobin"`
 			}{
 				DoRoundRobin: false,
 			}) //synchronize all websites with set state
@@ -857,7 +857,7 @@ func SwitchRoundRobin(tc *traincontrol.TrainControl, b int) {
 		doRoundRobin = 1
 		SetAuto(tc, 1)
 		tc.PublishMessage(struct {
-			DoRoundRobin bool `json:"doRoundRobin"`
+			DoRoundRobin bool `json:"doroundrobin"`
 		}{
 			DoRoundRobin: true,
 		}) //synchronize all websites with set state
@@ -867,7 +867,7 @@ func SwitchRoundRobin(tc *traincontrol.TrainControl, b int) {
 		resetRoundRobin(tc)
 		SetAuto(tc, 0)
 		tc.PublishMessage(struct {
-			DoRoundRobin bool `json:"doRoundRobin"`
+			DoRoundRobin bool `json:"doroundrobin"`
 		}{
 			DoRoundRobin: false,
 		}) //synchronize all websites with set state
