@@ -155,7 +155,7 @@
                 fetch('/sys/shutdown')
             }
         })
-        devConsole.addEventListener('shutdown', _ => {
+        devConsole.addEventListener('reboot', _ => {
             if (confirm('Möchtest du wirklich neustarten?')) {
                 fetch('/sys/reboot')
             }

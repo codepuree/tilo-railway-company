@@ -1047,6 +1047,9 @@ func setRandomTrack(tc *traincontrol.TrainControl) {
 // velocity is the main function to measure alls velocitys for the sensors
 func velocity(tc *traincontrol.TrainControl) {
 	for _, id := range sensorList { //for each id in sensorlist
+		if tc.Sensors[id] == nil {
+			continue
+		}
 		if tc.Sensors[id].State == false && SensorTimes[id-1] == ini {
 			distance := getPreviousDistance(tc, id)
 			end := time.Now()
@@ -1329,15 +1332,15 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 
 	//SetActualSpeed(tc, 0)
 	resetArduino(tc)
-	actualBlocks = EmptyBlock
-	targetBlocks = EmptyBlock
-	sensorList = EmptySensors
-	distanceList = EmptyDistances
 	actualDirection = "s"
 	targetDirection = "s"
 	actualSpeed = 0
 	targetSpeed = 0
 	previousSpeed = 0
+	actualBlocks = EmptyBlock
+	targetBlocks = EmptyBlock
+	sensorList = EmptySensors
+	distanceList = EmptyDistances
 
 	log.Println("----------------Velocity is now: ", 0, " km/h")
 	tc.PublishMessage(struct {

@@ -28,6 +28,11 @@ GOOS=linux GOARCH=arm GOARM=7 go build -a -tags netgo -ldflags '-w' -o ./bin/trc
 yaegi extract -name github.com/codepuree/tilo-railway-company/pkg/trclib github.com/codepuree/tilo-railway-company/pkg/traincontrol
 ```
 
+### install yaegi
+```bash
+go get -u github.com/traefik/yaegi/cmd/yaegi
+```
+
 ### Clear chromium cache
 
 ```bash
