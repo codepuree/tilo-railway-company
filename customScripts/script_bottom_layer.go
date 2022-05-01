@@ -75,19 +75,20 @@ var randomTrack = 0     // Start Stop RandomTrack Function
 var randomTrackFlag = 1 // disable random Track for one iteration
 var trackValue = -1.0   // valid value will be set after first SetTrack()
 // for RoundRobin
-var doRoundRobin = 0                                         // Defines wether ControlRoundRobin should be run over common Control
-var initialRoundRobin = 0                                    // Defines if first Round RoundRobin is executed
-var trackOffset = 0                                          // Defines if track 1 is unused for display
-var roundRobinRunning = 0                                    // Defines if RoundRobin is actual in progress
-var progressCurrentTrain = 0                                 // Defines Progress of Current Train (Train actual in display)
-var progressNextTrain = 0                                    // Defines Progress of Next Train (Train next round in display)
-var waitCounter = 0                                          // Counter to wait for some time after progress finished (multiplied by 50 milliseconds from cycletime)
-var nextTrack = 0                                            // Defines Track of Current Train
-var currentTrain traincontrol.Train                          // Train variable for current Train
-var nextTrain traincontrol.Train                             // Train variable for next Train
-var roundRobinTrackSelection = [4]string{"a", "b", "c", "d"} // Array for usable Blocks
-var roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}              // Array for Target Speeds during RoundRobin
-var roundRobinActualSpeeds = [4]int{0, 0, 0, 0}              // Array for Actual Speeds during RoundRobin
+var doRoundRobin = 0                                 // Defines wether ControlRoundRobin should be run over common Control
+var initialRoundRobin = 0                            // Defines if first Round RoundRobin is executed
+var trackOffset = 0                                  // Defines if track 1 is unused for display
+var roundRobinRunning = 0                            // Defines if RoundRobin is actual in progress
+var progressCurrentTrain = 0                         // Defines Progress of Current Train (Train actual in display)
+var progressNextTrain = 0                            // Defines Progress of Next Train (Train next round in display)
+var waitCounter = 0                                  // Counter to wait for some time after progress finished (multiplied by 50 milliseconds from cycletime)
+var nextTrack = 0                                    // Defines Track(index) of Next Train
+var currentTrack = 0                                 // Defines Track(index) of Current Train
+var currentTrain traincontrol.Train                  // Train variable for current Train
+var nextTrain traincontrol.Train                     // Train variable for next Train
+var roundRobinTracks = [4]string{"a", "b", "c", "d"} // Array for usable Blocks
+var roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}      // Array for Target Speeds during RoundRobin
+var roundRobinActualSpeeds = [4]int{0, 0, 0, 0}      // Array for Actual Speeds during RoundRobin
 
 // variables used for velocity measurment
 var timeResetFlag = 0
@@ -332,10 +333,10 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 		initialRoundRobin = 1
 		if tc.Blocks["a"].Train != nil { // check track 1 for current train
 			trackOffset = 0
-			nextTrack = trackOffset
+			currentTrack = trackOffset
 		} else if tc.Blocks["b"].Train != nil { // else check track 2 for current train
 			trackOffset = 1
-			nextTrack = trackOffset
+			currentTrack = trackOffset
 		} else {
 			doRoundRobin = 0
 			initialRoundRobin = 0
@@ -352,24 +353,20 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 	// Define actual blocks and get Trains Definition
 	if roundRobinRunning == 0 {
 		//Define actual blocks
-		if nextTrack < len(roundRobinTrackSelection) {
-			nextTrack++
-		} else {
-			nextTrack = trackOffset + 1
-		}
+		nextTrack = roundRobinTrackSelection(tc, trackOffset, currentTrack)
 
-		SetDirection(tc, "f")                                   //drive always forward direction because of switch sensor distance
-		SetTrack(tc, roundRobinTrackSelection[trackOffset]+"w") // exit first the westbound track
-		SetTrack(tc, roundRobinTrackSelection[nextTrack]+"o")   // enter first the eastbound track
+		SetDirection(tc, "f")                           //drive always forward direction because of switch sensor distance
+		SetTrack(tc, roundRobinTracks[trackOffset]+"w") // exit first the westbound track
+		SetTrack(tc, roundRobinTracks[nextTrack]+"o")   // enter first the eastbound track
 
 		//Select train definition from both tracks
-		currentTrain = tc.Blocks[roundRobinTrackSelection[trackOffset]].Train
-		nextTrain = tc.Blocks[roundRobinTrackSelection[nextTrack]].Train
+		currentTrain = tc.Blocks[roundRobinTracks[trackOffset]].Train
+		nextTrain = tc.Blocks[roundRobinTracks[nextTrack]].Train
 
 		// start current Train
 		for i, _ := range roundRobinTargetSpeeds {
-			if i != 1 {
-				roundRobinTargetSpeeds[i] = train.MaxSpeed
+			if i != 1 { // exclude 1 since this is block of next train
+				roundRobinTargetSpeeds[i] = train.MaxSpeed // override trains definition since two trains active
 			}
 		}
 		targetSpeed = 0
@@ -423,7 +420,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			if progressCurrentTrain <= 50 {
 				updateCurrentTrain(tc, 50)
 				// switch west outbound to next Train
-				SetTrack(tc, roundRobinTrackSelection[nextTrack]+"w") // exit first the westbound track
+				SetTrack(tc, roundRobinTracks[nextTrack]+"w") // exit first the westbound track
 				setSwitches(tc, targetBlocks)
 				// start next Train. position [1] represents next Track
 				roundRobinTargetSpeeds[1] = train.MaxSpeed
@@ -447,7 +444,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 				// if at least progressCurrentTrain reached 85%: switch inbound east to current train and target speed max
 				// else: brake and wait until current train is at 85% before switching and ramping up again
 				if progressCurrentTrain >= 100 {
-					SetTrack(tc, roundRobinTrackSelection[trackOffset]+"o")
+					SetTrack(tc, roundRobinTracks[trackOffset]+"o")
 					setSwitches(tc, targetBlocks)
 					roundRobinTargetSpeeds[3] = train.MaxSpeed
 					roundRobinTargetSpeeds[2] = train.MaxSpeed
@@ -492,21 +489,31 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 		//write back trains definition to new tracks ======================================================= End Condition
 		if progressCurrentTrain >= 100 && progressNextTrain >= 100 {
 			waitCounter++
-			// 10 waitCounter represents 1 second
-			if waitCounter >= 20 { // wait for 2 seconds before reset ====================================== EDIT THIS LINE TO IN/DECREASE THE WAITTIME AFTER ONE ROUND
-				tc.Blocks[roundRobinTrackSelection[trackOffset]].Train = nextTrain
-				tc.Blocks[roundRobinTrackSelection[nextTrack]].Train = currentTrain
+			// 20 waitCounter represents 1 second
+			if waitCounter >= 100 { // wait for some seconds (waitcounter/10) before reset ================== EDIT THIS LINE TO IN/DECREASE THE WAITTIME AFTER ONE ROUND
+				tc.Blocks[roundRobinTracks[trackOffset]].Train = nextTrain
+				tc.Blocks[roundRobinTracks[nextTrack]].Train = currentTrain
 				resetRoundRobin(tc)
 			}
 		}
 	}
 }
 
+// roundRobinTrackSelection is repsonsible to set next track for RoundRobin
+func roundRobinTrackSelection(tc *traincontrol.TrainControl, trackOffset int, currentTrack int) int {
+	if currentTrack < 3 {
+		nextTrack = currentTrack + 1 // increment tracks between offset (display train) and maximum number of tracks
+	} else {
+		nextTrack = trackOffset + 1 // start always on track above display train
+	}
+	return nextTrack
+}
+
 // resetRoundRobin set all RoundRobin related/important variables back to default. Default is used to initialize and/or start new round
 func resetRoundRobin(tc *traincontrol.TrainControl) {
 	roundRobinRunning = 0
 	waitCounter = 0
-	nextTrack = 0
+	currentTrack = nextTrack
 	roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}
 	updateCurrentTrain(tc, 0)
 	updateNextTrain(tc, 0)
@@ -552,7 +559,7 @@ func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------nextTrack: ", nextTrack)
 	log.Println("----------------currentTrain: ", currentTrain)
 	log.Println("----------------nextTrain: ", nextTrain)
-	log.Println("----------------roundRobinTrackSelection: ", roundRobinTrackSelection)
+	log.Println("----------------roundRobinTrackSelection: ", roundRobinTracks)
 	log.Println("----------------roundRobinTargetSpeeds: ", roundRobinTargetSpeeds)
 	log.Println("----------------roundRobinActualSpeeds: ", roundRobinActualSpeeds)
 }
@@ -641,6 +648,7 @@ func SetDirection(tc *traincontrol.TrainControl, d string) {
 	}{
 		Direction: targetDirection,
 	})
+	SendSignals(tc)
 	log.Println("----------------Direction set: ", targetDirection)
 }
 
@@ -903,6 +911,7 @@ func setBlocksDirection(tc *traincontrol.TrainControl, blocks [4]string, directi
 		Blocks:    blocks,
 		Direction: direction,
 	}) //synchronize all websites with set state
+	SendMapVisuals(tc, blocks, direction)
 }
 
 // setBlocksSpeed sets the speed for all blocks
@@ -1414,5 +1423,38 @@ func updateNextTrain(tc *traincontrol.TrainControl, progress int) {
 		ProgressNextTrain int `json:"progressNextTrain"`
 	}{
 		ProgressNextTrain: progress,
+	}) //synchronize all websites with set state
+}
+
+// SendMapVisuals sned messages to all websites to synchronize map visualization. Track, Signals...
+func SendMapVisuals(tc *traincontrol.TrainControl, blocks [4]string, direction string) {
+	var tracks []string
+	var signals []string
+	for _, block := range blocks {
+		var switchLocation = string(getSwitchLocation(block))
+		var track = string(getBlock(block))
+
+		switch switchLocation {
+		case "o":
+			tracks = append(tracks, block, track+"m")
+			if direction == "b" {
+				signals = append(signals, block)
+			}
+		case "w":
+			tracks = append(tracks, block, track+"m")
+			if direction == "f" {
+				signals = append(signals, block)
+			}
+		}
+	}
+
+	tracks = append(tracks, "g")
+
+	tc.PublishMessage(struct {
+		whiteTrack  []string `json:"tracks"`
+		greenSignal []string `json:"signals"`
+	}{
+		whiteTrack:  tracks,
+		greenSignal: signals,
 	}) //synchronize all websites with set state
 }
