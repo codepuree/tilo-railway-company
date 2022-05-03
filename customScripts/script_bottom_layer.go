@@ -329,26 +329,26 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 	//RoundRobin Initialization ===========================================================================================================
 
 	//Decide between track 1 or 2 (Display Location)
-	if initialRoundRobin == 0 {
-		initialRoundRobin = 1
-		if tc.Blocks["a"].Train != nil { // check track 1 for current train
-			trackOffset = 0
-			currentTrack = trackOffset
-		} else if tc.Blocks["b"].Train != nil { // else check track 2 for current train
-			trackOffset = 1
-			currentTrack = trackOffset
-		} else {
-			doRoundRobin = 0
-			initialRoundRobin = 0
-			resetRoundRobin(tc)
-			tc.PublishMessage(struct {
-				DoRoundRobin bool `json:"doroundrobin"`
-			}{
-				DoRoundRobin: false,
-			}) //synchronize all websites with set state
-			return
-		}
-	}
+	// if initialRoundRobin == 0 {
+	// 	initialRoundRobin = 1
+	// 	if tc.Blocks["a"].Train != nil { // check track 1 for current train
+	// 		trackOffset = 0
+	// 		currentTrack = trackOffset
+	// 	} else if tc.Blocks["b"].Train != nil { // else check track 2 for current train
+	// 		trackOffset = 1
+	// 		currentTrack = trackOffset
+	// 	} else {
+	// 		doRoundRobin = 0
+	// 		initialRoundRobin = 0
+	// 		resetRoundRobin(tc)
+	// 		tc.PublishMessage(struct {
+	// 			DoRoundRobin bool `json:"doroundrobin"`
+	// 		}{
+	// 			DoRoundRobin: false,
+	// 		}) //synchronize all websites with set state
+	// 		return
+	// 	}
+	// }
 
 	// Define actual blocks and get Trains Definition
 	if roundRobinRunning == 0 {
@@ -491,8 +491,8 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			waitCounter++
 			// 20 waitCounter represents 1 second
 			if waitCounter >= 100 { // wait for some seconds (waitcounter/10) before reset ================== EDIT THIS LINE TO IN/DECREASE THE WAITTIME AFTER ONE ROUND
-				tc.Blocks[roundRobinTracks[trackOffset]].Train = nextTrain
-				tc.Blocks[roundRobinTracks[nextTrack]].Train = currentTrain
+				//tc.Blocks[roundRobinTracks[trackOffset]].Train = nextTrain
+				//tc.Blocks[roundRobinTracks[nextTrack]].Train = currentTrain
 				resetRoundRobin(tc)
 			}
 		}
@@ -648,7 +648,6 @@ func SetDirection(tc *traincontrol.TrainControl, d string) {
 	}{
 		Direction: targetDirection,
 	})
-	SendSignals(tc)
 	log.Println("----------------Direction set: ", targetDirection)
 }
 
@@ -704,12 +703,6 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 	}
 
 	log.Println("----------------setTrack: Blocks set: ", targetBlocks)
-	tc.PublishMessage(struct {
-		Blocks [4]string `json:"blocks"`
-	}{
-		Blocks: targetBlocks,
-	})
-	//synchronize all websites with set state
 
 	if track[0] == 'a' { // set trackValue.. used for setRandomTrack and setOrderTrack..  set here to avoid use same track twice after initialisation
 		trackValue = 0.0
@@ -721,6 +714,8 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 		trackValue = 0.75
 	}
 	//randomTrackFlag = 1 // disable random Track for one iteration
+
+	SendMapVisuals(tc, targetBlocks, targetDirection)
 }
 
 // isDriveable checks wheather a train can drive
@@ -905,10 +900,8 @@ func setBlocksDirection(tc *traincontrol.TrainControl, blocks [4]string, directi
 		direction2Arduino(tc, getBlock(block), direction)
 	}
 	tc.PublishMessage(struct {
-		Blocks    [4]string `json:"blocks"`
-		Direction string    `json:"direction"`
+		Direction string `json:"direction"`
 	}{
-		Blocks:    blocks,
 		Direction: direction,
 	}) //synchronize all websites with set state
 	SendMapVisuals(tc, blocks, direction)
@@ -1014,12 +1007,6 @@ func setOrderTrack(tc *traincontrol.TrainControl, value float64) {
 		SetTrack(tc, "ao")
 	}
 	log.Println("----------------setTrack in order: Blocks set: ", targetBlocks)
-	tc.PublishMessage(struct {
-		Blocks [4]string `json:"blocks"`
-	}{
-		Blocks: targetBlocks,
-	})
-	//synchronize all websites with set state
 }
 
 // setRandomTrack sets a random Track
@@ -1045,12 +1032,6 @@ func setRandomTrack(tc *traincontrol.TrainControl) {
 	}
 
 	log.Println("----------------setTrack randomly: Blocks set: ", targetBlocks)
-	tc.PublishMessage(struct {
-		Blocks [4]string `json:"blocks"`
-	}{
-		Blocks: targetBlocks,
-	})
-	//synchronize all websites with set state
 }
 
 // velocity is the main function to measure alls velocitys for the sensors
@@ -1430,6 +1411,7 @@ func updateNextTrain(tc *traincontrol.TrainControl, progress int) {
 func SendMapVisuals(tc *traincontrol.TrainControl, blocks [4]string, direction string) {
 	var tracks []string
 	var signals []string
+
 	for _, block := range blocks {
 		var switchLocation = string(getSwitchLocation(block))
 		var track = string(getBlock(block))
@@ -1448,11 +1430,13 @@ func SendMapVisuals(tc *traincontrol.TrainControl, blocks [4]string, direction s
 		}
 	}
 
-	tracks = append(tracks, "g")
+	if len(tracks) > 0 {
+		tracks = append(tracks, "g")
+	}
 
 	tc.PublishMessage(struct {
-		whiteTrack  []string `json:"tracks"`
-		greenSignal []string `json:"signals"`
+		whiteTrack  []string `json:"whiteTracks"`
+		greenSignal []string `json:"greenSignals"`
 	}{
 		whiteTrack:  tracks,
 		greenSignal: signals,
