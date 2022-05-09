@@ -1342,7 +1342,7 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 	targetBlocks = EmptyBlock
 	sensorList = EmptySensors
 	distanceList = EmptyDistances
-	doRoundRobin = 0
+	SwitchRoundRobin(tc, 0)
 	roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}
 	roundRobinActualSpeeds = [4]int{0, 0, 0, 0}
 	lastAccelerateTicks = [4]time.Time{time.Unix(0, 0), time.Unix(0, 0), time.Unix(0, 0), time.Unix(0, 0)}
