@@ -119,7 +119,6 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 					//Control(tc, tc.Trains["N700"])
 					velocity(tc)
 				}
-				//velocity(tc)
 			}
 			lastControlCycle = now
 		} else {
@@ -1333,17 +1332,21 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 		manual = 1
 	}
 
-	//SetActualSpeed(tc, 0)
 	resetArduino(tc)
 	actualDirection = "s"
-	targetDirection = "s"
+	SetDirection(tc, "s")
 	actualSpeed = 0
-	targetSpeed = 0
+	SetSpeed(tc, 0)
 	previousSpeed = 0
 	actualBlocks = EmptyBlock
 	targetBlocks = EmptyBlock
 	sensorList = EmptySensors
 	distanceList = EmptyDistances
+	doRoundRobin = 0
+	roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}
+	roundRobinActualSpeeds = [4]int{0, 0, 0, 0}
+	lastAccelerateTicks = [4]time.Time{time.Unix(0, 0), time.Unix(0, 0), time.Unix(0, 0), time.Unix(0, 0)}
+	resetRoundRobin(tc)
 
 	log.Println("----------------Velocity is now: ", 0, " km/h")
 	tc.PublishMessage(struct {
@@ -1367,6 +1370,8 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 	}{
 		ActualSpeed: 0,
 	}) //synchronize all websites with set state
+
+	PrintAll(tc)
 }
 
 //=====================================================================================================================================================================
