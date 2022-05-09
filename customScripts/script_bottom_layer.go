@@ -707,8 +707,8 @@ func SetTrack(tc *traincontrol.TrainControl, track string) {
 			targetBlocks[1] = block + switchLocation
 		}
 	default:
-		targetBlocks[0] = block + "o"
-		targetBlocks[1] = block + "w"
+		targetBlocks[0] = EmptyBlock[0] // default case to reset
+		targetBlocks[1] = EmptyBlock[1]
 	}
 
 	log.Println("----------------setTrack: Blocks set: ", targetBlocks)
@@ -1339,7 +1339,7 @@ func EmergencyStop2Arduino(tc *traincontrol.TrainControl) {
 	SetSpeed(tc, 0)
 	previousSpeed = 0
 	actualBlocks = EmptyBlock
-	targetBlocks = EmptyBlock
+	SetTrack(tc, "reset")
 	sensorList = EmptySensors
 	distanceList = EmptyDistances
 	SwitchRoundRobin(tc, 0)
