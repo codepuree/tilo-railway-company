@@ -117,8 +117,9 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 				} else {
 					Control(tc, tc.GetActiveTrain())
 					//Control(tc, tc.Trains["N700"])
+					velocity(tc)
 				}
-				velocity(tc)
+				//velocity(tc)
 			}
 			lastControlCycle = now
 		} else {
@@ -522,6 +523,8 @@ func resetRoundRobin(tc *traincontrol.TrainControl) {
 	waitCounter = 0
 	currentTrack = nextTrack
 	roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}
+	progressCurrentTrain = -1 // set to -1 to for proper update
+	progressNextTrain = -1
 	updateCurrentTrain(tc, 0)
 	updateNextTrain(tc, 0)
 }
@@ -1399,24 +1402,41 @@ func absolute(x int, y int) int {
 
 // updateCurrentTrain publish message to all listeners and update variable
 func updateCurrentTrain(tc *traincontrol.TrainControl, progress int) {
+	if progressCurrentTrain < progress {
+		log.Println("----------------progressCurrentTrain is now: ", progress)
+		tc.PublishMessage(struct {
+			ProgressCurrentTrain int `json:"progressCurrentTrain"`
+		}{
+			ProgressCurrentTrain: progress,
+		}) //synchronize all websites with set state
+
+		sendInvalidVelocity(tc)
+	}
 	progressCurrentTrain = progress
-	log.Println("----------------progressCurrentTrain is now: ", progress)
-	tc.PublishMessage(struct {
-		ProgressCurrentTrain int `json:"progressCurrentTrain"`
-	}{
-		ProgressCurrentTrain: progress,
-	}) //synchronize all websites with set state
 }
 
 // updateNextTrain publish message to all listeners and update variable
 func updateNextTrain(tc *traincontrol.TrainControl, progress int) {
+	if progressNextTrain < progress {
+		log.Println("----------------progressNextTrain is now: ", progress)
+		tc.PublishMessage(struct {
+			ProgressNextTrain int `json:"progressNextTrain"`
+		}{
+			ProgressNextTrain: progress,
+		}) //synchronize all websites with set state
+
+		sendInvalidVelocity(tc)
+	}
 	progressNextTrain = progress
-	log.Println("----------------progressNextTrain is now: ", progress)
+}
+
+func sendInvalidVelocity(tc *traincontrol.TrainControl) {
+	log.Println("----------------Velocity invalid since RoundRodin running")
 	tc.PublishMessage(struct {
-		ProgressNextTrain int `json:"progressNextTrain"`
+		Velocity string `json:"velocity"`
 	}{
-		ProgressNextTrain: progress,
-	}) //synchronize all websites with set state
+		Velocity: "",
+	})
 }
 
 // SendMapVisuals sned messages to all websites to synchronize map visualization. Track, Signals...
