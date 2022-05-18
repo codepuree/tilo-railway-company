@@ -1497,7 +1497,9 @@ func SendMapVisuals(tc *traincontrol.TrainControl, blocks [4]string, direction s
 // markTrainPosition for  R O U N D  R O B I N . Front and blocked sensors are marked
 func markTrainPosition(index int, letter string) {
 	if index == -1 { // reset trainPos
-		trainPos := EmptyTrainPos
+		for i := 0; i < len(trainPos); i++ {
+			trainPos[i] = "_"
+		}
 		log.Println("Reset trainPos: ", trainPos)
 	} else {
 		blockPositions(index, letter)
