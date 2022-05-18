@@ -399,7 +399,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[3]].State == false { // =================================================== Station Exit (Round start) 15%
+		if tc.Sensors[sensorList[3]].State == false && noTrainOnSensor(3) { // ==================== Station Exit (Round start) 15%
 			if progressCurrentTrain < 15 { // Current Train on Display Track (will start first)
 				updateCurrentTrain(tc, 15, 3)
 			}
@@ -408,7 +408,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[4]].State == false { // =================================================== Station Block Exit 20%
+		if tc.Sensors[sensorList[4]].State == false && noTrainOnSensor(4) { // ==================== Station Block Exit 20%
 			if progressCurrentTrain < 20 {
 				updateCurrentTrain(tc, 20, 4)
 			}
@@ -417,7 +417,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[5]].State == false { // =================================================== Tunnel Exit 35%
+		if tc.Sensors[sensorList[5]].State == false && noTrainOnSensor(5) { // ==================== Tunnel Exit 35%
 			if progressCurrentTrain < 35 {
 				updateCurrentTrain(tc, 35, 5)
 			}
@@ -426,7 +426,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[6]].State == false { // =================================================== open Track 50%
+		if tc.Sensors[sensorList[6]].State == false && noTrainOnSensor(6) { // ==================== open Track 50%
 			if progressCurrentTrain < 50 {
 				updateCurrentTrain(tc, 50, 6)
 			}
@@ -441,7 +441,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[7]].State == false { // =================================================== Tunnel Entry 65%
+		if tc.Sensors[sensorList[7]].State == false && noTrainOnSensor(7) { // ==================== Tunnel Entry 65%
 			if progressCurrentTrain <= 65 {
 				updateCurrentTrain(tc, 65, 7)
 				// switch west outbound to next Train
@@ -450,7 +450,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 				// start next Train. position [1] represents next Track
 				roundRobinTargetSpeeds[0] = train.MaxSpeed
 			}
-			if progressCurrentTrain >= 80 && progressNextTrain >= 50 {
+			if progressCurrentTrain >= 80 && progressNextTrain < 65 {
 				updateNextTrain(tc, 65, 7)
 				// if at least progressCurrentTrain reached 85%: switch inbound east to current train and target speed max
 				// else: brake and wait until current train is at 85% before switching and ramping up again
@@ -469,7 +469,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[8]].State == false { // =================================================== Station Block Entry 80%
+		if tc.Sensors[sensorList[8]].State == false && noTrainOnSensor(8) { // =================== Station Block Entry 80%
 			if progressCurrentTrain <= 80 {
 				updateCurrentTrain(tc, 80, 8)
 				roundRobinTargetSpeeds[1] = train.CrawlSpeed // corresponds with target track for current train
@@ -480,7 +480,7 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[9]].State == false { // =================================================== Station Entry 85%
+		if tc.Sensors[sensorList[9]].State == false && noTrainOnSensor(9) { // =================== Station Entry 85%
 			if progressCurrentTrain <= 85 {
 				updateCurrentTrain(tc, 85, 9)
 			}
@@ -489,14 +489,18 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			}
 		}
 
-		if tc.Sensors[sensorList[10]].State == false { // ================================================== Tunnel Exit (End of Round) 100%
+		if tc.Sensors[sensorList[10]].State == false && noTrainOnSensor(10) { // ================= Tunnel Exit (End of Round) 100%
 			if progressCurrentTrain >= 85 {
 				updateCurrentTrain(tc, 100, 10)
-				roundRobinActualSpeeds[1] = 0 // corresponds with target track
+				blockPositions(10, "-")
+				releasePositions(10)
+				roundRobinTargetSpeeds[0] = 0
+				roundRobinActualSpeeds[0] = 0 // corresponds with target track
 			}
 			if progressCurrentTrain >= 100 && progressNextTrain < 100 && progressNextTrain >= 85 {
 				updateNextTrain(tc, 100, 10)
-				roundRobinActualSpeeds[1] = 0 // corresponds with target track
+				roundRobinTargetSpeeds[0] = 0
+				roundRobinActualSpeeds[0] = 0 // corresponds with target track
 			}
 		}
 
@@ -576,6 +580,7 @@ func PrintAll(tc *traincontrol.TrainControl) {
 	log.Println("----------------currentTrain: ", currentTrain)
 	log.Println("----------------nextTrain: ", nextTrain)
 	log.Println("----------------roundRobinTrackSelection: ", roundRobinTracks)
+	log.Println("----------------roundRobinTrainPos: ", trainPos)
 	log.Println("----------------roundRobinTargetSpeeds: ", roundRobinTargetSpeeds)
 	log.Println("----------------roundRobinActualSpeeds: ", roundRobinActualSpeeds)
 }
@@ -1445,7 +1450,7 @@ func updateNextTrain(tc *traincontrol.TrainControl, progress int, sensor int) {
 }
 
 func sendInvalidVelocity(tc *traincontrol.TrainControl) {
-	log.Println("----------------Velocity invalid since RoundRodin running")
+	log.Println("----------------Velocity invalid. No Calculation while RoundRobin running")
 	tc.PublishMessage(struct {
 		Velocity string `json:"velocity"`
 	}{
@@ -1492,7 +1497,8 @@ func SendMapVisuals(tc *traincontrol.TrainControl, blocks [4]string, direction s
 // markTrainPosition for  R O U N D  R O B I N . Front and blocked sensors are marked
 func markTrainPosition(index int, letter string) {
 	if index == -1 { // reset trainPos
-		trainPos = EmptyTrainPos
+		trainPos := EmptyTrainPos
+		log.Println("Reset trainPos: ", trainPos)
 	} else {
 		blockPositions(index, letter)
 		releasePositions(index)
@@ -1518,5 +1524,14 @@ func listPosition(i int) int {
 		return len(trainPos) - 1 + i
 	} else {
 		return i - 1
+	}
+}
+
+// noTrainOnSensor will return state if sensor is potentially blocked by train / or train near by
+func noTrainOnSensor(index int) bool {
+	if trainPos[listPosition(index)] != "_" && trainPos[listPosition(index)] != "-" {
+		return false
+	} else {
+		return true
 	}
 }
