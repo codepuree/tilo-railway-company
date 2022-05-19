@@ -1160,7 +1160,7 @@ func resetAutoFlags(tc *traincontrol.TrainControl) {
 //======================================================================= S E N S O R S ===============================================================================
 //=====================================================================================================================================================================
 
-// getSensors receive list of Sensors, revere order if needed and cut it to length
+// getSensors receive list of Sensors, reverse order if needed and cut it to length
 func getSensors(tc *traincontrol.TrainControl, block string, direction string) []int {
 	sensors := tc.Blocks[string(getBlock(block))].Sensors
 	if direction == "b" {
@@ -1210,7 +1210,7 @@ func setSensorList(tc *traincontrol.TrainControl, blocks [4]string, direction st
 	log.Println("----------------distanceList: ", distanceList)
 }
 
-// getPreviousSensor provides distance to last sensor
+// getPreviousSensor provides last sensor
 func getPreviousSensor(tc *traincontrol.TrainControl, id int) int {
 	for i := 0; i < len(sensorList); i++ {
 		if sensorList[i] == id {
@@ -1535,5 +1535,31 @@ func noTrainOnSensor(index int) bool {
 		return false
 	} else {
 		return true
+	}
+}
+
+// whichTrainOnSensor will return type of train which is on sensor.
+func whichTrainOnSensor(index int) string {
+	if trainPos[listPosition(index)] == "N" {
+		return "N"
+	} else if trainPos[listPosition(index)] == "C" {
+		return "C"
+	} else {
+		return ""
+	}
+}
+
+// getBlockPositionFromSensor returns index of block (based on sensorslist) depending on (index of)released sensor(for Forward Direction)
+func getBlockPositionFromSensor(index int) int {
+	switch index {
+	case 0, 5, 6, 7:
+		return 3
+	case 1, 2, 3, 4:
+		return 1
+	case 8, 9, 10, 11:
+		return 0
+	default:
+		log.Println("no blockposition available. worng index: ", index)
+		return -1
 	}
 }
