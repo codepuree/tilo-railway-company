@@ -39,26 +39,29 @@ func main() {
 
 	server := app.NewServer(address)
 	a := app.NewArduino(port, baudRate)
-
 	err := a.Connect()
 	if err != nil {
 		err = fmt.Errorf("unable to connect to Arduino: %w", err)
 		log.Println(err)
 	}
 
+	layer := app.Layer{
+		Arduino: a,
+	}
+
 	amsgc := make(chan []byte)
-	server.EventSystem.Listen(amsgc)
 
 	go func() {
 		defer close(amsgc)
 
 		for msg := range amsgc {
-			err := a.Write(string(msg))
+			err := layer.Arduino.Write(string(msg))
 			if err != nil {
 				log.Println(fmt.Errorf("unable to send message to arduino: %w", err))
 			}
 		}
 	}()
+	server.EventSystem.Listen(amsgc)
 
 	ac := make(chan []byte)
 	go func() {
@@ -67,13 +70,13 @@ func main() {
 			server.Websocket.SendToAll(app.Message{From: "arduino", To: "all", Data: string(m)})
 		}
 	}()
-	a.Listen(ac)
+	layer.Arduino.Listen(ac)
 
 	send := make(chan string)
 	go func() {
 		for msg := range send {
 			// server.Websocket.SendToAll(1, []byte(msg))
-			a.Write(msg)
+			layer.Arduino.Write(msg)
 		}
 	}()
 
@@ -147,7 +150,7 @@ func main() {
 		}
 	}
 
-	a.Listen(arec)
+	layer.Arduino.Listen(arec)
 
 	go func() {
 		l := make(chan string)
@@ -233,7 +236,7 @@ func main() {
 	mc := make(chan string)
 	go func() {
 		for m := range mc {
-			a.Write(m)
+			layer.Arduino.Write(m)
 		}
 	}()
 	server.Websocket.Listen(mc)
