@@ -89,6 +89,7 @@ var nextTrack = 0                                                               
 var currentTrack = 0                                                                                       // Defines Track(index) of Current Train
 var currentTrain traincontrol.Train                                                                        // Train variable for current Train
 var nextTrain traincontrol.Train                                                                           // Train variable for next Train
+var nextTrainStopped = 0																				   // next Train was stopped caused by blocked Track
 var roundRobinTracks = [4]string{"a", "b", "c", "d"}                                                       // Array for usable Blocks
 var roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Target Speeds during RoundRobin
 var roundRobinActualSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Actual Speeds during RoundRobin
@@ -265,10 +266,17 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 		}
 
 		// break condition in case of acceleration while autobrake is running. twice brake.step because it can easily overshoot while braking
-		if (actualSpeed-targetSpeed < -2*train.Brake.Step) && (targetBlocks == actualBlocks) { // check for block to prevent track change while braking
-			autoBrake = 0
+		//if (actualSpeed-targetSpeed < -2*train.Brake.Step) && (targetBlocks == actualBlocks) { // check for block to prevent track change while braking
+			//autoBrake = 0
+			//autoBrakeReleased = 0
+			//log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
+		//}
+
+		//reset autobrake in case of manually override targetSpeed while process is running
+		if autoBrakeReleased == 1 && targetSpeed != train.CrawlSpeed && tc.Sensors[sensorList[10]].State == true {
 			autoBrakeReleased = 0
-			log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
+			autoBrake = 0
+			log.Println("----------------AutoBrake Reset. targetSpeed set manually to: ", targetSpeed)
 		}
 
 		if autoBrake == 1 && auto == 1 { // reset automatic mode, in case user manually set velocity to zero
@@ -442,14 +450,14 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 			if progressCurrentTrain >= 80 && progressNextTrain < 50 && progressNextTrain >= 35 {
 				updateNextTrain(tc, 50, 6)
 				// brake to crawlspeed in case progressCurrentTrain not at least at 85%
-				if progressCurrentTrain <= 80 {
+				if progressCurrentTrain <= 85 {
 					// start next Train. position [3] represents open Track
 					roundRobinTargetSpeeds[3] = train.CrawlSpeed
 				}
 			}
 		}
 
-		if tc.Sensors[sensorList[7]].State == false && noTrainOnSensor(7) { // ==================== Tunnel Entry 65%
+		if tc.Sensors[sensorList[7]].State == false && noTrainOnSensor(7) || noTrainOnSensor(7) && nextTrainStopped == 1 { // ==================== Tunnel Entry 65%
 			if progressCurrentTrain <= 65 {
 				updateCurrentTrain(tc, 65, 7)
 				// switch west outbound to next Train
@@ -472,10 +480,18 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 				for i, _ := range roundRobinTargetSpeeds {
 					roundRobinStopTrainPerBlockNoRamp(tc, train, i)
 				}
+				if nextTrainStopped == 1{
+					nextTrainStopped = 0 // reset nextTrainStopped
+				}
 			}
 		}
 
-		//Start all trains after first stop, before next train starts
+		if tc.Sensors[sensorList[7]].State == false && progressCurrentTrain > 100 && whichTrainOnSensor(7)=="C" && nextTrainStopped == 0{ // stop next Train in case current train did not reached end of station
+			roundRobinStopTrainPerBlockNoRamp(tc, train, 3) //stop train on open track 
+			nextTrainStopped = 1
+		}
+
+		//Start all trains after first/second stop, before next train starts // 
 		if (progressCurrentTrain == 65 && progressNextTrain <= 15) || (progressCurrentTrain > 80 && progressNextTrain == 65) {
 			// start all Trains
 			waitCounter++
@@ -486,25 +502,6 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 				waitCounter = 0
 			}
 		}
-
-		// Start/Stop next train before current train reach target location
-		// if at least progressCurrentTrain reached 85%: switch inbound east to current train and target speed max
-		// else: brake and wait until current train is at 85% before switching and ramping up again
-		// if progressCurrentTrain >= 100 && progressNextTrain == 65 {
-		// 	SetTrack(tc, roundRobinTracks[trackOffset]+"o")
-		// 	setSwitches(tc, targetBlocks)
-		// 	roundRobinTargetSpeeds[3] = train.MaxSpeed
-		// 	roundRobinTargetSpeeds[2] = train.MaxSpeed
-		// 	roundRobinTargetSpeeds[0] = train.MaxSpeed
-		// }
-		// if progressCurrentTrain < 100 && progressNextTrain >= 20 {
-		// 	roundRobinActualSpeeds[3] = 5 // [3]open track // used actual speed instead of target to get rid of speed ramp
-		// 	roundRobinActualSpeeds[2] = 5 // [2]switches
-		// 	roundRobinTargetSpeeds[3] = 0
-		// 	roundRobinTargetSpeeds[2] = 0
-		// 	setBlockSpeed(tc, train, actualBlocks[3], 0)
-		// 	setBlockSpeed(tc, train, actualBlocks[2], 0)
-		// }
 
 		if tc.Sensors[sensorList[8]].State == false && noTrainOnSensor(8) { // =================== Station Block Entry 80%
 			if progressCurrentTrain <= 80 {
