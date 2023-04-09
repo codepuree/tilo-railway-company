@@ -2,9 +2,12 @@ package traincontrol
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -22,7 +25,7 @@ type TrainControl struct {
 	// Switches map[rune]*Switch
 	// Signals  map[string]*Signal
 	// Blocks   map[string]*Block
-	TrainControlConfig
+	*TrainControlConfig
 }
 
 type TrainControlConfig struct {
@@ -31,6 +34,28 @@ type TrainControlConfig struct {
 	Signals  map[string]*Signal `json:"signals,omitempty"`
 	Blocks   map[string]*Block  `json:"blocks,omitempty"`
 	Trains   map[string]*Train  `json:"trains,omitempty"`
+}
+
+// ConfigFromFile loads the train control configuration from the given file path
+func ConfigFromFile(configPath string) (TrainControlConfig, error) {
+	var tcConfig TrainControlConfig
+
+	tcFile, err := os.Open(configPath)
+	if err != nil {
+		return tcConfig, fmt.Errorf("unable to open config.json file: %w", err)
+	}
+	defer tcFile.Close()
+
+	byteValue, err := ioutil.ReadAll(tcFile)
+	if err != nil {
+		return tcConfig, fmt.Errorf("unable to read config.json file: %w", err)
+	}
+	err = json.Unmarshal(byteValue, &tcConfig)
+	if err != nil {
+		return tcConfig, fmt.Errorf("unable to unmarshal config.json: %w", err)
+	}
+
+	return tcConfig, nil
 }
 
 type Message interface{}
@@ -173,14 +198,16 @@ type Track struct {
 	Blocks []*Block
 }
 
-func NewTrainControl(rec <-chan string, send chan<- string, message chan<- Message, config TrainControlConfig) *TrainControl {
-	tc := &TrainControl{
-		rec:     rec,
-		send:    send,
-		message: message,
-
+func NewTrainControl(config *TrainControlConfig) *TrainControl {
+	return &TrainControl{
 		TrainControlConfig: config,
 	}
+}
+
+func (tc *TrainControl) BindTrainControl(rec <-chan string, send chan<- string, message chan<- Message) {
+	tc.rec = rec
+	tc.send = send
+	tc.message = message
 
 	if tc.Blocks == nil {
 		tc.Blocks = make(map[string]*Block)
@@ -223,8 +250,6 @@ func NewTrainControl(rec <-chan string, send chan<- string, message chan<- Messa
 	// 	time.Sleep(5 * time.Second)
 	// 	tc.getSignalStates()
 	// }()
-
-	return tc
 }
 
 func (tc *TrainControl) String() string {

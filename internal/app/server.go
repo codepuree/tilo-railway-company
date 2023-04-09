@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/codepuree/tilo-railway-company/internal/communication"
 	"github.com/gorilla/mux"
 )
 
@@ -64,7 +65,7 @@ func (s *Server) setupRoutes() {
 		defer close(msgc)
 
 		for msg := range msgc {
-			err := s.Websocket.SendToAll(Message{From: "eventsystem", To: "all", Data: string(msg)})
+			err := s.Websocket.SendToAll(communication.Message{From: "eventsystem", To: "all", Data: string(msg)})
 			if err != nil {
 				log.Println(fmt.Errorf("unable to send message from event system to all: %w", err))
 			}

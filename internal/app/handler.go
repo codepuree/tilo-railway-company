@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/codepuree/tilo-railway-company/internal/communication"
 	"github.com/gorilla/websocket"
 )
 
@@ -41,12 +42,6 @@ type Websocket struct {
 	jsonEnc     json.Encoder
 	// onInitialConnection is a function that returns data that should be sent to client on their initial connection
 	onInitialConnection func() []byte
-}
-
-type Message struct {
-	From string      `json:"from,omitempty"`
-	To   string      `json:"to,omitempty"`
-	Data interface{} `json:"data,omitempty"`
 }
 
 func NewWebsocket() *Websocket {
@@ -87,7 +82,7 @@ func (ws *Websocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ws *Websocket) SendToAll(msg Message) error {
+func (ws *Websocket) SendToAll(msg communication.Message) error {
 	bMsg, err := json.Marshal(&msg)
 	if err != nil {
 		return fmt.Errorf("unable to marshal message: %w", err)
@@ -99,16 +94,16 @@ func (ws *Websocket) SendToAll(msg Message) error {
 }
 
 func sendTo(conn *websocket.Conn, msgType int, msg []byte) error {
-    var err error
-    defer func() {
-        if a := recover(); a != nil {
-            err = fmt.Errorf("panic during write message: %w", a)
-        }
-    }()
+	var err error
+	defer func() {
+		if a := recover(); a != nil {
+			err = fmt.Errorf("panic during write message: %w", a)
+		}
+	}()
 
-    err = conn.WriteMessage(msgType, msg)
+	err = conn.WriteMessage(msgType, msg)
 
-    return err
+	return err
 }
 
 func (ws *Websocket) SendToAllRaw(msgType int, msg []byte) {
