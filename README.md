@@ -38,3 +38,18 @@ go get -u github.com/traefik/yaegi/cmd/yaegi
 ```bash
 rm -r /home/pi/.cache/chromium/Default/Cache/*
 ```
+
+### Layout Information
+
+Direction: 
+clockwise: F
+counterclockwise: B
+
+Blocks: A, B, C. D, F, G
+A: Track 1, closest to viewer/edge, station
+B: Track 2
+C: Track 4
+D: Track 4, most far away from viewer/edge, station
+
+F: Turnouts (east, west combined)
+G: open rail (countryside)
