@@ -89,7 +89,7 @@ var nextTrack = 0                                                               
 var currentTrack = 0                                                                                       // Defines Track(index) of Current Train
 var currentTrain traincontrol.Train                                                                        // Train variable for current Train
 var nextTrain traincontrol.Train                                                                           // Train variable for next Train
-var nextTrainStopped = 0																				   // next Train was stopped caused by blocked Track
+var nextTrainStopped = 0                                                                                   // next Train was stopped caused by blocked Track
 var roundRobinTracks = [4]string{"a", "b", "c", "d"}                                                       // Array for usable Blocks
 var roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Target Speeds during RoundRobin
 var roundRobinActualSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Actual Speeds during RoundRobin
@@ -176,6 +176,31 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 	if tc.Sensors[sensorList[7]].State == false && blockClear(actualBlocks) == false && autoBrake == 0 {
 		SetBrake(tc, 3)
 		autoBrakeAbsolute = 1
+	}
+
+	// Brake Control while outbound block not clear (turnouts)
+	// if outbound not clear Auto Brake will be set at station end. full stop at station end
+	if tc.Sensors[sensorList[11]].State == false && blockClear(actualBlocks) == false && !allTrainsStopped() {
+		log.Println("outbound not clear. emergency stop")
+		actualSpeed = 0
+		targetSpeed = 0
+		setBlocksSpeed(tc, train, actualBlocks, actualSpeed) //override brake ramp
+		tc.PublishMessage(struct {
+			Speed int `json:"speed"`
+		}{
+			Speed: targetSpeed,
+		}) //synchronize all websites with set state
+		tc.PublishMessage(struct {
+			ActualSpeed int `json:"actualspeed"`
+		}{
+			ActualSpeed: actualSpeed,
+		}) //synchronize all websites with set state
+
+		tc.PublishMessage(struct {
+			Velocity int `json:"velocity"`
+		}{
+			Velocity: 0,
+		})
 	}
 
 	if autoBrakeAbsolute == 1 && allTrainsStopped() && blockClear(targetBlocks) { // resume with previous speed in case of absolute brake since tracks weren't clear. To break procedure in station see below
@@ -267,9 +292,9 @@ func Control(tc *traincontrol.TrainControl, train *traincontrol.Train) {
 
 		// break condition in case of acceleration while autobrake is running. twice brake.step because it can easily overshoot while braking
 		//if (actualSpeed-targetSpeed < -2*train.Brake.Step) && (targetBlocks == actualBlocks) { // check for block to prevent track change while braking
-			//autoBrake = 0
-			//autoBrakeReleased = 0
-			//log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
+		//autoBrake = 0
+		//autoBrakeReleased = 0
+		//log.Println("----------------AutoBrake Reset. SpeedDiff: ", actualSpeed-targetSpeed)
 		//}
 
 		//reset autobrake in case of manually override targetSpeed while process is running
@@ -480,18 +505,18 @@ func ControlRoundRobin(tc *traincontrol.TrainControl, train *traincontrol.Train)
 				for i, _ := range roundRobinTargetSpeeds {
 					roundRobinStopTrainPerBlockNoRamp(tc, train, i)
 				}
-				if nextTrainStopped == 1{
+				if nextTrainStopped == 1 {
 					nextTrainStopped = 0 // reset nextTrainStopped
 				}
 			}
 		}
 
-		if tc.Sensors[sensorList[7]].State == false && progressCurrentTrain > 100 && whichTrainOnSensor(7)=="C" && nextTrainStopped == 0{ // stop next Train in case current train did not reached end of station
-			roundRobinStopTrainPerBlockNoRamp(tc, train, 3) //stop train on open track 
+		if tc.Sensors[sensorList[7]].State == false && progressCurrentTrain > 100 && whichTrainOnSensor(7) == "C" && nextTrainStopped == 0 { // stop next Train in case current train did not reached end of station
+			roundRobinStopTrainPerBlockNoRamp(tc, train, 3) //stop train on open track
 			nextTrainStopped = 1
 		}
 
-		//Start all trains after first/second stop, before next train starts // 
+		//Start all trains after first/second stop, before next train starts //
 		if (progressCurrentTrain == 65 && progressNextTrain <= 15) || (progressCurrentTrain > 80 && progressNextTrain == 65) {
 			// start all Trains
 			waitCounter++
