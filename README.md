@@ -1,3 +1,5 @@
+![alt text](resources/inhalt/schrift_merkmale/Logo.png)
+
 # tilo-railway-company
 
 ## Setup
