@@ -1,4 +1,4 @@
-FROM golang:1.19.5 AS go-builder
+FROM golang:1.20 AS go-builder
 WORKDIR /go/src/github.com/codepuree/tilo-railway-company
 COPY . /go/src/github.com/codepuree/tilo-railway-company
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -a -tags netgo -ldflags '-w' -o /go/bin/trc ./cmd/

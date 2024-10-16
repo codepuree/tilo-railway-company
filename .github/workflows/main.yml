@@ -17,7 +17,7 @@ jobs:
     runs-on: [ubuntu-latest]
     strategy:
       matrix:
-        go: [ '1.16' ]
+        go: [ '1.20' ]
     name: Go ${{ matrix.go }} Build
     steps:
     - uses: actions/checkout@v2
@@ -25,6 +25,6 @@ jobs:
       with:
         go-version: ${{ matrix.go }}
     - run: go build -a -tags netgo -ldflags '-w' -o ./bin/trc ./cmd/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v4.4.3
       with:
         path: ./bin/trc
