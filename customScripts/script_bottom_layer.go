@@ -1331,7 +1331,6 @@ func TimeReset(tc *traincontrol.TrainControl) {
 // sendSensors send state of sensors wot website (for visualization)
 func sendSensors(tc *traincontrol.TrainControl, sensorsOfInterest [11]int) {
 	for i := 0; i < len(sensorsOfInterest); i++ {
-		//log.Println("Sensornumber: ", sensorsOfInterest[i])
 		if tc.Sensors[sensorsOfInterest[i]].State == false && sensorsOfInterestState[i] == 0 {
 			sensorsOfInterestState[i] = 1
 
