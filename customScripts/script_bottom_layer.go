@@ -1646,11 +1646,11 @@ func whichTrainOnSensor(index int) string {
 // getBlockPositionFromSensor returns index of block (based on sensorslist) depending on (index of)released sensor(for Forward Direction)
 func getBlockPositionFromSensor(index int) int {
 	switch index {
-	case 0, 5, 6, 7:
+	case 0, 5, 6, 7: //tunnel exit, open track, tunnel entrance
 		return 3
-	case 1, 2, 3, 4:
+	case 1, 2, 3, 4: //Track to start for first round robin (track of current train)
 		return 1
-	case 8, 9, 10, 11:
+	case 8, 9, 10, 11: //Track to arrive for first train, second train to start (track of next train)
 		return 0
 	default:
 		log.Println("no blockposition available. wrong index: ", index)
