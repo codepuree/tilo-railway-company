@@ -90,6 +90,8 @@ var currentTrack = 0                                                            
 var currentTrain traincontrol.Train                                                                        // Train variable for current Train
 var nextTrain traincontrol.Train                                                                           // Train variable for next Train
 var nextTrainStopped = 0                                                                                   // next Train was stopped caused by blocked Track
+var sensorsOfInterest = [11]int{1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}                                        // sensors which need to be visualized on website
+var sensorsOfInterestState = [11]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}                                      // state of sensors which need to be visualized on website
 var roundRobinTracks = [4]string{"a", "b", "c", "d"}                                                       // Array for usable Blocks
 var roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Target Speeds during RoundRobin
 var roundRobinActualSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Actual Speeds during RoundRobin
@@ -115,6 +117,7 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 		var waitTime = now.Sub(lastControlCycle)
 		var sleepTime = controlCycleDuration - waitTime
 		if sleepTime < 1 {
+			sendSensors(tc, sensorsOfInterest)
 			if isDriveable() {
 				if doRoundRobin > 0 {
 					ControlRoundRobin(tc, tc.Trains["RoundRobin"]) //for RoundRobin only one train definition is used
@@ -1322,6 +1325,34 @@ func TimeReset(tc *traincontrol.TrainControl) {
 	for i := 0; i < len(SensorTimes); i++ {
 		SensorTimes[i] = ini
 		log.Println("----------------TIME RESET at Sensor: ", sensorList[len(sensorList)-1])
+	}
+}
+
+// sendSensors send state of sensors wot website (for visualization)
+func sendSensors(tc *traincontrol.TrainControl, sensorsOfInterest [11]int) {
+	for i := 0; i < len(sensorsOfInterest); i++ {
+		//log.Println("Sensornumber: ", sensorsOfInterest[i])
+		if tc.Sensors[sensorsOfInterest[i]].State == false && sensorsOfInterestState[i] == 0 {
+			sensorsOfInterestState[i] = 1
+
+			log.Println("----------------Sensor active: ", sensorsOfInterest[i])
+			tc.PublishMessage(struct {
+				YellowSensor int `json:"YellowSensor"`
+			}{
+				YellowSensor: sensorsOfInterest[i],
+			})
+		}
+
+		if tc.Sensors[sensorsOfInterest[i]].State == true && sensorsOfInterestState[i] == 1 {
+			sensorsOfInterestState[i] = 0
+
+			log.Println("----------------Sensor inactive: ", sensorsOfInterest[i])
+			tc.PublishMessage(struct {
+				WhiteSensor int `json:"WhiteSensor"`
+			}{
+				WhiteSensor: sensorsOfInterest[i],
+			})
+		}
 	}
 }
 
