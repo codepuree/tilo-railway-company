@@ -1328,33 +1328,6 @@ func TimeReset(tc *traincontrol.TrainControl) {
 	}
 }
 
-// sendSensors send state of sensors wot website (for visualization)
-func sendSensors(tc *traincontrol.TrainControl, TrainPosSensor [11]int) {
-	for i := 0; i < len(TrainPosSensor); i++ {
-		if tc.Sensors[TrainPosSensor[i]].State == false && TrainPosSensorState[i] == 0 {
-			TrainPosSensorState[i] = 1
-
-			log.Println("----------------Sensor active: ", TrainPosSensor[i])
-			tc.PublishMessage(struct {
-				YellowSensor int `json:"sensorActive"`
-			}{
-				YellowSensor: TrainPosSensor[i],
-			})
-		}
-
-		if tc.Sensors[TrainPosSensor[i]].State == true && TrainPosSensorState[i] == 1 {
-			TrainPosSensorState[i] = 0
-
-			log.Println("----------------Sensor inactive: ", TrainPosSensor[i])
-			tc.PublishMessage(struct {
-				WhiteSensor int `json:"sensorInactive"`
-			}{
-				WhiteSensor: TrainPosSensor[i],
-			})
-		}
-	}
-}
-
 //=====================================================================================================================================================================
 //======================================================================= A R D U I N O ===============================================================================
 //=====================================================================================================================================================================
@@ -1543,6 +1516,7 @@ func updateNextTrain(tc *traincontrol.TrainControl, progress int, sensor int) {
 	progressNextTrain = progress
 }
 
+// sendInvalidVelocity does No Calculation while RoundRobin running
 func sendInvalidVelocity(tc *traincontrol.TrainControl) {
 	log.Println("----------------Velocity invalid. No Calculation while RoundRobin running")
 	tc.PublishMessage(struct {
@@ -1586,6 +1560,33 @@ func SendMapVisuals(tc *traincontrol.TrainControl, blocks [4]string, direction s
 		whiteTrack:  tracks,
 		greenSignal: signals,
 	}) //synchronize all websites with set state
+}
+
+// sendSensors send state of sensors wot website (for visualization)
+func sendSensors(tc *traincontrol.TrainControl, TrainPosSensor [11]int) {
+	for i := 0; i < len(TrainPosSensor); i++ {
+		if tc.Sensors[TrainPosSensor[i]].State == false && TrainPosSensorState[i] == 0 {
+			TrainPosSensorState[i] = 1
+
+			log.Println("----------------Sensor active: ", TrainPosSensor[i])
+			tc.PublishMessage(struct {
+				YellowSensor int `json:"sensorActive"`
+			}{
+				YellowSensor: TrainPosSensor[i],
+			})
+		}
+
+		if tc.Sensors[TrainPosSensor[i]].State == true && TrainPosSensorState[i] == 1 {
+			TrainPosSensorState[i] = 0
+
+			log.Println("----------------Sensor inactive: ", TrainPosSensor[i])
+			tc.PublishMessage(struct {
+				WhiteSensor int `json:"sensorInactive"`
+			}{
+				WhiteSensor: TrainPosSensor[i],
+			})
+		}
+	}
 }
 
 // markTrainPosition for  R O U N D  R O B I N . Front and blocked sensors are marked
