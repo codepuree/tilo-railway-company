@@ -2,7 +2,7 @@
 
 # [Choice] Go version: 1, 1.15, 1.14
 ARG VARIANT="1"
-FROM mcr.microsoft.com/vscode/devcontainers/go:0-${VARIANT}
+FROM mcr.microsoft.com/vscode/devcontainers/go:1-${VARIANT}
 
 # [Option] Install Node.js
 ARG INSTALL_NODE="true"
@@ -14,7 +14,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends python3 python3-pip
 
 # [Optional] Uncomment the next line to use go get to install anything else you need
-RUN go get -x github.com/traefik/yaegi/cmd/yaegi
+RUN go install github.com/traefik/yaegi/cmd/yaegi
 
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
