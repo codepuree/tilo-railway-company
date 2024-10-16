@@ -29,6 +29,8 @@ var EmptyBlock = [4]string{"", "", "f", "g"}
 // EmptySensors valid for specific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
 var EmptySensors = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 var EmptyTrainPos = []string{"_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"}
+var TrainPosSensor = [11]int{1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}   // sensors which need to be visualized on website
+var TrainPosSensorState = [11]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // state of sensors which need to be visualized on website
 
 // EmptyDistances valid for specific scenario. Definition of all available blocks in that scenario down at section  S E N S O R S
 var EmptyDistances = []float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
@@ -90,8 +92,6 @@ var currentTrack = 0                                                            
 var currentTrain traincontrol.Train                                                                        // Train variable for current Train
 var nextTrain traincontrol.Train                                                                           // Train variable for next Train
 var nextTrainStopped = 0                                                                                   // next Train was stopped caused by blocked Track
-var sensorsOfInterest = [11]int{1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}                                        // sensors which need to be visualized on website
-var sensorsOfInterestState = [11]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}                                      // state of sensors which need to be visualized on website
 var roundRobinTracks = [4]string{"a", "b", "c", "d"}                                                       // Array for usable Blocks
 var roundRobinTargetSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Target Speeds during RoundRobin
 var roundRobinActualSpeeds = [4]int{0, 0, 0, 0}                                                            // Array for Actual Speeds during RoundRobin
@@ -117,7 +117,7 @@ func ControlRunner(tc *traincontrol.TrainControl) {
 		var waitTime = now.Sub(lastControlCycle)
 		var sleepTime = controlCycleDuration - waitTime
 		if sleepTime < 1 {
-			sendSensors(tc, sensorsOfInterest)
+			sendSensors(tc, TrainPosSensor)
 			if isDriveable() {
 				if doRoundRobin > 0 {
 					ControlRoundRobin(tc, tc.Trains["RoundRobin"]) //for RoundRobin only one train definition is used
@@ -1329,27 +1329,27 @@ func TimeReset(tc *traincontrol.TrainControl) {
 }
 
 // sendSensors send state of sensors wot website (for visualization)
-func sendSensors(tc *traincontrol.TrainControl, sensorsOfInterest [11]int) {
-	for i := 0; i < len(sensorsOfInterest); i++ {
-		if tc.Sensors[sensorsOfInterest[i]].State == false && sensorsOfInterestState[i] == 0 {
-			sensorsOfInterestState[i] = 1
+func sendSensors(tc *traincontrol.TrainControl, TrainPosSensor [11]int) {
+	for i := 0; i < len(TrainPosSensor); i++ {
+		if tc.Sensors[TrainPosSensor[i]].State == false && TrainPosSensorState[i] == 0 {
+			TrainPosSensorState[i] = 1
 
-			log.Println("----------------Sensor active: ", sensorsOfInterest[i])
+			log.Println("----------------Sensor active: ", TrainPosSensor[i])
 			tc.PublishMessage(struct {
-				YellowSensor int `json:"yellowsensor"`
+				YellowSensor int `json:"sensorActive"`
 			}{
-				YellowSensor: sensorsOfInterest[i],
+				YellowSensor: TrainPosSensor[i],
 			})
 		}
 
-		if tc.Sensors[sensorsOfInterest[i]].State == true && sensorsOfInterestState[i] == 1 {
-			sensorsOfInterestState[i] = 0
+		if tc.Sensors[TrainPosSensor[i]].State == true && TrainPosSensorState[i] == 1 {
+			TrainPosSensorState[i] = 0
 
-			log.Println("----------------Sensor inactive: ", sensorsOfInterest[i])
+			log.Println("----------------Sensor inactive: ", TrainPosSensor[i])
 			tc.PublishMessage(struct {
-				WhiteSensor int `json:"whitesensor"`
+				WhiteSensor int `json:"sensorInactive"`
 			}{
-				WhiteSensor: sensorsOfInterest[i],
+				WhiteSensor: TrainPosSensor[i],
 			})
 		}
 	}
