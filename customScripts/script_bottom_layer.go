@@ -1336,7 +1336,7 @@ func sendSensors(tc *traincontrol.TrainControl, sensorsOfInterest [11]int) {
 
 			log.Println("----------------Sensor active: ", sensorsOfInterest[i])
 			tc.PublishMessage(struct {
-				YellowSensor int `json:"YellowSensor"`
+				YellowSensor int `json:"yellowsensor"`
 			}{
 				YellowSensor: sensorsOfInterest[i],
 			})
@@ -1347,7 +1347,7 @@ func sendSensors(tc *traincontrol.TrainControl, sensorsOfInterest [11]int) {
 
 			log.Println("----------------Sensor inactive: ", sensorsOfInterest[i])
 			tc.PublishMessage(struct {
-				WhiteSensor int `json:"WhiteSensor"`
+				WhiteSensor int `json:"whitesensor"`
 			}{
 				WhiteSensor: sensorsOfInterest[i],
 			})
