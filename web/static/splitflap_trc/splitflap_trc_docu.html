@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Splitflap System Documentation</title>
+    <style>
+        :root {
+            --primary: #72ea7a;
+            --secondary: #2980b9;
+            --bg-dark: #1a1a1a;
+            --bg-card: #2d2d2d;
+            --text-main: #f4f4f9;
+            --text-dim: #aaa;
+            --code-bg: #000;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: var(--bg-dark);
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        h2 {
+            color: var(--secondary);
+            margin-top: 40px;
+            border-left: 5px solid var(--secondary);
+            padding-left: 15px;
+            background: rgba(41, 128, 185, 0.1);
+        }
+
+        h3 {
+            color: var(--primary);
+            margin-top: 25px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            border: 1px solid #444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #222;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #444;
+        }
+
+        th {
+            background-color: #333;
+            color: var(--primary);
+        }
+
+        tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #72ea7a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 4px solid var(--secondary);
+        }
+
+        code {
+            font-family: 'Consolas', monospace;
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--primary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .badge-py { background: #3572A5; color: white; }
+        .badge-js { background: #f1e05a; color: black; }
+        .badge-css { background: #563d7c; color: white; }
+
+        ul li {
+            margin-bottom: 10px;
+        }
+
+        .example-box {
+            background: #111;
+            border: 1px dashed var(--primary);
+            padding: 15px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Splitflap Display System Documentation</h1>
+
+    <div class="section">
+        <h2>1. Architecture Overview</h2>
+        <p>This system simulates a mechanical Japanese Splitflap Board (Solari-style). It consists of three main pillars:</p>
+        <ul>
+            <li><span class="badge badge-py">Python (Flask)</span>: The <strong>Controller</strong>. Manages the logic, train queues, and real-time updates.</li>
+            <li><span class="badge badge-js">JavaScript (ES6)</span>: The <strong>Engine</strong>. Handles animations, character rendering, and communication.</li>
+            <li><span class="badge badge-css">CSS3</span>: The <strong>Visuals</strong>. Defines the flip-mechanic, colors, and typography.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>2. Python Test Environment (splitflap_trc_app)</h2>
+        <p>The Python module provides a web-based dashboard to control two rows of flaps simultaneously.</p>
+        
+        <h3>Usage Instructions</h3>
+        <ol>
+            <li>Run <code>python splitflap_trc_app</code> in your project directory.</li>
+            <li>Access the dashboard via <code>http://localhost:8080</code>.</li>
+            <li>Use the <strong>"NEXT TRAIN"</strong> button to trigger the sequence logic.</li>
+        </ol>
+
+        <h3>Automatic Queue Logic</h3>
+        <p>The controller follows a specific "Shift-Up" logic typical for train stations:</p>
+        <ul>
+            <li><strong>Empty Board:</strong> The first train goes to Row 1 (Top).</li>
+            <li><strong>Row 1 occupied:</strong> The next train goes to Row 2 (Bottom).</li>
+            <li><strong>Both occupied:</strong> Row 2's data is pushed to Row 1, and a new train is generated for Row 2.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>3. Communication (PostMessage)</h2>
+        <p>To avoid the "black screen" flicker during updates, the system uses the <code>postMessage</code> API instead of URL refreshes.</p>
+        <p><strong>Mechanism:</strong> The Python dashboard sends an array of 16 strings
