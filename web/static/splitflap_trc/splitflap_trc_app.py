@@ -11,8 +11,10 @@ def get_config_raw():
     try:
         with open(path, 'r', encoding='utf-8') as f:
             content = f.read()
-            config_match = re.search(r'const config = (\{.*?\});', content, re.DOTALL)
-            if config_match: return config_match.group(1)
+            # Suche das config Objekt
+            config_match = re.search(r'const config = (\{[\s\S]*?\n\s*\};)', content)
+            if config_match:
+                return config_match.group(1)
     except: pass
     return "{}"
 
@@ -68,22 +70,111 @@ def index():
 
     <script>
         const config = {{ charsets | safe }};
-        const baseIds = ["Dir", "Track", "Train", "TrainNo", "Destination", "Remark", "Hour", "Minute"];
+        // UI-Parameter (8): Was der Benutzer sieht und steuert
+        window.baseIds = ["Dir", "Track", "Train", "TrainNo", "Destination", "Remark", "Hour", "Minute"];
+        // Intern-Parameter (11): Was an das Frontend gesendet wird
+        const internalBaseIds = ["Dir", "Track", "Train", "TrainNo_1", "TrainNo_2", "TrainNo_3", "TrainNo_4", "Destination", "Remark", "Hour", "Minute"];
         
-        // Status der aktuellen Anzeige (16 Slots)
-        let currentData = Array(16).fill(" ");
+        // Status der aktuellen Anzeige (11 Slots pro Reihe × 2 Reihen = 22 Slots)
+        let currentData = Array(22).fill(" ");
         // Warteschlange für zufällige Züge
         let trainQueue = [];
+        
+        // Füge TrainNo Config für UI-Steuerung hinzu (von config kopieren, wenn nicht vorhanden)
+        if (!config["TrainNo"]) {
+            config["TrainNo"] = {
+                flapCharset: {
+                    chars: [" ", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                    options: {"default": ["weight-300"]}
+                }
+            };
+        }
+        
+        // Mappe UI-Indizes (0-7 pro Reihe) zu Data-Indizes (0-10 pro Reihe)
+        function uiToDataIndex(uiIdx) {
+            const row = Math.floor(uiIdx / 8);
+            const colUI = uiIdx % 8;
+            const rowOffset = row * 11;
+            
+            // UI: Dir(0), Track(1), Train(2), TrainNo(3), Destination(4), Remark(5), Hour(6), Minute(7)
+            // Data: Dir(0), Track(1), Train(2), TrainNo_1(3), TrainNo_2(4), TrainNo_3(5), TrainNo_4(6), Destination(7), Remark(8), Hour(9), Minute(10)
+            const mapping = [0, 1, 2, 3, 7, 8, 9, 10]; // UI Col → Data Col (TrainNo bleibt bei 3)
+            return rowOffset + mapping[colUI];
+        }
+        
+        // Berechne den Bereich für TrainNo in currentData
+        function getTrainNoRange(uiIdx) {
+            const row = Math.floor(uiIdx / 8);
+            const rowOffset = row * 11;
+            return { start: rowOffset + 3, end: rowOffset + 6 }; // Indices 3-6 (bzw. 14-17 in Row 2)
+        }
+        
+        // Reverse-Lookup: Finde den exakten Charset-Wert zu einem gespeicherten Wert
+        function findCharsetValue(charset, storedValue) {
+            // Falls exact match
+            if (charset.indexOf(storedValue) !== -1) return storedValue;
+            // Substring-reverse: wenn storedValue ein Substring eines Charset-Elements ist, nutze es
+            // z.B. storedValue="9", charset enthält "9¾", return "9¾"
+            for (let char of charset) {
+                if (char.includes(storedValue) && storedValue.length < char.length) {
+                    return char;
+                }
+            }
+            return storedValue;
+        }
+        function applyTrainColors(trainValue, trainNoValue) {
+            // Zerlege TrainNo in 4 Ziffern (rechts-aligned)
+            // Verwende Leerzeichen statt Nullen für führende Positionen
+            const trainNoStr = String(trainNoValue).padStart(4, ' ').slice(-4);
+            const result = [];
+            
+            for (let i = 0; i < 4; i++) {
+                const digit = trainNoStr[i];
+                const displayValue = /^\d$/.test(digit) ? digit : " ";
+                result.push(displayValue);
+            }
+            console.log("applyTrainColors() result (no colors):", result);
+            return result;
+        }
 
         function generateRandomTrain() {
-            const train = [];
-            baseIds.forEach(id => {
-                const chars = (config[id] && config[id].flapCharset) ? config[id].flapCharset.chars : ["fw", "bw"];
-                // Zufälligen Index wählen (ohne das erste Leerzeichen, wenn möglich)
-                const randIdx = Math.floor(Math.random() * (chars.length - 1)) + 1;
-                train.push(chars[randIdx] || " ");
-            });
-            return train;
+            // baseIds hat 8 UI-Parameter, aber config hat 11 (mit TrainNo_1-4)
+            // Daher erstelle die Mapping zwischen UI-Parametern und Config-Keys
+            const configKeys = ["Dir", "Track", "Train", "TrainNo_1", "TrainNo_2", "TrainNo_3", "TrainNo_4", "Destination", "Remark", "Hour", "Minute"];
+            const result = [];
+            
+            for (let i = 0; i < configKeys.length; i++) {
+                const configKey = configKeys[i];
+                
+                // TrainNo-Ziffern werden separat behandelt - füge Placeholder für alle 4 ein
+                if (configKey.startsWith("TrainNo_")) {
+                    result.push(null); // Wird später mit Farben gefüllt
+                    continue;
+                }
+                
+                // Andere Parameter
+                const chars = (config[configKey] && config[configKey].flapCharset) ? config[configKey].flapCharset.chars : ["fw", "bw"];
+                // Wähle ein zufälliges Element ab Index 1 (um space zu vermeiden)
+                const randIdx = 1 + Math.floor(Math.random() * (chars.length - 1));
+                result.push(chars[randIdx] || chars[0] || " ");
+            }
+            
+            // Generiere TrainNo zwischen 1 und 9999
+            const trainNo = Math.floor(Math.random() * 9999) + 1;
+            
+            // Wende Farben an und zerlege in 4 Ziffern (Train ist bei Index 2)
+            const trainValue = result[2];  // "のぞみ..." oder ähnlich
+            console.log("generateRandomTrain(): trainValue=", trainValue);
+            const trainNoZiffern = applyTrainColors(trainValue, trainNo);
+            
+            // Ersetze die Placeholders mit den farbigen Ziffern
+            result[3] = trainNoZiffern[0]; // TrainNo_1
+            result[4] = trainNoZiffern[1]; // TrainNo_2
+            result[5] = trainNoZiffern[2]; // TrainNo_3
+            result[6] = trainNoZiffern[3]; // TrainNo_4
+            
+            console.log("generateRandomTrain() result:", result);
+            return result;
         }
 
         // Initial 10 Züge generieren
@@ -98,58 +189,129 @@ def index():
         }
 
         function nextTrain() {
-            const row1Empty = currentData.slice(0,8).every(val => val === " ");
-            const row2Empty = currentData.slice(8,16).every(val => val === " ");
+            const row1Empty = currentData.slice(0, 11).every(val => val === " ");
+            const row2Empty = currentData.slice(11, 22).every(val => val === " ");
+
+            console.log("nextTrain(): row1Empty=" + row1Empty + ", row2Empty=" + row2Empty + ", trainQueue.length=" + trainQueue.length);
 
             if (row1Empty) {
                 // Reihe 1 füllen
                 if (trainQueue.length > 0) {
                     const newTrain = trainQueue.shift();
-                    for(let i=0; i<8; i++) currentData[i] = newTrain[i];
+                    console.log("nextTrain(): Filling Row 1 with:", newTrain);
+                    console.log("  - TrainNo_1-4 (indices 3-6):", newTrain[3], newTrain[4], newTrain[5], newTrain[6]);
+                    for(let i = 0; i < 11; i++) currentData[i] = newTrain[i];
                     trainQueue.push(generateRandomTrain());
                 }
             } else if (row2Empty) {
                 // Reihe 2 füllen
                 if (trainQueue.length > 0) {
                     const newTrain = trainQueue.shift();
-                    for(let i=0; i<8; i++) currentData[i+8] = newTrain[i];
+                    console.log("nextTrain(): Filling Row 2 with:", newTrain);
+                    console.log("  - TrainNo_1-4 (indices 3-6):", newTrain[3], newTrain[4], newTrain[5], newTrain[6]);
+                    for(let i = 0; i < 11; i++) currentData[i + 11] = newTrain[i];
                     trainQueue.push(generateRandomTrain());
                 }
             } else {
                 // Beide voll -> R2 rutscht auf R1, R2 bekommt neuen Zug
-                // 1. R2 Daten nach R1 kopieren
-                for(let i=0; i<8; i++) currentData[i] = currentData[i+8];
-                // 2. Neuen Zug für R2 holen
+                console.log("nextTrain(): Both rows full, shifting and adding new train to Row 2");
+                for(let i = 0; i < 11; i++) currentData[i] = currentData[i + 11];
                 if (trainQueue.length > 0) {
                     const newTrain = trainQueue.shift();
-                    for(let i=0; i<8; i++) currentData[i+8] = newTrain[i];
+                    console.log("nextTrain(): Filling Row 2 with:", newTrain);
+                    console.log("  - TrainNo_1-4 (indices 3-6):", newTrain[3], newTrain[4], newTrain[5], newTrain[6]);
+                    for(let i = 0; i < 11; i++) currentData[i + 11] = newTrain[i];
                     trainQueue.push(generateRandomTrain());
                 }
             }
+            console.log("nextTrain(): currentData after update (Row 1 TrainNo):", currentData[3], currentData[4], currentData[5], currentData[6]);
             sendUpdate();
         }
 
-        // Manuelle Steuerung
-        window.move = function(idx, dir) {
-            const step = parseInt(document.getElementById('jump-step').value) || 1;
-            const id = baseIds[idx % 8];
-            const charset = (config[id] && config[id].flapCharset) ? config[id].flapCharset.chars : [" ", "fw", "bw"];
-            
-            let currentIdx = charset.indexOf(currentData[idx]);
-            if (currentIdx === -1) currentIdx = 0;
-
-            if (dir === 'next') {
-                currentIdx = (currentIdx + step) % charset.length;
-            } else {
-                currentIdx = (currentIdx - step + charset.length) % charset.length;
+        // Manuelle Steuerung - nur für UI-Parameter
+        window.move = function(uiIdx, dir) {
+            try {
+                console.log("move() called with uiIdx=" + uiIdx + ", dir=" + dir);
+                const step = parseInt(document.getElementById('jump-step').value) || 1;
+                const colUI = uiIdx % 8;  // 8 UI-Parameter pro Reihe
+                const id = window.baseIds[colUI];
+                console.log("move(): colUI=" + colUI + ", id=" + id);
+                const charset = (config[id] && config[id].flapCharset) ? config[id].flapCharset.chars : [" ", "fw", "bw"];
+                
+                if (id === "TrainNo") {
+                    // Spezialfall für TrainNo - behandle als 4-stellige Zahl
+                    const range = getTrainNoRange(uiIdx);
+                    
+                    // Kombiniere die 4 Ziffern zu einer Zahl
+                    let trainNo = 0;
+                    for (let i = 0; i < 4; i++) {
+                        const digit = currentData[range.start + i];
+                        trainNo = trainNo * 10 + (digit === " " ? 0 : parseInt(digit));
+                    }
+                    
+                    console.log("move() TrainNo: vorher=" + trainNo + ", step=" + step + ", dir=" + dir);
+                    
+                    // Addiere/Subtrahiere step zur gesamten Zahl
+                    if (dir === 'next') {
+                        trainNo = (trainNo + step) % 10000; // Max 9999
+                    } else {
+                        trainNo = (trainNo - step + 10000) % 10000; // Min 0
+                    }
+                    
+                    console.log("move() TrainNo: nachher=" + trainNo);
+                    
+                    // Zerlege die Nummer wieder in 4 Ziffern
+                    const trainIdx = Math.floor(uiIdx / 8) === 0 ? 2 : 13; // Train Index in currentData
+                    const trainValue = currentData[trainIdx];
+                    const trainNoZiffern = applyTrainColors(trainValue, trainNo);
+                    
+                    // Schreibe die 4 Ziffern zurück
+                    for (let i = 0; i < 4; i++) {
+                        currentData[range.start + i] = trainNoZiffern[i];
+                    }
+                } else {
+                    // Normale Parameter
+                    const dataIdx = uiToDataIndex(uiIdx);
+                    const currentValue = currentData[dataIdx];
+                    console.log("move(): Normale Parameter, dataIdx=" + dataIdx + ", currentValue=" + currentValue);
+                    
+                    // Extrahiere nur die Basis-Ziffer (falls "9¾", nimm "9")
+                    const baseValue = currentValue ? currentValue.split(" ")[0] : " ";
+                    
+                    let currentIdx = charset.indexOf(baseValue);
+                    if (currentIdx === -1) {
+                        // Versuche Substring-Match NICHT für TrainNo!
+                        for (let i = 0; i < charset.length; i++) {
+                            if (charset[i].includes(baseValue)) {
+                                currentIdx = i;
+                                break;
+                            }
+                        }
+                        if (currentIdx === -1) currentIdx = 0;
+                    }
+                    
+                    if (dir === 'next') {
+                        currentIdx = (currentIdx + step) % charset.length;
+                    } else {
+                        currentIdx = (currentIdx - step + charset.length) % charset.length;
+                    }
+                    
+                    // Speichere die Basis-Zahl nur (z.B. "9" für "9¾")
+                    const newExactValue = charset[currentIdx];
+                    const newBaseValue = newExactValue.split(" ")[0];
+                    console.log("move(): Setting index " + dataIdx + " to " + newBaseValue);
+                    currentData[dataIdx] = newBaseValue;
+                }
+                
+                sendUpdate();
+            } catch(e) {
+                console.error("Fehler in move():", e);
             }
-            currentData[idx] = charset[currentIdx];
-            sendUpdate();
         }
 
         function createButtons(containerId, offset) {
             const container = document.getElementById(containerId);
-            baseIds.forEach((id, i) => {
+            window.baseIds.forEach((id, i) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `<h3>${id}</h3><div class="btn-group">
