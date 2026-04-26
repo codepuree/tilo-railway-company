@@ -1,10 +1,10 @@
 // GLOBALE KONFIGURATION - wird von Flask extrahiert!
 const config = {
     "Dir": { 
-        relW: 2, relH: 25, 
+        relW: 2, relH: 25, relTop: 33,
         pos: {
-            "fw": { relTop: 33, relLeft: 10.3 },
-            "bw": { relTop: 33, relLeft: 96.1 } 
+            "fw": { relLeft: 10.3 },
+            "bw": { relLeft: 96.1 } 
             }
     }, 
     "Track": {
@@ -177,12 +177,12 @@ class DirectionIndicator {
     updatePosition(val) {
         if (!this.lastBgDim) return;
 
-        const pos = (this.cfg.pos && this.cfg.pos[val]) ? this.cfg.pos[val] : this.cfg;
+        const pos = (this.cfg.pos && this.cfg.pos[val]) ? this.cfg.pos[val] : {};
         
         const pW = this.lastBgDim.w * (this.cfg.relW / 100);
         const pH = this.lastBgDim.h * (this.cfg.relH / 100);
-        const pT = this.lastBgDim.h * (pos.relTop / 100);
-        const pL = this.lastBgDim.w * (pos.relLeft / 100);
+        const pT = this.lastBgDim.h * ((pos.relTop !== undefined ? pos.relTop : this.cfg.relTop) / 100);
+        const pL = this.lastBgDim.w * ((pos.relLeft !== undefined ? pos.relLeft : this.cfg.relLeft) / 100);
 
         this.$el.css({
             "width": pW + "px",
