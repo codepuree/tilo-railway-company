@@ -14,7 +14,7 @@
         --clr-bg: #222223;
         --clr-inactive: #3c3c3c;
         --clr-active: #e5e5e4;
-        --gap: 8px;
+        --gap: 0.55vh;
     }
 
     *, *::before, *::after {
@@ -88,10 +88,9 @@
 </head>
 
 <body>
-    <header style="grid-area: header; padding: var(--gap);">
-        <object id="header" type="image/svg+xml" data="/static/svg/SplitFlap_Mockup.svg" style="height: 100%; width: 100%; max-height: 100%; max-width: 100%;">
-            Logo
-        </object>
+    <header style="grid-area: header; padding-left: 0; padding-right: 0; position: relative; display: flex; align-items: center; justify-content: center;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('/static/splitflap_trc/bounding.svg'); background-repeat: repeat-x; background-size: auto 100%; background-position: left center; z-index: 0;"></div>
+        <iframe src="/static/splitflap_trc/splitflap_trc.html" style="height: 100%; max-width: 100%; aspect-ratio: 2476 / 393; border: none; background: transparent; position: relative; z-index: 1;"></iframe>
     </header>
     <div style="grid-area: logo; padding: calc(var(--gap) + 3px);" onclick="console.log('test');document.fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()">
         <object id="logo" type="image/svg+xml" data="/static/svg/Logo_light.svg" style="height: 100%; width: 100%; max-height: 100%; max-width: 100%;">

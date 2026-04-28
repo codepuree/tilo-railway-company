@@ -1,0 +1,143 @@
+@import url("https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@300;400;700&display=swap");
+
+body, html {
+    background-color: #303030;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden; 
+}
+
+#main-wrapper {
+    position: relative;
+    width: 100%; 
+    display: block;
+}
+
+#bg-image {
+    display: block;
+    width: 100%; 
+    height: auto;
+}
+
+.flap-anchor {
+    position: absolute;
+    z-index: 10;
+}
+
+.dir-anchor {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dir-anchor img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+}
+
+.trc-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    /* Entferne hier feste Hintergrundfarben, damit die Klassen wirken */
+    background-color: #1f1d1d; 
+    box-shadow: inset 0px 0px 15px rgba(0,0,0,0.8);
+}
+
+.trc-char-wrapper {
+    width: 100%;
+    height: 100%; /* Erzwinge volle Höhe */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.trc-char {
+    font-family: 'Overpass Mono', monospace;
+    text-align: center;
+    line-height: 0.8;
+    white-space: pre;
+    display: block;
+    color: lightgray;
+}
+.weight-300 { font-weight: 300 !important; }
+.weight-400 { font-weight: 400 !important; }
+.weight-700 { font-weight: 700 !important; }
+
+.trc-char.two-lines {
+    line-height: 1.0; /* override default */
+    display: inline-block;
+    vertical-align: middle;
+    width: 100%;
+}
+
+.trc-divider-base {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.trc-divider-line {
+    position: absolute;
+    top: 49%;
+    width: 100%;
+    background-color: #000000;
+    box-shadow: 0 0 2px rgba(0,0,0,0.8);
+}
+
+.trc-link {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%); 
+    background: #000;
+    z-index: 15;
+}
+
+.trc-left { left: 0; }
+.trc-right { right: 0; }
+
+/* Schriftfarben */
+.txt-white      { color: #ffffff !important; }
+.txt-grey       { color: #888888 !important; }
+.txt-darkgrey   { color: #444444 !important; }
+.txt-black      { color: #000000 !important; }
+.txt-yellow     { color: #ffff00 !important; }
+.txt-red        { color: #ff4d4d !important; }
+.txt-green      { color: #00ff00 !important; }
+.txt-pink       { color: #f13392 !important; }
+
+/* Hintergrundfarben */
+.flap-lightcoral                { background-color: lightcoral !important; }
+.flap-lightsteelblue            { background-color: lightsteelblue !important; }
+.flap-lightgreen                { background-color: lightgreen !important; }
+.flap-lightgoldenrodyellow      { background-color: lightgoldenrodyellow !important; }
+.flap-lightsalmon               { background-color: lightsalmon !important; }
+.flap-white                     { background-color: #ffffff !important; }
+.flap-lightgrey                 { background-color: #d3d3d3 !important; }
+.flap-grey                      { background-color: #d3d3d3 !important; }
+.flap-darkgrey                  { background-color: #555555 !important; }
+.flap-black                     { background-color: #000000 !important; }
+.flap-turquoise                 { background-color: #00817b !important; } /* Hayabusa (Tōhoku Shinkansen)*/
+.flap-red                       { background-color: #e60012 !important; } /* Komachi / Narita Express*/
+.flap-blue                      { background-color: #003399 !important;} /* Nozomi / Hikari / Kodama*/
+.flap-yellow                    { background-color: #d4af37 !important;} /* Kagayaki / Shogun*/
+.flap-pink                      { background-color: #f6adcd !important;} /* Sakura / Kyushu Shinkansen*/
+.flap-lightgreen                { background-color: #90ee90 !important;} /* Tsubasa / Yamagata Shinkansen*/
+.flap-green                     { background-color: #72ea7a !important;} /* Mizuho / Hikari Rail Star*/
+.flap-orange                    { background-color: #ff8c00 !important; } /* Sakura / Mizuho / Tsubasa (Kyūshū & Yamagata Shinkansen) */
+.bg-darkred                     { background-color: #7a0000 !important;}
+.bg-black                       { background-color: #1a1a1a !important;} 
+.bg-darkred                     { background-color: #7a0000 !important;}
+
